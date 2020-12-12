@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Checkout cancelled{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-md-4 offset-md-4 mt-4">
+
+					<p>Unfortunately your payment was cancelled. Please <a href="{{ url_for('contact.contact') }}">Contact Us</a> if you require further assisstance.</p>
+
+				</div>
+			</div>
+{% endblock %}

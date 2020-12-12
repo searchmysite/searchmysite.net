@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Add Site via DCV Step 4{% endblock %}
+
+{% block head %}<script src="https://js.stripe.com/v3/"></script>
+<script>
+// Get Stripe publishable key
+fetch("{{ url_for('add.get_publishable_key') }}")
+.then((result) => { return result.json(); })
+.then((data) => {
+	// Initialize Stripe.js
+	const stripe = Stripe(data.publicKey);
+	// Event handler
+	document.querySelector("#submitBtn").addEventListener("click", () => {
+		// Get Checkout Session ID
+		fetch("{{ url_for('add.create_checkout_session') }}")
+		.then((result) => { return result.json(); })
+		.then((data) => {
+		console.log(data);
+		// Redirect to Stripe Checkout
+		return stripe.redirectToCheckout({sessionId: data.sessionId})
+		})
+		.then((res) => {
+		console.log(res);
+		});
+	});
+});
+</script>{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+					<ul class="nav nav-tabs">
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.quick') }}">Quick Add</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.indieauth') }}">Verified Add (IndieAuth)</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link active">Verified Add (DCV)</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="row mt-4">
+				<div class="col-md-6 offset-md-3">
+
+					{% if submission_method == "usernamepassword" %}
+					<ul id="progressbar5step">
+						<li class="active" id="step1of5">Home Page</li>
+						<li class="active" id="step2of5">Login Details</li>
+						<li class="active" id="step3of5">Validate</li>
+						<li class="active" id="step4of5">Payment</li>
+						<li id="step5of5">Complete</li>
+					</ul>
+					{% elif submission_method == "indieauth" %}
+					<ul id="progressbar4step">
+						<li class="active" id="step1of4">Home Page</li>
+						<li class="active" id="step2of4">Email</li>
+						<li class="active" id="step3of4">Payment</li>
+						<li id="step4of4">Complete</li>
+					</ul>
+					{% endif %}
+
+					<p>
+						Ownership of your site has been successfully validated.
+						To begin indexing, please enter your payment details.
+					</p>
+					<button type="submit" class="btn btn-primary" id="submitBtn">Purchase</button>
+
+				</div>
+			</div>
+
+{% endblock %}

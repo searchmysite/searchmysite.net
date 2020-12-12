@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+
+  search:
+    build: "search/"
+    image: search_dev
+    container_name: search_dev
+    restart: always
+    ports:
+      - "8983:8983"
+    volumes:
+      - "../data/solrdata:/var/solr"
+    command: "solr-precreate content /opt/solr/server/solr/configsets/content"
+
+  db:
+    build: "db/"
+    image: db_dev
+    container_name: db_dev
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - "../data/sqldata:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  indexer:
+    build:
+      context: "indexer/"
+      args:
+        - env=dev
+    image: indexer_dev
+    volumes:
+      - "./indexer:/usr/src/app/:ro"
+    depends_on:
+      - search
+      - db
+    tty: true
+    stdin_open: true
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  web:
+    build:
+      context: "web/"
+      args:
+        - env=dev
+    image: web_dev
+    container_name: web_dev
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - search
+      - db
+    volumes:
+      - "./web/content:/usr/local/apache2/htdocs/:ro"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      ENABLE_PAYMENT: ${ENABLE_PAYMENT}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_FROM_PASSWORD: ${SMTP_FROM_PASSWORD}
+      SMTP_TO_EMAIL: ${SMTP_TO_EMAIL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_PRODUCT_ID: ${STRIPE_PRODUCT_ID}
+      STRIPE_ENDPOINT_SECRET: ${STRIPE_ENDPOINT_SECRET}
+

@@ -1,0 +1,7 @@
+scrapy==2.4.0
+beautifulsoup4
+pysolr
+python-dateutil
+psycopg2
+tldextract
+

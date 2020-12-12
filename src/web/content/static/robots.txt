@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /search
+
+User-agent: *
+Disallow: /admin
+
+User-agent: *
+Disallow: /api
+
+User-agent: AhrefsBot
+User-agent: MJ12bot
+User-agent: SemrushBot
+Disallow: /
+

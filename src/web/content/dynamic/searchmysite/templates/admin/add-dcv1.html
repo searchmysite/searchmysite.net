@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Add Site via DCV Step 1{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+					<ul class="nav nav-tabs">
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.quick') }}">Quick Add</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.indieauth') }}">Verified Add (IndieAuth)</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link active">Verified Add (DCV)</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="row mt-4">
+				<div class="col-md-6 offset-md-3">
+
+					{% if config['ENABLE_PAYMENT'] == True %}
+					<ul id="progressbar5step">
+						<li class="active" id="step1of5">Home Page</li>
+						<li id="step2of5">Login Details</li>
+						<li id="step3of5">Validate</li>
+						<li id="step4of5">Payment</li>
+						<li id="step5of5">Complete</li>
+					</ul>
+					{% else %}
+					<ul id="progressbar4step">
+						<li class="active" id="step1of4">Home Page</li>
+						<li id="step2of4">Login Details</li>
+						<li id="step3of4">Validate</li>
+						<li id="step4of4">Complete</li>
+					</ul>
+					{% endif %}
+
+					<form method="post">
+						<div class="form-group">
+							<label for="home_page" class="col-form-label">Home page</label>
+							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
+							<small id="homepage-help" class="form-text text-muted">
+								Enter the home page of your site, as it would appear in your browser address bar. 
+								This is where the indexing will begin, and will be used for your site's entry on the Browse function.
+							</small>
+						</div>
+						<button type="submit" class="btn btn-primary mt-3">Next</button>
+					</form>
+
+				</div>
+			</div>
+
+{% endblock %}

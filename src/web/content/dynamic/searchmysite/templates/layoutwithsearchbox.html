@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block searchbox %}
+			<form action="/search/">
+			<div class="row mt-1">
+				<div class="col-md-4 offset-md-4 pt-3 input-group">
+					<input type="search" class="form-control" placeholder="Search..." name="q" id="query" aria-label="Search query" value="{{ query }}" autofocus>
+					<span class="input-group-append">
+						<button class="input-group-text" type="submit">
+							<img src="/static/images/search.svg" alt="Search" title="Search" />
+						</button>
+					</span>
+				</div>
+			</div>
+			</form>
+
+			<div class="row">
+				<div class="col-lg-12 text-center mt-1">
+					<nav class="navbar navbar-expand-sm justify-content-center">
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/browse/"><span class="d-none d-sm-block">Browse Sites</span><span class="d-block d-sm-none">Browse</span></a>
+							</li>
+						</ul>
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/new/"><span class="d-none d-sm-block">Newest Pages</span><span class="d-block d-sm-none">Newest</span></a>
+							</li>
+						</ul>
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/random/" target="_blank" rel="noopener noreferrer"><span class="d-none d-sm-block">Random Page</span><span class="d-block d-sm-none">Random</span></a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+{% endblock %}
+

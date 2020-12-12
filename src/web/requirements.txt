@@ -1,0 +1,8 @@
+mod-wsgi
+flask
+flask-restx
+psycopg2-binary
+tldextract
+stripe
+# Have to install domcheck from github.com because pip package doesn't yet have fix from 23 Aug 2017 in commit b0d1a1427e22805cea2cedc49039facbb5e516e4
+git+https://github.com/rs/domcheck#egg=domcheck

@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Delete My Site{% endblock %}
+
+{% block content %}
+
+			<div class="row">
+				<div class="col-md-6 offset-md-3">
+
+					<p>
+						This action will delete your site and remove all your pages from the search with immediate effect.
+						It is a "hard" delete so all your data will be completely gone without trace, i.e. there 
+						is no option to undo.
+						Do you want to proceed?
+					</p>
+					<form method="post">
+						<button class="btn btn-primary" type="submit">Yes - delete</button>
+						<a class="btn btn-primary" href="{{ url_for('manage.sitedetails') }}" role="button">No - go back</a>
+					</form>
+
+				</div>
+			</div>
+
+{% endblock %}

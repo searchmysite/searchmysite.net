@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Remove Site{% endblock %}
+
+{% block content %}
+
+			<div class="row">
+				<div class="col-md-6 offset-md-3">
+
+					<p>
+						Enter the domain you would like to remove completely from both the search engine and the database.
+					</p>
+					<form method="post">
+						<div class="form-group">
+							<label for="domain" class="col-form-label">Domain</label>
+							<input type="text" name="domain" class="form-control" id="domain" placeholder="Domain" required autofocus>
+						</div>
+						<button type="submit" class="btn btn-primary mt-3">Remove</button>
+					</form>
+
+				</div>
+			</div>
+
+{% endblock %}

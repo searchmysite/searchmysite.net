@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Add Site{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+					<ul class="nav nav-tabs">
+						<li class="nav-item">
+							<a class="nav-link active">Quick Add</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.indieauth') }}">Verified Add (IndieAuth)</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('add.dcv') }}">Verified Add (DCV)</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="row mt-4">
+				<div class="col-md-6 offset-md-3">
+
+					<form action="{{ url_for('add.quick') }}" method="post">
+						<div class="form-group">
+							<label for="home_page" class="col-form-label">Home page</label>
+							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
+							<small id="homepage-help" class="form-text text-muted">
+								Enter the home page of the site you would like to see indexed.
+							</small>
+						</div>
+						<div class="form-group">
+							<label for="site_category" class="col-form-label">Category</label>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="site_category" id="site_category-personal-website" value="personal-website">
+								<label class="form-check-label" for="site_category-personal-website">
+									Personal website
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="site_category" id="site_category-independent-website" value="independent-website">
+								<label class="form-check-label" for="site_category-independent-website">
+									Independent website
+								</label>
+							</div>
+							<small id="site_category-help" class="form-text text-muted">
+								Confirm site category (only personal and independent sites are currently accepted).
+							</small>
+						</div>
+					<button type="submit" class="btn btn-primary mt-3">Add site</button>
+					</form>
+
+					<br/>
+					<p>
+						Note that if you choose one of the Verified Add options (i.e. IndieAuth or DCV), you will get additional benefits:
+					</p>
+
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col"></th>
+								<th scope="col">Quick Add</th>
+								<th scope="col">Verified Add</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th scope="row">Indexing frequency</th>
+								<td>Every 7 days</td>
+								<td>Every 3.5 days</td>
+							</tr>
+							<tr>
+								<th scope="row">Indexing page limit</th>
+								<td>50 pages</td>
+								<td>500 pages</td>
+							</tr>
+							<tr>
+								<th scope="row">On-demand reindexing</th>
+								<td>No</td>
+								<td>Yes</td>
+							</tr>
+							<tr>
+								<th scope="row">API enabled</th>
+								<td>No</td>
+								<td>Yes</td>
+							</tr>
+							<tr>
+								<th scope="row">Access Manage Site to configure indexing</th>
+								<td>No</td>
+								<td>Yes</td>
+							</tr>
+							<tr>
+								<th scope="row">Cost</th>
+								<td>Free</td>
+								<td>Free until at least 1 Jan 2021*</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<p>
+						If a site is initially added via "Quick Add", ownership can later be verified and benefits obtained by 
+						a subsequent "Verified Add (IndieAuth)" or "Verified Add (DCV)" submission.
+					</p>
+
+					<p><small>* then expected to be GBP12 (approx USD16, EUR13) a year</small></p>
+
+				</div>
+			</div>
+
+{% endblock %}

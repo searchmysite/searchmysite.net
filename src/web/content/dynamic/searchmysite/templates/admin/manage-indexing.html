@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Manage My Site{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+					<ul class="nav nav-tabs">
+						<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('manage.sitedetails') }}">Site details</a>
+						</li>
+						<li class="nav-item">
+						<a class="nav-link active">Indexing</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<form>
+			<div class="row form-group">
+				<label for="indexing_current_status" class="col-sm-2 col-form-label text-right">Indexing current status:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_current_status" value="{{ result['indexing_current_status'] }}" aria-describedby="indexing_current_status_help">
+					<small id="indexing_current_status_help" class="form-text text-muted">
+						The latest status of indexing (RUNNING, COMPLETE, PENDING).
+					</small>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="indexing_status_last_updated" class="col-sm-2 col-form-label text-right">Indexing status last updated:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_status_last_updated" value="{{ result['indexing_status_last_updated']|datetimeformat }}" aria-describedby="indexing_status_last_updated_help">
+					<small id="indexing_status_last_updated_help" class="form-text text-muted">
+						The time the indexing status was last changed.
+					</small>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="indexing_frequency" class="col-sm-2 col-form-label text-right">Indexing frequency:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_frequency" value="{{ result['indexing_frequency'] }}" aria-describedby="indexing_frequency_help">
+					<small id="indexing_frequency_help" class="form-text text-muted">
+						The time period between site reindexing.
+					</small>
+				</div>
+			</div>			
+			<div class="form-group row">
+				<label for="next_reindex" class="col-sm-2 col-form-label text-right">Next reindex:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="next_reindex" value="{{ next_reindex }}" aria-describedby="next_reindex_help">
+					<small id="next_reindex_help" class="form-text text-muted">
+						Earliest start time for the next reindex.
+					</small>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="indexing_page_limit" class="col-sm-2 col-form-label text-right">Indexing page limit:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_page_limit" value="{{ result['indexing_page_limit'] }}" aria-describedby="indexing_page_limit_help">
+					<small id="indexing_page_limit_help" class="form-text text-muted">
+						The maximum number of pages on your domain which will be indexed.
+					</small>
+				</div>
+			</div>
+			</form>
+
+			{% for path in exclude_paths %}
+			<form action="{{ url_for('manage.indexing_delete') }}" method="post">
+			<div class="row form-group">
+				<label for="exclude_path" class="col-sm-2 col-form-label text-right">Exclude path:</label>
+				<div class="col-sm-6">
+					<input type="text" name="delete_exclude_path" readonly class="form-control-plaintext" id="exclude_path" value="{{ path }}" aria-describedby="exclude_path_help">
+				</div>
+				<div class="col-sm-2">
+					<button type="submit" class="btn btn-primary">Delete Path</button>
+				</div>
+			</div>
+			</form>
+			{% endfor %}
+
+			{% if add_path == True %}
+			<form action="{{ url_for('manage.indexing') }}" method="post">
+			<div class="row form-group">
+				<label for="exclude_path" class="col-sm-2 col-form-label text-right">Exclude path:</label>
+				<div class="col-sm-6">
+					<input type="text" name="save_exclude_path" autofocus class="form-control-plaintext" id="exclude_path" value="" aria-describedby="exclude_path_help">
+				</div>
+				<div class="col-sm-2">
+					<button type="submit" class="btn btn-primary">Save Path</button>
+				</div>
+			</div>
+			</form>
+			{% endif %}
+
+			<form action="{{ url_for('manage.indexing') }}" method="post">
+			<div class="row form-group">
+			{% if exclude_paths or add_path == True %}
+				<p class="col-sm-2"></p>
+			{% else %}
+				<label class="col-sm-2 col-form-label text-right">Exclude path:</label>
+			{% endif %}
+				<div class="col-sm-6">
+					<input type="hidden" name="add" value="exclude_path" />
+					<small id="exclude_path_help" class="form-text text-muted">
+						Exclude these paths. Note that this is a regex with an implied .* at the start and end. 
+						To exclude URLs starting "/search/?query=" you would need to escape the ? i.e. "/search/\?query=".
+					</small>
+					<button type="submit" class="btn btn-primary">Add Path</button>
+				</div>
+			</div>
+			</form>
+
+			{% for type in exclude_types %}
+			<form action="{{ url_for('manage.indexing_delete') }}" method="post">
+			<div class="row form-group">
+				<label for="exclude_type" class="col-sm-2 col-form-label text-right">Exclude type:</label>
+				<div class="col-sm-6">
+					<input type="text" name="delete_exclude_type" readonly class="form-control-plaintext" id="exclude_type" value="{{ type }}" aria-describedby="exclude_type_help">
+				</div>
+				<div class="col-sm-2">
+					<button type="submit" class="btn btn-primary">Delete Type</button>
+				</div>
+			</div>
+			</form>
+			{%- endfor %}
+
+			{% if add_type == True %}
+			<form action="{{ url_for('manage.indexing') }}" method="post">
+			<div class="row form-group">
+				<label for="exclude_type" class="col-sm-2 col-form-label text-right">Exclude type:</label>
+				<div class="col-sm-6">
+					<input type="text" name="save_exclude_type" autofocus class="form-control-plaintext" id="exclude_type" value="" aria-describedby="exclude_type_help">
+				</div>
+				<div class="col-sm-2">
+					<button type="submit" class="btn btn-primary">Save Type</button>
+				</div>
+			</div>
+			</form>
+			{% endif %}
+
+			<form action="{{ url_for('manage.indexing') }}" method="post">
+			<div class="row form-group">
+			{% if exclude_types or add_type == True %}
+				<p class="col-sm-2"></p>
+			{% else %}
+				<label class="col-sm-2 col-form-label text-right">Exclude type:</label>
+			{% endif %}
+				<div class="col-sm-6">
+					<input type="hidden" name="add" value="exclude_type" />
+					<small id="exclude_type_help" class="form-text text-muted">
+						Exclude these page types. See documentation for how page types are defined, and use your API to see what are defined for your site.
+					</small>
+					<button type="submit" class="btn btn-primary">Add Type</button>
+				</div>
+			</div>
+			</form>
+
+			<div class="row form-group mt-5">
+				<p class="col-sm-2"></p>
+				<div class="col-sm-6">
+					<a class="btn btn-primary" href="{{ url_for('manage.reindex') }}" role="button">Reindex</a>
+				</div>
+			</div>
+
+
+{% endblock %}

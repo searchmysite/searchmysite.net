@@ -1,0 +1,65 @@
+{% extends "layoutwithsearchbox.html" %}
+
+{% block title %}Search My Site - Results{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+
+				{% if no_of_results_for_display > 0 %}
+					{% if display_query %}
+					<p>{{ no_of_results_for_display }} results for <em>{{ display_query }}</em></p>
+					{% endif %}
+
+					{% for result in results %}
+					<div class="search-result">
+						{% if result['contains_adverts'] %}
+							<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">
+						{% endif %}
+						<p>
+						<h5>{% if result['published_date'] %}{{ result['published_date'] }}:{% endif %}
+						<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
+						</h5>
+						<a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a>
+						{% if result['highlight'] %}
+							<br>{{ result['highlight'][0] }}
+							{% if result['highlight'][2] %}
+							<b>{{ result['highlight'][1] }}</b>{{ result['highlight'][2] }}
+							{% endif %}
+							{% if result['highlight'][4] %}
+							<b>{{ result['highlight'][3] }}</b>{{ result['highlight'][4] }}
+							{% endif %}
+						{% endif %}
+						{% if result['subresults'] %}
+							<small>
+								{% for subresult in result['subresults'] %}
+								<br><a href="{{ subresult['url'] }}" class="result-title">{{ subresult['short_title'] }}</a>
+								{% endfor %}
+								<br><a href="?{{ result['subresults_link'] }}" class="result-title">{{ result['subresults_link_text'] }}</a>
+							</small>
+						{% endif %}
+						</p>
+					</div>
+					{% endfor %}
+
+					<nav aria-label="Page navigation">
+						<ul class="pagination pg-blue justify-content-center">
+						{% for page in pagination %}
+							{% if pagination[page] and link_query %}
+								<li class="page-item"><a class="page-link" href="?{{link_query}}&p={{pagination[page]}}">{{ page }}</a></li>
+							{% elif pagination[page] %}
+								<li class="page-item"><a class="page-link" href="?p={{pagination[page]}}">{{ page }}</a></li>
+							{% else %}
+								<li class="page-item active"><a class="page-link">{{ page }}</a></li>
+							{% endif %}
+						{% endfor %}
+						</ul>
+					</nav>
+
+				{% else %}
+				<p>No results found for <em>{{ display_query }}</em>.</p>
+				{% endif %}
+
+				</div>
+			</div>
+{% endblock %}

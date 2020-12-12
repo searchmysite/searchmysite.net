@@ -1,0 +1,89 @@
+body {
+  padding: 0;
+  margin: 0;
+}
+html {
+  overflow-y: scroll;
+  min-height: 100%;
+}
+.nav-link, a.result-title {
+  color: #1A0DAB;
+}
+a.result-link {
+  color: #006400;
+}
+
+#progressbar3step, #progressbar4step, #progressbar5step {
+  margin-bottom: 30px;
+  overflow: hidden;
+  color: lightgrey;
+  padding-inline-start: 0px;
+}
+#progressbar3step .active, #progressbar4step .active, #progressbar5step .active {
+  color: #000000
+}
+#progressbar3step li {
+  list-style-type: none;
+  width: 33%;
+  float: left;
+  position: relative;
+  text-align: center;
+}
+#progressbar4step li {
+  list-style-type: none;
+  width: 25%;
+  float: left;
+  position: relative;
+  text-align: center;
+}
+#progressbar5step li {
+  list-style-type: none;
+  width: 20%;
+  float: left;
+  position: relative;
+  text-align: center;
+}
+#progressbar3step #step1of3:before, #progressbar4step #step1of4:before, #progressbar5step #step1of5:before {
+  content: "1"
+}
+#progressbar3step #step2of3:before, #progressbar4step #step2of4:before, #progressbar5step #step2of5:before {
+  content: "2"
+}
+#progressbar3step #step3of3:before, #progressbar4step #step3of4:before, #progressbar5step #step3of5:before {
+  content: "3"
+}
+#progressbar4step #step4of4:before, #progressbar5step #step4of5:before {
+  content: "4"
+}
+#progressbar5step #step5of5:before {
+  content: "5"
+}
+#progressbar3step li:before, #progressbar4step li:before, #progressbar5step li:before {
+  width: 50px;
+  height: 50px;
+  line-height: 45px;
+  display: block;
+  color: #ffffff;
+  background: lightgray;
+  border-radius: 50%;
+  margin: 0 auto 10px auto;
+  padding: 2px
+}
+#progressbar3step li:after, #progressbar4step li:after, #progressbar5step li:after {
+  content: '';
+  width: 100%;
+  height: 2px;
+  background: lightgray;
+  position: absolute;
+  left: 0;
+  top: 25px;
+  z-index: -1
+}
+#progressbar3step li.active:before,
+#progressbar3step li.active:after,
+#progressbar4step li.active:before,
+#progressbar4step li.active:after,
+#progressbar5step li.active:before,
+#progressbar5step li.active:after {
+  background: skyblue
+}

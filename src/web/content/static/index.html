@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta name="description" content="Search My Site - Simple search for personal websites">
+	<title>Search My Site</title>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/custom.css"/>
+	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
+	<script src="/static/js/jquery-3.5.1.slim.min.js"></script>
+	<script src="/static/js/bootstrap.min.js"></script>
+	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
+</head>
+<body>
+
+	<header>
+		<nav class="navbar navbar-expand-sm navbar-light bg-light">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item">
+					<a class="nav-link navbar-brand disabled" href="/">Search My Site</a>
+				</li>
+			</ul>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse flex-grow-0" id="topnav">
+				<ul class="navbar-nav text-right">
+					<li class="nav-item">
+						<a class="nav-link" href="/admin/add/">Add Site</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/admin/manage/">Manage Site</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+
+	<main>
+		<div class="container-fluid h-100">
+
+			<form action="/search/">
+			<div class="row">
+				<div class="col-md-4 offset-md-4 mt-5 pt-3 input-group">
+					<input type="search" class="form-control" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
+					<span class="input-group-append">
+						<button class="input-group-text" type="submit">
+							<img src="/static/images/search.svg" alt="Search" title="Search" />
+						</button>
+					</span>
+				</div>
+			</div>
+			</form>
+
+			<div class="row">
+				<div class="col-lg-12 text-center mt-1">
+					<nav class="navbar navbar-expand-sm justify-content-center">
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/browse/"><span class="d-none d-sm-block">Browse Sites</span><span class="d-block d-sm-none">Browse</span></a>
+							</li>
+						</ul>
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/new/"><span class="d-none d-sm-block">Newest Pages</span><span class="d-block d-sm-none">Newest</span></a>
+							</li>
+						</ul>
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="/search/random/" target="_blank" rel="noopener noreferrer"><span class="d-none d-sm-block">Random Page</span><span class="d-block d-sm-none">Random</span></a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4 offset-md-4 mt-5 text-center">
+					<p>Independent open source search engine and search&nbsp;as&nbsp;a&nbsp;service</p>
+					<small>
+						Tip: try searching for hobbies or interests.
+					</small>
+				</div>
+			</div>
+
+		</div>
+	</main>
+
+	<footer class="footer mt-5">
+		<nav class="navbar fixed-bottom navbar-light bg-light justify-content-center">
+			<ul class="nav flex-column ml-5 mr-5">
+				<li class="nav-item p-1">Community</li>
+				<li class="nav-item p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
+				<li class="nav-item p-1"><a href="/admin/contact/">Contact</a></li>
+				<li class="nav-item p-1"><a href="/pages/documentation/">Documentation</a></li>
+			</ul>
+			<ul class="nav flex-column ml-5 mr-5">
+				<li class="nav-item p-1">Product</li>
+				<li class="nav-item p-1"><a href="/pages/about/">About</a></li>
+				<li class="nav-item p-1"><a href="/pages/privacy/">Privacy</a></li>
+				<li class="nav-item p-1"><a href="/pages/terms/">Terms</a></li>
+			</ul>
+		</nav>
+	</footer>
+
+</body>
+</html>

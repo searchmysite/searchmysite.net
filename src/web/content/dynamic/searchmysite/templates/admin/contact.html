@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Contact{% endblock %}
+
+{% block content %}
+
+			<form method="post" class="mb-4">
+			<div class="row mt-4">
+				<div class="col">
+					<div class="form-group">
+						<label for="name" class="col-form-label">Name</label>
+						<input type="text" name="name" class="form-control" id="name" placeholder="Your name">
+					</div>
+				</div>
+				<div class="col">
+					<div class="form-group">
+						<label for="email" class="col-form-label">Email</label>
+						<input type="email" name="email" class="form-control" id="email" placeholder="Your email" required>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<div class="form-group">
+						<label for="reason" class="col-form-label">Reason</label>
+						<select name="reason" id="reason" class="form-control">
+							<option value="general">General question/comment</option>
+							<option value="idea">I've got an idea for an improvement</option>
+							<option value="query-rejected">Quick Add says &quot;previously submitted but rejected&quot; and I'd like to query this</option>
+							<option value="request-removal">Someone added my site via Quick Add and I'd like it removed</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<div class="form-group">
+						<label for="additional-info" class="col-form-label">Additional information, e.g. site home page</label>
+						<input type="text" name="additional-info" class="form-control" id="additional-info" placeholder="Additional information">
+					</div>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary mt-3">Submit</button>
+			</form>
+
+			<p>
+				See also contact details on my personal website at <a href="https://michael-lewis.com/">https://michael-lewis.com/</a>.
+			</p>
+
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends "layoutwithsearchbox.html" %}
+
+{% block title %}Search My Site - Documentation{% endblock %}
+
+{% block content %}
+			<div class="row mt-5">
+				<div class="col-md-10 offset-md-1">
+
+					<h2>Documentation</h2>
+
+					<h3 id="contents">Contents</h3>
+					<ul>
+						<li><a href="#faqs">Frequently asked questions</a></li>
+						<li><a href="#query-syntax">Query syntax</a></li>
+						<li><a href="#fields">Fields</a></li>
+						<li><a href="#indexing">Indexing</a></li>
+						<li><a href="#relevancy">Relevancy tuning</a></li>
+						<li><a href="#api">API</a></li>
+					</ul>
+
+					<h3 id="faqs">Frequently asked questions</h3>
+
+					<h5 id="what-types-of-site">What types of site can be submitted?</h5>
+					<p>
+						See the Submission Guidelines section in the <a href="/pages/terms/">Terms of Use</a> for information on what 
+						types of site can be submitted.
+					</p>
+
+					<h5 id="how-do-i-add">How do I add a site that is not already listed?</h5>
+					<p>
+						Use the <a href="/admin/add/">Add Site</a> link at the top. There are two main options:
+						Quick Add and Verified Add. The Quick Add lets anyone submit any site simply by entering the home page, although it needs
+						to pass an approval process after submission before it is indexed. The Verified Add options can only be used by the site owner, 
+						who needs to verify that they own the site.
+					</p>
+
+					<h5 id="how-do-i-verify">How do I verify ownership of a site?</h5>
+					<p>
+						The easiest way to prove ownership is to use <a href="https://indieweb.org/IndieAuth">IndieAuth</a>, but 
+						if you don't have that set up you can still submit your site with a Domain Control Validation (DCV) 
+						process similar to that which you may have used for other services,
+						i.e. you upload a specific piece of content to the domain's root or TXT record. 
+						The <a href="/admin/add/">Add Site</a> link will guide you through the process.
+					</p>
+
+					<h5 id="how-do-i-verify-already-listed">How do I verify ownership of an already listed site to access the verified owner benefits?</h5>
+					<p>
+						Use the <a href="/admin/add/">Add Site</a> link at the top and choose one of the Verified Add options described above.
+					</p>
+
+					<h5 id="how-do-i-check">How do I check on the status of a site I submitted via Quick Add?</h5>
+					<p>
+						Given there is no user tracking on Quick Add (see <a href="/pages/privacy/">Privacy Policy</a>) 
+						it isn't possible to notify you of changes to your submission directly. However, you can resubmit 
+						the site and see what the message is, i.e. it is now being indexed, still pending review, or rejected 
+						(along with rejection reason).
+					</p>
+
+					<h5 id="how-frequently">How frequently are sites reindexed?</h5>
+					<p>
+						At the moment, sites added via the Quick Add are reindexed weekly, and Verified Add are reindexed 
+						twice weekly (verified owners can also trigger reindexes on demand). The <a href="/admin/add/quick/">Quick Add</a> 
+						page has a summary of the differences.
+					</p>
+
+
+
+					<h3 id="query-syntax">Query syntax</h3>
+
+					<p>
+						<em>Individual words</em>: e.g. <strong>antarctica</strong>. If there are two words,
+						e.g. <strong>antarctica book</strong>, it will search for them both but not as a phrase, and if 
+						there are three or more words, e.g. <strong>book about antarctica</strong>, it will search for a minimum of 
+						two of the words, e.g. in this example that could include pages with "book" and "about" but not "antarctica". 
+					</p>
+
+					<p>
+						<em>Phrase search</em>: enclose phrase in double quotes to search for the exact phrase, 
+						e.g. <strong>"book about antarctica"</strong>
+					</p>
+
+					<p>
+						<em>Boolean search</em>: use AND, &&, NOT, !, OR, ||, + and -, with ( and ) to group queries, 
+						e.g. for pages which contain the keywords antarctica and book use <strong>antarctica AND book</strong>, 
+						or pages with antarctica and book but not movie use <strong>antarctica AND book !movie</strong>
+					</p>
+
+					<p>
+						<em>Wildcard search</em>: * for multiple characters, and ? for single characters, e.g. <strong>*arctic*</strong>
+					</p>
+
+					<p>
+						<em>Filters</em>: name:value, e.g. for all the pages on the michael-lewis.com domain which contain the word 
+						antarctica use <strong>domain:michael-lewis.com AND antarctica</strong>, 
+						or for all the article type pages on the michael-lewis.com domain use <strong>domain:michael-lewis.com AND type:article</strong>.
+						See below for full list of field names.
+					</p>
+
+					<p>
+						<em>Other searches</em>: e.g. fuzzy searches, proximity searches, range searches, boost, etc. see 
+						<a href="https://lucene.apache.org/solr/guide/8_6/the-standard-query-parser.html">The Standard Query Parser</a>
+						and <a href="https://lucene.apache.org/solr/guide/6_6/the-extended-dismax-query-parser.html">The Extended DisMax Query Parser</a>.
+					</p>
+
+					<h3 id="fields">Fields</h3>
+
+					<table class="table">
+						<thead>
+						<tr>
+							<th scope="col">Name</th>
+							<th scope="col">Notes</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td>url</td>
+							<td>Uniform Resource Locator, i.e. address of the web page.</td>
+						</tr>
+						<tr>
+							<td>domain</td>
+							<td>The domain to which the page belongs.</td>
+						</tr>
+						<tr>
+							<td>is_home</td>
+							<td>Boolean value, i.e. true or false. If true, indicates that the page is the home page for the domain.</td>
+						</tr>
+						<tr>
+							<td>title</td>
+							<td>Extracted from the title tag.</td>
+						</tr>
+						<tr>
+							<td>author</td>
+							<td>Extracted from meta name="author".</td>
+						</tr>
+						<tr>
+							<td>description</td>
+							<td>Extracted from meta name="description" or meta property="og:description".</td>
+						</tr>
+						<tr>
+							<td>tags</td>
+							<td>Multivalued. Extracted from meta name="keywords" or meta property="article:tag".</td>
+						</tr>
+						<tr>
+							<td>content</td>
+							<td>Text extracted from the main tag, or article tag, or body tag, with text from any nav, header and/or footer tags removed.</td>
+						</tr>
+						<tr>
+							<td>page_type</td>
+							<td>Extracted from meta property="og:type" or article data-post-type=.</td>
+						</tr>
+						<tr>
+							<td>page_last_modified</td>
+							<td>Extracted from the Last-Modified HTTP header.</td>
+						</tr>
+						<tr>
+							<td>published_date</td>
+							<td>Extracted from meta property="article:published_time" or meta name="dc.date.issued".</td>
+						</tr>
+						<tr>
+							<td>date_domain_added</td>
+							<td>Date and time the domain was first added to the system for indexing. Only present on pages where is_home=true.</td>
+						</tr>
+						<tr>
+							<td>owner_verified</td>
+							<td>Boolean value, i.e. true or false. If true, indicates that the page is from a site which has been verified by the owner.</td>
+						</tr>
+						<tr>
+							<td>contains_adverts</td>
+							<td>Boolean value, i.e. true or false. If true, indicates that adverts have been detected on the page.</td>
+						</tr>
+						<tr>
+							<td>language</td>
+							<td>Extracted from html lang=.</td>
+						</tr>
+						<tr>
+							<td>language_primary</td>
+							<td>Language family, derived from the language attribute, e.g. if language=en-GB then language_primary=en.</td>
+						</tr>
+						<tr>
+							<td>indexed_inlinks</td>
+							<td>Multivalued. Pages which link to this page (from other domains within the search index, 
+								i.e. not from this domain or domains which aren't indexed).</td>
+						</tr>
+						<tr>
+							<td>indexed_outlinks</td>
+							<td>Multivalued. Pages to which this page links (to other domains within the search index, 
+								i.e. not to this domain or domains which aren't indexed).</td>
+						</tr>
+						<tr>
+							<td>indexed_inlink_domains</td>
+							<td>Multivalued. Unique domains in indexed_inlinks.</td>
+						</tr>
+						</tbody>
+					</table>
+
+					<h3 id="indexing">Indexing</h3>
+
+					<p>
+						The indexing process begins by loading the home page and following links to other pages within the same domain. If present, 
+						settings in robots.txt are obeyed, and links can be extracted from a sitemap.xml.
+					</p>
+					<p>
+						Each domain can be configured to exclude certain pages from indexing, based on:
+						<ul>
+							<li>path: i.e. URLs containing a certain string.</li>
+							<li>type: i.e. values from the page_type field described above.</li>
+						</ul> 
+						This might be useful to, for example, filter out micro blog entries which have a particular path or type. 
+					</p>
+					<p>
+						The indexing process continues in a depth first manner until there are no further pages to index or until the indexing page limit 
+						for the domain is reached.
+					</p>
+
+					<h3 id="relevancy">Relevancy tuning</h3>
+
+					<p>
+						The following fields are used to determine how results are ranked:
+						title, tags, description, url, author, content, contains_adverts, owner_verified and indexed_inlinks_count.
+						There is further discussion of the relevancy tuning on some of the blog posts, and the plan is to make the source available 
+						for complete transparency.
+					</p>
+
+					<h3 id="api">API</h3>
+
+					<p>
+						OpenAPI Spec: <a href="https://searchmysite.net/api/">https://searchmysite.net/api/</a>
+					</p>
+					<p>
+						In summary, queries take the form /api/v1/search/&lt;domain&gt;?q=*, where parameters are:
+						<ul>
+							<li>&lt;domain&gt;: the domain being searched (mandatory)</li>
+							<li>q: query string (mandatory)</li>
+							<li>page: the page number which multi-page results should start from (optional, default 1)</li>
+							<li>resultsperpage: the number of results per page (optional, default 10)</li>
+						</ul>		
+					</p>
+					<p>
+						And results are returned in the following format:
+					</p>
+					<pre><code>
+{
+	"params": {
+		"q": "*",
+		"page": 1,
+		"resultsperpage": 10,
+	}
+	"totalresults": 40,
+	"results": [
+		{
+			"id": "https://...",
+			"url": "https://...",
+			"title": "...",
+			...
+		}
+	]
+}
+					</code></pre>	
+
+				</div>
+			</div>
+{% endblock %}
