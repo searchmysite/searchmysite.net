@@ -27,7 +27,7 @@ def contact():
             text += 'Additional information: {}'.format(info)
             success_status = send_email(email, None, subject, text)
             if success_status:
-                return render_template('admin/contact-success.html', title="Contact Success", message="<p>Thank you for your question/comment. I hope to get back to you shortly.</p>")
+                return render_template('admin/success.html', title="Contact Success", message="<p>Thank you for your question/comment. I hope to get back to you shortly.</p>")
             else:
                 message = 'Error, message not sent.'
                 flash(message)
