@@ -86,7 +86,7 @@ def check_domains():
             else:
                 domain = line.lower()
                 home_page = "http://" + domain + "/"
-            print("{}, {}, ".format(domain, home_page), end='')
+            print('{}, {}, '.format(domain, home_page), end='')
 
             # Step 2: Get response
             try:
@@ -170,12 +170,26 @@ def check_domains():
 
     f.close()
 
-# This is copied from ../../web/content/dynamic/admin/util.py - if that is updated this should be too
+# This is copied from ../../web/content/dynamic/searchmysite/util.py - if that is updated this should be too
+# Only conn line is changed
+domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 def extract_domain(url):
+    # Get the domain from the URL
+    if not url: url =""
     tld = tldextract.extract(url) # returns [subdomain, domain, suffix]
     domain = '.'.join(tld[1:]) if tld[2] != '' else tld[1] # if suffix empty, e.g. localhost, just use domain
     domain = domain.lower() # lowercase the domain to help prevent duplicates
-    if domain == "github.io" or domain == "gitlab.io" or domain == "netlify.app": # special domains where a site can be on a subdomain
+    # Look up list of domains which allow subdomains from database
+    domains_allowing_subdomains = []
+#    conn = get_db()
+    conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(domains_allowing_subdomains_sql)
+    results = cursor.fetchall()
+    for result in results:
+        domains_allowing_subdomains.append(result['setting_value'])
+    # Add subdomain if in domains_allowing_subdomains
+    if domain in domains_allowing_subdomains: # special domains where a site can be on a subdomain
         if tld[0] and tld[0] != "":
             domain = tld[0] + "." + domain
     return domain
