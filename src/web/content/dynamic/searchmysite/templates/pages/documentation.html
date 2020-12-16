@@ -92,7 +92,7 @@
 					<p>
 						<em>Filters</em>: name:value, e.g. for all the pages on the michael-lewis.com domain which contain the word 
 						antarctica use <strong>domain:michael-lewis.com AND antarctica</strong>, 
-						or for all the article type pages on the michael-lewis.com domain use <strong>domain:michael-lewis.com AND type:article</strong>.
+						or for all the article type pages on the michael-lewis.com domain use <strong>domain:michael-lewis.com AND page_type:article</strong>.
 						See below for full list of field names.
 					</p>
 
@@ -196,36 +196,36 @@
 					<h3 id="indexing">Indexing</h3>
 
 					<p>
-						The indexing process begins by loading the home page and following links to other pages within the same domain. If present, 
-						settings in robots.txt are obeyed, and links can be extracted from a sitemap.xml.
+						The indexing process respects the rules in robots.txt, so the indexing process begins by checking that file. 
+						Indexing then progresses accordingly, normally starting with the home page and following links to other pages 
+						within the same domain. The indexing process continues in a depth first manner until there are no further pages 
+						to index or until the indexing page limit for the domain is reached.
 					</p>
 					<p>
-						Each domain can be configured to exclude certain pages from indexing, based on:
+						If you want to exclude certain pages from indexing, you would normally do this via robots.txt. Verified site 
+						owners can in addition configure their listing to exclude content based on:
 						<ul>
 							<li>path: i.e. URLs containing a certain string.</li>
 							<li>type: i.e. values from the page_type field described above.</li>
 						</ul> 
 						This might be useful to, for example, filter out micro blog entries which have a particular path or type. 
 					</p>
-					<p>
-						The indexing process continues in a depth first manner until there are no further pages to index or until the indexing page limit 
-						for the domain is reached.
-					</p>
 
 					<h3 id="relevancy">Relevancy tuning</h3>
 
 					<p>
 						The following fields are used to determine how results are ranked:
-						title, tags, description, url, author, content, contains_adverts, owner_verified and indexed_inlinks_count.
-						There is further discussion of the relevancy tuning on some of the blog posts, and the plan is to make the source available 
+						title, description, author, tags, url, content, indexed_inlink_domains_count, contains_adverts and owner_verified.
+						There is further discussion of the relevancy tuning on some <a href="https://blog.searchmysite.net/">Blog</a> posts, 
+						and of course the <a href="https://github.com/searchmysite/searchmysite.net">Source code</a> is available 
 						for complete transparency.
 					</p>
 
 					<h3 id="api">API</h3>
 
-					<p>
-						OpenAPI Spec: <a href="https://searchmysite.net/api/">https://searchmysite.net/api/</a>
-					</p>
+					<p><!--
+						OpenAPI Spec: <a href="https://searchmysite.net/api/v1/">https://searchmysite.net/api/v1/</a>
+					--></p>
 					<p>
 						In summary, queries take the form /api/v1/search/&lt;domain&gt;?q=*, where parameters are:
 						<ul>
