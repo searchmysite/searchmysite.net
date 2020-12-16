@@ -1,4 +1,4 @@
-FROM solr:8.6.3-slim
+FROM solr:8.7.0-slim
 
 # Copy the custom config files in. Note that in order to create the collection with this config, 
 # we need to do a docker run with "solr-precreate content /opt/solr/server/solr/configsets/content"
