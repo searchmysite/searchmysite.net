@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export PYTHONPATH=~/projects/searchmysite/src/web/content/dynamic/
-export FLASK_APP=~/projects/searchmysite/src/web/content/dynamic/searchmysite
-set -a; source ~/projects/searchmysite/src/.env; set +a
+export PYTHONPATH=~/projects/searchmysite.net/src/web/content/dynamic/
+export FLASK_APP=~/projects/searchmysite.net/src/web/content/dynamic/searchmysite
+set -a; source ~/projects/searchmysite.net/src/.env; set +a
 
 echo "Unit test"
 pytest web/unit/test_adminutil.py
