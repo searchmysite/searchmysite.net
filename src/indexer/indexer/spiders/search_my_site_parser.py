@@ -126,6 +126,7 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # published_date
     published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
     if not published_date: published_date = response.xpath('//meta[@name="dc.date.issued"]/@content').get()
+    if not published_date: published_date = response.xpath('//meta[@itemprop="datePublished"]/@content').get()
     published_date = convert_string_to_utc_date(published_date)
     item['published_date'] = published_date
 
