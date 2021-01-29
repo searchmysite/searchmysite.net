@@ -38,7 +38,12 @@ class SearchMySiteScript(CrawlSpider):
         deny = []
         for exclusion in self.exclusions:
             if exclusion['exclusion_type'] == 'path':
-                deny.append(exclusion['exclusion_value'])
+                exclusion_value = exclusion['exclusion_value']
+                if exclusion_value == '*.xml':
+                    exclusion_value = '.xml$'
+                    self.logger.info('Changing *.xml in deny path to .xml$')
+                deny.append(exclusion_value)
+        self.logger.info('Deny path {}'.format(deny))
         # Rules:
         # only index pages on the same domain
         # deny paths as per above
@@ -46,6 +51,7 @@ class SearchMySiteScript(CrawlSpider):
         # Might want to restrict indexing to sub pages of the home page at some point, 
         # e.g. if home is https://www.fieggen.com/shoelace/index.htm restrict to pages that start https://www.fieggen.com/shoelace/
         # this could potentially be implemented with a process_value rule
+
         self.rules = (
             Rule(
                 LinkExtractor(allow_domains=self.allowed_domains, deny=deny, deny_extensions=IGNORED_EXTENSIONS), 
