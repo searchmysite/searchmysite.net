@@ -4,7 +4,7 @@ This repository contains the complete codebase for [https://searchmysite.net/](h
 
 You can use this repository to:
 - See exactly how searchmysite.net works, e.g. inspect the code for indexing, relevancy tuning, search queries etc.
-- Help improve the searchmysite.net service, e.g. by reporting issues, suggesting improvements, or implementing fixes or enhancements. See Contributing.
+- Help improve the searchmysite.net service, e.g. by reporting issues, suggesting improvements, or implementing fixes or enhancements. See [Contributing](CONTRIBUTING.md).
 - Set up your own instance to provide a fully open and independent search for another part of the internet.
 
 
