@@ -1,6 +1,6 @@
 # How to contribute 
 
-Thanks for reading this far. Contributions of all types are welcome, from reporting issues, to suggesting improvements, or implementing fixes or enhancements. This document lays out some rough guidelines for how to do so. It is fairly brief as it is a new project, but more detail will be added her eover time if necessary.
+Thanks for reading this far. Contributions of all types are welcome, from reporting issues, to suggesting improvements, or implementing fixes or enhancements. This document lays out some rough guidelines for how to do so. It is fairly brief as it is a new project, but more detail will be added here over time if necessary.
 
 
 ## Reporting issues and suggesting improvements
