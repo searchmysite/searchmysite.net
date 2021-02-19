@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import datetime
 from urllib.parse import urlsplit
 from indexer.spiders.search_my_site_parser import customparser
+import re
 
 # extensions which have caused issues
 IGNORED_EXTENSIONS += ['jar', 'json', 'cbr'] 
@@ -39,15 +40,16 @@ class SearchMySiteScript(CrawlSpider):
         for exclusion in self.exclusions:
             if exclusion['exclusion_type'] == 'path':
                 exclusion_value = exclusion['exclusion_value']
-                if exclusion_value == '*.xml':
-                    exclusion_value = '.xml$'
-                    self.logger.info('Changing *.xml in deny path to .xml$')
+                if '*.' in exclusion_value: # A *. in the deny parameter on LinkExtractor seems to block all indexing so need to find and replace with a safe alternative
+                    old_exclusion_value = exclusion_value
+                    exclusion_value = re.sub('^\*\.(\w+)$', r'.\1$', exclusion_value) # replace e.g. '*.xml' with '.xml$', '*.json' with '.json$' etc.
+                    self.logger.info('Changing {} in deny path to {}'.format(old_exclusion_value, exclusion_value))
                 deny.append(exclusion_value)
         self.logger.info('Deny path {}'.format(deny))
         # Rules:
         # only index pages on the same domain
         # deny paths as per above
-        # use an extended IGNORED_EXTENSIONS list which also jar etc. files
+        # use an extended IGNORED_EXTENSIONS list which also includes jar etc. files
         # Might want to restrict indexing to sub pages of the home page at some point, 
         # e.g. if home is https://www.fieggen.com/shoelace/index.htm restrict to pages that start https://www.fieggen.com/shoelace/
         # this could potentially be implemented with a process_value rule
