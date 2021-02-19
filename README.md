@@ -227,7 +227,11 @@ Note that if you add new fields to the Solr schema which are to be used in the r
 
 ## Testing
 
-The tests are run with pytest on a local Flask instance, so you will need to set up a local Flask instance as per the "Making changes on local dev" / "Web changes" section above.
+The tests are run with pytest on a local Flask instance, so you will need to install pytest and set up a local Flask instance as per the "Making changes on local dev" / "Web changes" section above. If you have ENABLE_PAYMENT=True, you will also need to setup Selenium and WebDriver, because the Stripe integration involves buttons which execute JavaScript, e.g.:
+```
+pip3 install selenium
+pip3 install chromedriver-py
+```
 
 There are two test scripts:
 - `clean_test_env.sh` - shuts down any dev docker instances, rebuilds and starts the clean test docker instances.
@@ -235,7 +239,7 @@ There are two test scripts:
 
 The pytest scripts:
 - submit and approve a site via Quick Add
-- submit a site via Verified Add (DCV)
+- submit a site via Verified Add (DCV), including making a test payment to the Stripe account specified with the STRIPE_* variables if ENABLE_PAYMENT=True
 - search the newly indexed sites
 - remove the test sites
 
@@ -246,7 +250,7 @@ cd ~/projects/searchmysite.net/tests
 ./run_tests.sh
 ```
 
-The indexing step will take minute or two, given it is performing indexing of real sites.
+The indexing step will take minute or two, given it is performing indexing of real sites, and if ENABLE_PAYMENT=True you'll see a browser pop up which takes a few seconds to open and close.
 
 If the tests succeed, it will leave the environment in the same state it was at the start, i.e. it cleans up after itself, so you don't need to run `clean_test_env.sh` before `run_tests.sh` again. If however, the tests fail, you will need to rerun `clean_test_env.sh`. For the same reason, if you accidentally run `run_tests.sh` against the dev rather than test env, e.g. because you didn't run `clean_test_env.sh` first, then if the tests succeed then the environment will be fine. It is better to use the test docker environment though because this provides a known clean starting point, and ensures the scheduled reindexing doesn't interfere with the indexing in the testing.
 
