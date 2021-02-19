@@ -12,6 +12,11 @@ html {
 a.result-link {
   color: #006400;
 }
+h1.normal {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
 
 #progressbar3step, #progressbar4step, #progressbar5step {
   margin-bottom: 30px;
