@@ -4,6 +4,7 @@ import flask
 from werkzeug.security import generate_password_hash
 import os
 from searchmysite import create_app
+from os import environ
 
 # Admin user for testing
 # It is a non-existant domain, just to create a username that won't conflict with any real domains used for testing
@@ -44,6 +45,18 @@ def verifiedadd_details():
 update_validation_key_sql = "UPDATE tblPendingDomains SET validation_key = (%s) WHERE domain = (%s);"
 update_indexing_page_limit_sql = "UPDATE tblIndexedDomains SET indexing_page_limit = (%s) WHERE domain = (%s);"
 
+# Payment testing details
+server_url = "http://localhost:8080"
+@pytest.fixture
+def payment_details():
+    pytest.server_url = server_url
+    ENABLE_PAYMENT = environ.get('ENABLE_PAYMENT')
+    if ENABLE_PAYMENT.lower() == "true" or ENABLE_PAYMENT == "1": 
+        ENABLE_PAYMENT = True
+    else:
+        ENABLE_PAYMENT = False
+    pytest.enable_payment = ENABLE_PAYMENT
+
 @pytest.fixture(scope='session')
 def create_test_admin_user():
     current_app = create_app()
@@ -52,7 +65,6 @@ def create_test_admin_user():
     cursor.execute(insert_test_admin_user_sql, (admin_username, admin_home_page, generate_password_hash(admin_password), admin_username))
     conn.commit()
     yield (admin_username, admin_password)
-    #cursor.execute(delete_test_admin_user_sql, ...)
     cursor.execute(delete_test_admin_user_sql, (admin_username, admin_username))
     conn.commit()
 
@@ -91,3 +103,12 @@ def update_indexing_page_limit():
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(update_indexing_page_limit_sql, (verifiedadd_indexing_page_limit, verifiedadd_domain))
     conn.commit()
+
+@pytest.fixture(scope="session")
+def browser():
+    from selenium import webdriver
+    from chromedriver_py import binary_path
+    driver = webdriver.Chrome(executable_path=binary_path)
+    driver.implicitly_wait(10)
+    yield driver
+    driver.quit()
