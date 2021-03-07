@@ -19,7 +19,7 @@ sql_select_quickadd_pending = 'SELECT domain, home_page, site_category, date_dom
 sql_quickadd_approve = "INSERT INTO tblIndexedDomains(domain, home_page, date_domain_added, owner_verified, validation_method, site_category) "\
     "SELECT domain, home_page, date_domain_added, owner_submitted, submission_method, site_category FROM tblPendingDomains WHERE domain = (%s); "\
     "UPDATE tblIndexedDomains "\
-    "SET expire_date = now() + '1 year', api_enabled = FALSE, indexing_frequency = '7 days', "\
+    "SET expire_date = now() + '1 year', api_enabled = FALSE, indexing_frequency = '28 days', "\
     "indexing_page_limit = 50, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
     "WHERE domain = (%s); "\
     "DELETE FROM tblPendingDomains WHERE domain = (%s);"
