@@ -222,7 +222,7 @@ For basic experimentation with relevancy tuning, you can manually add a few site
 
 However, for serious relevancy tuning, it is better to use a restore of the production Solr collection. If you are interested in doing this, let me know and I'll make an up-to-date one available.
 
-Note that if you add new fields to the Solr schema which are to be used in the relevancy scoring, it is better to wait until all the sites have had these fields added before deploying the new relevancy scoring changes. There are two ways of doing this: force a reindex of all sites, or wait until all sites are naturally reindexed. It is easier and safer to wait for the natural reindex. The force reindexed reindex of everything is likely to take over 24 hours given reindexing happens in batches of 20 and some sites take over 1 hour to reindex, while a natural reindexing will take 3.5 days to ensure all the verified sites are reindexed (7 days for unverified sites).
+Note that if you add new fields to the Solr schema which are to be used in the relevancy scoring, it is better to wait until all the sites have had these fields added before deploying the new relevancy scoring changes. There are two ways of doing this: force a reindex of all sites, or wait until all sites are naturally reindexed. It is easier and safer to wait for the natural reindex. The force reindexed reindex of everything is likely to take over 24 hours given reindexing happens in batches of 20 and some sites take over 1 hour to reindex, while a natural reindexing will take 3.5 days to ensure all the verified sites are reindexed (28 days for unverified sites).
 
 
 ## Testing
