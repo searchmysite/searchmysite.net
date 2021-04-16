@@ -25,6 +25,10 @@ sql_indieauth_step1pending = "INSERT INTO tblPendingDomains "\
     "(domain, home_page, owner_submitted, submission_method, date_domain_added) "\
     "VALUES ((%s), (%s), TRUE, 'IndieAuth', now());"
 
+sql_indieauth_step2email = "UPDATE tblPendingDomains "\
+    "SET contact_email = (%s), site_category = (%s) "\
+    "WHERE domain = (%s); "
+
 # Stage 1: Create the new domain in tblIndexedDomains if it doesn't exist. It is important to handle cases where 
 # it does exist (via ON CONFLICT) because a domain may have been submitted via Quick Add and then again later via Verified Add.
 # Stage 2: Copy in the values for date_domain_added from tblPendingDomains.
@@ -188,6 +192,7 @@ def viaindieauth2():
         else:
             conn = get_db()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor.execute(sql_indieauth_step2email, (email, site_category, domain, ))
             cursor.execute(sql_mark_as_validated, (domain, ))
             conn.commit()
             if current_app.config['ENABLE_PAYMENT'] == True:
