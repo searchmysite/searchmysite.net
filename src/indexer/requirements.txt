@@ -1,4 +1,4 @@
-scrapy==2.4.0
+scrapy==2.5.0
 beautifulsoup4
 pysolr
 python-dateutil
