@@ -14,7 +14,7 @@
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 	{% block head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
 	<header>
 		<nav class="navbar navbar-expand-sm navbar-light bg-light">
@@ -52,7 +52,7 @@
 		</nav>
 	</header>
 
-	<main>
+	<main class="flex-grow-1">
 		<div class="container-fluid h-100 mt-5">
 
 			{% block searchbox %}{% endblock %}
@@ -69,8 +69,8 @@
 	</main>
 
 	<footer class="footer mt-5">
-		<nav class="navbar navbar-light bg-light justify-content-center align-items-start">
-			<ul class="nav flex-column ml-5 mr-5">
+		<nav class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
+			<ul class="nav flex-column">
 				<li class="nav-item p-1">Community</li>
 				<li class="nav-item p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
 				<li class="nav-item p-1"><a href="/admin/contact/">Contact</a></li>
@@ -78,7 +78,7 @@
 				<li class="nav-item p-1"><a href="/pages/documentation/">Documentation</a></li>
 				<li class="nav-item p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
 			</ul>
-			<ul class="nav flex-column ml-5 mr-5">
+			<ul class="nav flex-column">
 				<li class="nav-item p-1">Product</li>
 				<li class="nav-item p-1"><a href="/pages/about/">About</a></li>
 				<li class="nav-item p-1"><a href="/pages/privacy/">Privacy</a></li>
