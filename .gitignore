@@ -4,6 +4,7 @@
 /logs
 /src/.env
 /src/db/bulkimport/data/
+/src/indexer/bulkimport/wikipedia/cirrussearch
 /src/web/content/dynamic/instance/
 /src/web/content/dynamic/searchmysite.egg-info/
 *__pycache__*
