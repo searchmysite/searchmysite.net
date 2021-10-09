@@ -12,6 +12,8 @@ services:
     volumes:
       - "../data/solrdata:/var/solr"
     command: "solr-precreate content /opt/solr/server/solr/configsets/content"
+    environment:
+      SOLR_JAVA_MEM: "-Xms1024M -Xmx1024M"
 
   db:
     build: "db/"
