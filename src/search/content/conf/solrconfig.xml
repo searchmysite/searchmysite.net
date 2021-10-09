@@ -758,7 +758,8 @@
       <!-- start searchmysite change -->
       <str name="qf">title^1.1 description^1.05 author^1.05 tags url content</str>
       <str name="pf">title^1.1 description^1.05 author^1.05 tags url content</str>
-      <str name="boost">product( sum(1, log(sum(1, product(indexed_inlink_domains_count, 1.8)))), if(contains_adverts,0.5,1), if(owner_verified,1.1,1), if(exists(content),1,0.5) )</str>
+      <str name="boost">product( sum(1, log(sum(1, product(indexed_inlink_domains_count, 1.8)))), if(contains_adverts,0.5,1), if(owner_verified,1.1,1) )</str>
+
       <!-- end searchmysite change -->
 
       <!-- Default search field
