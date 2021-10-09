@@ -40,14 +40,15 @@ domains_sql = "SELECT DISTINCT domain FROM tblIndexedDomains;"
 filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
-# This returns sites due for reindexing, either due to being new ('PENDING') 
+# This returns sites, where indexing_type = 'spider/default', which are 
+# due for reindexing, either due to being new ('PENDING') 
 # or having been last indexed more than indexing_frequency ago.
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by owner_verified,
 # i.e. so these are prioritised in cases where not all sites are returned due to the LIMIT.
 sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled FROM tblIndexedDomains "\
-    "WHERE (indexing_current_status = 'PENDING') "\
-    "OR (indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency) "\
+    "WHERE (indexing_type = 'spider/default' AND indexing_current_status = 'PENDING') "\
+    "OR (indexing_type = 'spider/default' AND indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency) "\
     "ORDER BY indexing_current_status DESC, owner_verified DESC "\
     "LIMIT 20;"
 
@@ -58,7 +59,8 @@ start_indexing_sql = "UPDATE tblIndexedDomains "\
     "VALUES ((%s), 'STARTED', now());"
 
 sql_to_check_for_stuck_jobs = "SELECT * FROM tblIndexedDomains "\
-    "WHERE indexing_current_status = 'RUNNING' "\
+    "WHERE indexing_type = 'spider/default' "\
+    "AND indexing_current_status = 'RUNNING' "\
     "AND indexing_status_last_updated + '6 hours' < NOW();"
 
 solrurl = settings.get('SOLR_URL')
