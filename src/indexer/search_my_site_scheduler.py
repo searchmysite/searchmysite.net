@@ -50,7 +50,7 @@ sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, inde
     "WHERE (indexing_type = 'spider/default' AND indexing_current_status = 'PENDING') "\
     "OR (indexing_type = 'spider/default' AND indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency) "\
     "ORDER BY indexing_current_status DESC, owner_verified DESC "\
-    "LIMIT 20;"
+    "LIMIT 16;"
 
 start_indexing_sql = "UPDATE tblIndexedDomains "\
     "SET indexing_current_status = 'RUNNING', indexing_status_last_updated = now() "\
