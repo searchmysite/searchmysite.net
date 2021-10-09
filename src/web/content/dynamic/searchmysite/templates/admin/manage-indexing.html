@@ -36,6 +36,15 @@
 				</div>
 			</div>
 			<div class="form-group row">
+				<label for="indexing_frequency" class="col-sm-2 col-form-label text-right">Indexing type:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_type" value="{{ result['indexing_type'] }}" aria-describedby="indexing_type_help">
+					<small id="indexing_type_help" class="form-text text-muted">
+						What mechanism is used to index the site. In almost all cases it will be the default spider.
+					</small>
+				</div>
+			</div>
+			<div class="form-group row">
 				<label for="indexing_frequency" class="col-sm-2 col-form-label text-right">Indexing frequency:</label>
 				<div class="col-sm-6">
 					<input type="text" readonly class="form-control-plaintext" id="indexing_frequency" value="{{ result['indexing_frequency'] }}" aria-describedby="indexing_frequency_help">
