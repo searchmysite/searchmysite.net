@@ -29,9 +29,9 @@ sql_pending = "INSERT INTO tblPendingDomains "\
 
 sql_indexed = "INSERT INTO tblIndexedDomains "\
     "(domain, home_page, date_domain_added, owner_verified, validation_method, "\
-    "expire_date, api_enabled, indexing_frequency, indexing_page_limit, indexing_current_status, indexing_status_last_updated) "\
+    "expire_date, api_enabled, indexing_type, indexing_frequency, indexing_page_limit, indexing_current_status, indexing_status_last_updated) "\
     "VALUES ((%s), (%s), now(), FALSE, 'SQL', "\
-    "now() + '1 year', FALSE, '7 days', 50, 'PENDING', now());"
+    "now() + '1 year', FALSE, 'spider/default', '7 days', 50, 'PENDING', now());"
 
 # If valid and reviewed are True and already_in_list and already_in_database are False
 # this will insert straight into tblIndexedDomains for indexing

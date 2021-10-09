@@ -10,6 +10,7 @@ CREATE TABLE tblIndexedDomains (
   validation_key TEXT,
   validation_method TEXT,
   validation_date TIMESTAMPTZ,
+  indexing_type TEXT,
   indexing_frequency INTERVAL,
   indexing_page_limit SMALLINT,
   indexing_current_status TEXT,
