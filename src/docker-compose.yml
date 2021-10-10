@@ -27,14 +27,14 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
-  indexer:
+  indexing:
     build:
-      context: "indexer/"
+      context: "indexing/"
       args:
         - env=dev
-    image: indexer_dev
+    image: indexing_dev
     volumes:
-      - "./indexer:/usr/src/app/:ro"
+      - "./indexing:/usr/src/app/:ro"
     depends_on:
       - search
       - db

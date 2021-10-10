@@ -12,7 +12,7 @@ You can use this repository to:
 
 The application is split into 4 components, each deployed in its own Docker container:
 - db - Postgres database (for managing site and indexing configuration)
-- indexer - Scrapy web crawler (for indexing sites)
+- indexing - Scrapy web crawler (for indexing sites)
 - search - Apache Solr search server (for the actual search index)
 - web - Apache httpd with mod_wsgi web server, with static assets (including home page), and dynamic pages (including API)
 
@@ -24,7 +24,7 @@ The project directory structure is as follows:
     │   ├── sqldata             # Mounted to /var/lib/postgresql/data in Postgres Docker
     ├── src                     # Source files
     │   ├── db                  # Database scripts
-    │   ├── indexer             # Indexing code
+    │   ├── indexing            # Indexing code
     │   ├── search              # Search engine configuration
     │   ├── web                 # Files for deployment to web / app server
     │   │   ├── config          # Web server configuration
@@ -34,9 +34,9 @@ The project directory structure is as follows:
     └── README.md               # This file
 
 There are 3 docker-compose files, which are largely identical except:
-- docker-compose.yml (for local dev) configures the web server and indexer to read from the source, so code changes don't require a rebuild.
-- docker-compose.test.yml (for running test scripts) does not persist the database and search and doesn't run the scheduled indexer, so each test cycle can start with a clean and predictable environment.
-- docker-compose.prod.yml (for production) persists the database and search, and copies in web server and indexer code.
+- docker-compose.yml (for local dev) configures the web server and indexing to read from the source, so code changes don't require a rebuild.
+- docker-compose.test.yml (for running test scripts) does not persist the database and search and doesn't run the scheduled indexing, so each test cycle can start with a clean and predictable environment.
+- docker-compose.prod.yml (for production) persists the database and search, and copies in web server and indexing code.
 
 
 
@@ -138,7 +138,7 @@ docker exec -it web_dev apachectl restart
 ```
 For frequent changes it is better to use a Flask development environment outside of Docker.
 
-To do this, given containers talk to each other internally via the "db", "indexer", "search" and "web" hostnames, you will need to set up local host entries for "search" and "db", i.e. in /etc/hosts:
+To do this, given containers talk to each other internally via the "db", "indexing", "search" and "web" hostnames, you will need to set up local host entries for "search" and "db", i.e. in /etc/hosts:
 ```
 127.0.0.1       search
 127.0.0.1       db
@@ -158,9 +158,9 @@ flask run
 You local Flask website will be available at e.g. [http://localhost:5000/search/](http://localhost:5000/search/) (note that the home page, i.e. [http://localhost:5000/](http://localhost:5000/), isn't served dynamically so won't be available via Flask). Changes to the code will be reflected without a server restart, and full stack traces will be more visible in case of errors.
 
 
-### Indexer changes
+### Indexing changes
 
-As with the web container, the indexer container on dev is configured to read directly from the source, so changes just need to be saved.
+As with the web container, the indexing container on dev is configured to read directly from the source, so changes just need to be saved.
 
 You would typically trigger a reindex by running SQL like:
 ```
@@ -168,17 +168,17 @@ UPDATE tblIndexedDomains
   SET  indexing_current_status = 'PENDING'
   WHERE domain = 'michael-lewis.com';	
 ```
-and waiting for the next src/indexer/indexer/run.sh (up to 1 min on dev), or triggering it manually:
+and waiting for the next src/indexing/indexer/run.sh (up to 1 min on dev), or triggering it manually:
 ```
-docker exec -it src_indexer_1 python /usr/src/app/search_my_site_scheduler.py 
+docker exec -it src_indexing_1 python /usr/src/app/search_my_site_scheduler.py 
 ```
 There shouldn't be any issues with multiple schedulers running concurrently if you trigger it manually and the scheduled job then runs.
 
 You can monitor the indexing logs via: 
 ```
-docker logs -f src_indexer_1
+docker logs -f src_indexing_1
 ```
-and can change the LOG_LEVEL to DEBUG in src/indexer/indexer/settings.py.
+and can change the LOG_LEVEL to DEBUG in src/indexing/indexer/settings.py.
 
 
 ### Search (Solr) changes
@@ -235,7 +235,7 @@ pip3 install chromedriver-py
 
 There are two test scripts:
 - `clean_test_env.sh` - shuts down any dev docker instances, rebuilds and starts the clean test docker instances.
-- `run_tests.sh` - sets up the environment variables, runs the pytest scripts and the indexer.
+- `run_tests.sh` - sets up the environment variables, runs the pytest scripts and the indexing.
 
 The pytest scripts:
 - submit and approve a site via Quick Add

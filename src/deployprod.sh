@@ -18,7 +18,7 @@ then
   docker-compose build
 
   # If the indexer container is indexing sites when it is restarted it will leave the sites stuck in RUNNING status
-  until grep -q "Checking for sites to index" <<< `docker logs --tail 1 src_indexer_1`
+  until grep -q "Checking for sites to index" <<< `docker logs --tail 1 src_indexing_1`
   do
     echo "Waiting for indexing job to finish"
     sleep 10
