@@ -107,8 +107,10 @@ def update_indexing_page_limit():
 @pytest.fixture(scope="session")
 def browser():
     from selenium import webdriver
-    from chromedriver_py import binary_path
-    driver = webdriver.Chrome(executable_path=binary_path)
+    #from chromedriver_py import binary_path
+    #driver = webdriver.Chrome(executable_path=binary_path)
+    from webdriver_manager.chrome import ChromeDriverManager
+    driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.implicitly_wait(10)
     yield driver
     driver.quit()
