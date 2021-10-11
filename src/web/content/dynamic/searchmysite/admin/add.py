@@ -76,7 +76,7 @@ sql_dcv_finalstep = "INSERT INTO tblIndexedDomains (domain, home_page) "\
     "WHERE domain = (%s); "
 
 sql_validated_update = "UPDATE tblIndexedDomains "\
-    "SET expire_date = now() + '1 year', api_enabled = TRUE, validation_date = now(), indexing_type = 'spider/default' "\
+    "SET expire_date = now() + '1 year', api_enabled = TRUE, validation_date = now(), indexing_type = 'spider/default', "\
     "indexing_frequency = '3.5 days', indexing_page_limit = 500, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
     "WHERE domain = (%s); "\
     "DELETE FROM tblPendingDomains WHERE domain = (%s);"
