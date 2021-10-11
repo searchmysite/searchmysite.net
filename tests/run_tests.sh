@@ -14,7 +14,7 @@ echo "PART 2 of 5: Submitting test site via Verified Add (DCV)"
 pytest -v web/integration/test_2_verifiedadddcv.py
 
 echo "PART 3 of 5: Indexing test sites (please wait, this may take some time)"
-docker exec -it src_indexer_1 python /usr/src/app/search_my_site_scheduler.py >/dev/null
+docker exec -it src_indexing_1 python /usr/src/app/search_my_site_scheduler.py >/dev/null
 
 echo "PART 4 of 5: Searching test site"
 pytest -v web/integration/test_4_search.py
