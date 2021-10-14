@@ -9,6 +9,7 @@ import psycopg2.extras
 from urllib.request import urlopen
 import json
 from indexer.spiders.search_my_site_script import SearchMySiteScript
+from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
@@ -25,8 +26,9 @@ logger = logging.getLogger()
 # Initialise variables
 
 urls_to_crawl = []
-domains_for_indexed_links = []
-domains_allowing_subdomains = []
+# Just lookup domains_for_indexed_links and domains_allowing_subdomains once
+domains_for_indexed_links = get_all_domains()
+domains_allowing_subdomains = get_domains_allowing_subdomains()
 common_config = {}
 
 logger.debug('BOT_NAME: {} (indexer if custom settings are loaded okay, scrapybot if not)'.format(settings.get('BOT_NAME')))
@@ -36,9 +38,7 @@ db_user = settings.get('DB_USER')
 db_host = settings.get('DB_HOST')
 db_password = settings.get('DB_PASSWORD')
 
-domains_sql = "SELECT DISTINCT domain FROM tblIndexedDomains;"
 filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
-domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
 # This returns sites, where indexing_type = 'spider/default', which are 
 # due for reindexing, either due to being new ('PENDING') 
@@ -51,12 +51,6 @@ sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, inde
     "OR (indexing_type = 'spider/default' AND indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency) "\
     "ORDER BY indexing_current_status DESC, owner_verified DESC "\
     "LIMIT 16;"
-
-start_indexing_sql = "UPDATE tblIndexedDomains "\
-    "SET indexing_current_status = 'RUNNING', indexing_status_last_updated = now() "\
-    "WHERE domain = (%s); "\
-    "INSERT INTO tblIndexingLog (domain, status, timestamp) "\
-    "VALUES ((%s), 'STARTED', now());"
 
 sql_to_check_for_stuck_jobs = "SELECT * FROM tblIndexedDomains "\
     "WHERE indexing_type = 'spider/default' "\
@@ -98,8 +92,7 @@ try:
     for result in results:
         # Mark as RUNNING ASAP so if there's another indexer container running it is less likely to double-index 
         # There's a risk something will fail before it gets to the actual indexing, hence the periodic check for stuck RUNNING jobs
-        cursor.execute(start_indexing_sql, (result['domain'], result['domain'],))
-        conn.commit()
+        update_indexing_log(result['domain'], 'RUNNING' , "")
         url = {}
         url['domain'] = result['domain']
         url['home_page'] = result['home_page']
@@ -113,17 +106,9 @@ try:
     else: logger.debug('urls_to_crawl: {}'.format(urls_to_crawl))
     # domains_for_indexed_links
     if urls_to_crawl:
-        cursor.execute(domains_sql)
-        domains_results = cursor.fetchall()
-        for domain in domains_results:
-            domains_for_indexed_links.append(domain['domain'])
         common_config['domains_for_indexed_links'] = domains_for_indexed_links
     # domains allowing subdomains
     if urls_to_crawl:
-        cursor.execute(domains_allowing_subdomains_sql)
-        domains_allowing_subdomains_results = cursor.fetchall()
-        for domains_allowing_subdomain in domains_allowing_subdomains_results:
-            domains_allowing_subdomains.append(domains_allowing_subdomain['setting_value'])
         common_config['domains_allowing_subdomains'] = domains_allowing_subdomains
     # exclusions for domains
     if urls_to_crawl:
@@ -144,33 +129,9 @@ finally:
     conn.close()
 
 # Read data from Solr (indexed_inlinks)
-# Logic for generating indexed_inlinks for a domain:
-# Step 1:
-# Search for any indexed_outlinks to that domain, i.e.
-# /solr/content/select?q=*%3A*&fq=indexed_outlinks%3A*{domain}*&fl=url,indexed_outlinks&rows=10000
-# This will return urls each with a list of indexed_outlinks to that domain and potentially other domains.
-# Note that it doesn't appear possible to restrict indexed_outlinks to just the domain specified in fq=indexed_outlinks%3A*{domain}* 
-# (see https://issues.apache.org/jira/browse/SOLR-3955) so other domains will need to be filtered out later.
-# Step 2:
-# Invert the dict of lists, so instead of urls each with a list of indexed_outlinks it is indexed_outlinks each with a list of urls.
-# The indexed_outlinks, if matching the domain, will be the ones that will have indexed_inlinks value set for them, and the value of the
-# indexed_inlinks will be the list of urls.
 
 for url_to_crawl in urls_to_crawl:
-    solrquery = solr_query_to_get_indexed_outlinks.format(url_to_crawl['domain'])
-    connection = urlopen(solrurl + solrquery)
-    results = json.load(connection)
-    indexed_inlinks = {}
-    if results['response']['docs']:
-        for doc in results['response']['docs']:
-            url = doc['url']
-            indexed_outlinks = doc['indexed_outlinks']
-            for indexed_outlink in indexed_outlinks:
-                if url_to_crawl['domain'] in indexed_outlink:
-                    if indexed_outlink not in indexed_inlinks:
-                        indexed_inlinks[indexed_outlink] = [url]
-                    else:
-                        indexed_inlinks[indexed_outlink].append(url)
+    indexed_inlinks = get_all_indexed_inlinks_for_domain(url_to_crawl['domain'])
     logger.debug('indexed_inlinks: {}'.format(indexed_inlinks))
     url_to_crawl['indexed_inlinks'] = indexed_inlinks
 

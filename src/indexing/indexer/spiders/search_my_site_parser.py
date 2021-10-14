@@ -6,7 +6,7 @@ import datetime
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from indexer.util import convert_string_to_utc_date, convert_datetime_to_utc_date, get_text, extract_domain
+from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text
 
 # Solr schema is:
 #    <field name="url" type="string" indexed="true" stored="true" required="true" />
@@ -191,7 +191,7 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     indexed_inlink_domains = []
     if indexed_inlinks:
         for indexed_inlink in indexed_inlinks:
-            indexed_inlink_domain = extract_domain(indexed_inlink, common_config['domains_allowing_subdomains'])
+            indexed_inlink_domain = extract_domain_from_url(indexed_inlink, common_config['domains_allowing_subdomains'])
             if indexed_inlink_domain not in indexed_inlink_domains:
                 indexed_inlink_domains.append(indexed_inlink_domain)
     item['indexed_inlink_domains'] = indexed_inlink_domains

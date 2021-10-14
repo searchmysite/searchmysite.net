@@ -5,20 +5,8 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
+from common.utils import update_indexing_log
 
-
-import psycopg2
-import psycopg2.extras
-complete_indexing_sql = "UPDATE tblIndexedDomains "\
-    "SET indexing_current_status = 'COMPLETE', indexing_status_last_updated = now() "\
-    "WHERE domain = (%s); "\
-    "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
-    "VALUES ((%s), 'COMPLETE', now(), (%s));"
-
-
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#from common import config
-#from common import utils
 
 # This is the Solr pipeline, for submitting indexed items to Solr
 # It originally just did a self.solr.add(dict(item)) in process_item 
@@ -85,26 +73,7 @@ class SolrPipeline:
             message = 'SUCCESS: {} documents found. log_count/WARNING: {}, log_count/ERROR: {}'.format(self.stats.get_value('item_scraped_count'), self.stats.get_value('log_count/WARNING'), self.stats.get_value('log_count/ERROR'))
         # Step 2: update database table
         # Status either RUNNING or COMPLETE. Message starts with SUCCESS or WARNING
-        #utils.update_indexing_log(spider.domain, 'COMPLETE', message):
-
-
-        try:
-            settings = get_project_settings()
-            configure_logging(settings) # Need to pass in settings to pick up LOG_LEVEL, otherwise it will stay at DEBUG irrespective of LOG_LEVEL in settings.py
-            logger = logging.getLogger()
-            db_name = settings.get('DB_NAME')
-            db_user = settings.get('DB_USER')
-            db_host = settings.get('DB_HOST')
-            db_password = settings.get('DB_PASSWORD')
-            conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_password)
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            cursor.execute(complete_indexing_sql, (spider.domain, spider.domain, message))
-            conn.commit()
-        except psycopg2.Error as e:
-            self.logger.error('DB error in close_spider: {}'.format(e.pgerror))
-        finally:
-            conn.close()
-
+        update_indexing_log(spider.domain, 'COMPLETE', message)
 
     def process_item(self, item, spider):
         new_url = item['url']

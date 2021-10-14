@@ -15,7 +15,7 @@ def update_log(status, message):
     utils.update_indexing_log(domain, status, message)
 
 def latest_complete():
-    latest_complete = utils.get_latest_completed_import(domain)
+    latest_complete = utils.get_latest_completed_wikipedia_import(domain)
     return latest_complete
 
 def latest_available():
