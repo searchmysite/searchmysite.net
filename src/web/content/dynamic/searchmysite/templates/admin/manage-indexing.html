@@ -17,6 +17,29 @@
 			</div>
 
 			<form>
+
+			<div class="row form-group">
+				<label for="indexing_enabled" class="col-sm-2 col-form-label text-right">Indexing enabled:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_enabled" value="{{ result['indexing_enabled'] }}" aria-describedby="indexing_enabled_help">
+					<small id="indexing_enabled_help" class="form-text text-muted">
+						True if indexing is enabled, and False if indexing is disabled (e.g. because of repeated failed indexing attempts).
+					</small>
+				</div>
+			</div>
+
+			{% if result['indexing_enabled'] == False %}
+			<div class="row form-group">
+				<label for="indexing_disabled_reason" class="col-sm-2 col-form-label text-right">Indexing disabled reason:</label>
+				<div class="col-sm-6">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_disabled_reason" value="{{ result['indexing_disabled_reason'] }}" aria-describedby="indexing_disabled_reason_help">
+					<small id="indexing_disabled_reason_help" class="form-text text-muted">
+						The reason why indexing has been disabled.
+					</small>
+				</div>
+			</div>
+			{% endif %}
+
 			<div class="row form-group">
 				<label for="indexing_current_status" class="col-sm-2 col-form-label text-right">Indexing current status:</label>
 				<div class="col-sm-6">
