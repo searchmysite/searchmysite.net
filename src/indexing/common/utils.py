@@ -15,14 +15,16 @@ db_name = config.DB_NAME
 db_user = config.DB_USER
 db_host = config.DB_HOST
 
-domains_sql = "SELECT DISTINCT domain FROM tblIndexedDomains;"
+domains_sql = "SELECT DISTINCT domain FROM tblDomains WHERE moderator_approved = TRUE AND indexing_enabled=TRUE;"
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
-update_indexing_status_sql = "UPDATE tblIndexedDomains "\
+update_indexing_status_sql = "UPDATE tblDomains "\
     "SET indexing_current_status = (%s), indexing_status_last_updated = now() "\
     "WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
     "VALUES ((%s), (%s), now(), (%s));"
 indexing_log_sql = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+get_last_complete_indexing_log_message_sql = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+deactivate_indexing_sql = "UPDATE tblDomains SET indexing_enabled = FALSE, indexing_disabled_date = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
 
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
@@ -68,7 +70,6 @@ def get_domains_allowing_subdomains():
 # Update indexing log
 # status either RUNNING or COMPLETE
 def update_indexing_log(domain, status, message):
-    domains_allowing_subdomains = []
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -79,7 +80,37 @@ def update_indexing_log(domain, status, message):
         logger.error('update_indexing_log: {}'.format(e.pgerror))
     finally:
         conn.close()
-    return domains_allowing_subdomains
+    return
+
+# Get the latest indexing log message where status is COMPLETE (message will start SUCCESS or WARNING)
+def get_last_complete_indexing_log_message(domain):
+    log_message = ""
+    try:
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute(get_last_complete_indexing_log_message_sql, (domain, ))
+        log_messages = cursor.fetchone()
+        log_message = log_messages['message']
+    except psycopg2.Error as e:
+        logger = logging.getLogger()
+        logger.error('get_last_complete_indexing_log_message: {}'.format(e.pgerror))
+    finally:
+        conn.close()
+    return log_message
+
+# Deactivate indexing
+def deactivate_indexing(domain, reason):
+    try:
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute(deactivate_indexing_sql, (reason, domain,))
+        conn.commit()
+    except psycopg2.Error as e:
+        logger = logging.getLogger()
+        logger.error('deactivate_indexing: {}'.format(e.pgerror))
+    finally:
+        conn.close()
+    return
 
 
 # Solr utils
