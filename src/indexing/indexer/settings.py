@@ -29,7 +29,7 @@ LOG_LEVEL = 'INFO'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'indexer (+http://www.yourdomain.com)'
-USER_AGENT = 'indexer (+https://searchmysite.net)'
+USER_AGENT = 'Mozilla/5.0 (compatible; SearchMySiteBot/1.0; +https://searchmysite.net)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
