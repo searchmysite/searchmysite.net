@@ -12,7 +12,7 @@ You can use this repository to:
 
 The application is split into 4 components, each deployed in its own Docker container:
 - db - Postgres database (for managing site and indexing configuration)
-- indexing - Scrapy web crawler (for indexing sites)
+- indexing - Scrapy web crawler and bulk import scripts (for indexing sites)
 - search - Apache Solr search server (for the actual search index)
 - web - Apache httpd with mod_wsgi web server, with static assets (including home page), and dynamic pages (including API)
 
@@ -25,6 +25,9 @@ The project directory structure is as follows:
     ├── src                     # Source files
     │   ├── db                  # Database scripts
     │   ├── indexing            # Indexing code
+    │   │   ├── bulkimport      # Bulk import scripts
+    │   │   ├── common          # Indexing code shared between bulk import and spider
+    │   │   ├── indexer         # Spidering code
     │   ├── search              # Search engine configuration
     │   ├── web                 # Files for deployment to web / app server
     │   │   ├── config          # Web server configuration
@@ -164,7 +167,7 @@ As with the web container, the indexing container on dev is configured to read d
 
 You would typically trigger a reindex by running SQL like:
 ```
-UPDATE tblIndexedDomains 
+UPDATE tblDomains 
   SET  indexing_current_status = 'PENDING'
   WHERE domain = 'michael-lewis.com';	
 ```
