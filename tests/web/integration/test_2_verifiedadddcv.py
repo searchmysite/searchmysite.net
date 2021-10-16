@@ -72,7 +72,7 @@ def test_verified_add_dcv_step4_get(anon_client, verifiedadd_details, payment_de
         # Press the Purchase button
         purchase_button = browser.find_element_by_id('submitBtn')
         ActionChains(browser).click(purchase_button).perform()
-        time.sleep(4)
+        time.sleep(6)
         #assert 'searchmysite.net' in browser.title
         #assert 'Verified Owner Listing' in browser.response
         assert 'Stripe' in browser.page_source
