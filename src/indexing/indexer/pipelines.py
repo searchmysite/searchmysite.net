@@ -5,7 +5,7 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from common.utils import update_indexing_log
+from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing
 
 
 # This is the Solr pipeline, for submitting indexed items to Solr
@@ -56,13 +56,22 @@ class SolrPipeline:
         # This is to ensure any old docs that have been deleted or moved after the last index are cleaned up
         # The delete and add are in the same transaction so there shouldn't be a visible period with no docs 
         if no_of_docs == 0:
-            self.logger.warning('No documents found at {}. This is likely an error with that site or with this system. Not going to delete any existing documents for {}.'.format(spider.start_url, spider.domain))
+            self.logger.warning('No documents found at start url {} (domain {}). This is likely an error with the site or with this system.'.format(spider.start_url, spider.domain))
             message = 'WARNING: No documents found. '
+            submessage = ''
             if self.stats.get_value('robotstxt/forbidden'):
-                message = message + 'Likely robots.txt forbidden: '
+                submessage = 'Likely robots.txt forbidden. '
             elif self.stats.get_value('retry/max_reached'):
-                message = message + 'Likely site timeout: '
-            message = message + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
+                submessage = 'Likely site timeout. '
+            last_message = get_last_complete_indexing_log_message(spider.domain)
+            if last_message.startswith(message):
+                newmessage = "The previous indexing also found no documents. Deleting existing Solr docs and deactivating indexing."
+                self.logger.warning(newmessage)
+                self.solr.delete(q='domain:{}'.format(spider.domain))
+                deactivate_indexing(spider.domain, "Indexing failed twice in a row. {}".format(submessage))
+                message = message + submessage + newmessage
+            else:
+                message = message + submessage + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
         else:
             self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
             self.solr.delete(q='domain:{}'.format(spider.domain))
@@ -70,7 +79,11 @@ class SolrPipeline:
             for item in self.items:
                 self.solr.add(dict(item))
             self.solr.commit()
-            message = 'SUCCESS: {} documents found. log_count/WARNING: {}, log_count/ERROR: {}'.format(self.stats.get_value('item_scraped_count'), self.stats.get_value('log_count/WARNING'), self.stats.get_value('log_count/ERROR'))
+            message = 'SUCCESS: {} documents found. '.format(self.stats.get_value('item_scraped_count'))
+            if self.stats.get_value('log_count/WARNING'):
+                message = message + 'log_count/WARNING: {} '.format(self.stats.get_value('log_count/WARNING'))
+            if self.stats.get_value('log_count/ERROR'):
+                message = message + 'log_count/ERROR: {} '.format(self.stats.get_value('log_count/ERROR'))
         # Step 2: update database table
         # Status either RUNNING or COMPLETE. Message starts with SUCCESS or WARNING
         update_indexing_log(spider.domain, 'COMPLETE', message)
