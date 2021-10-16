@@ -31,7 +31,7 @@ parser.add_argument('resultsperpage', type=int, default=10, help='Number of resu
 solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}'
 # Fields not currently returned are: domain, is_home, content, date_domain_added, contains_adverts, owner_verified, indexed_inlinks_count, indexed_inlink_domains_count
 
-sql_check_api_enabled = "SELECT api_enabled FROM tblIndexedDomains WHERE domain = (%s);"
+sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
 #{
 #  "params": {

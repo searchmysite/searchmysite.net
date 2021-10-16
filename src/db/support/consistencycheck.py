@@ -19,7 +19,7 @@ if not POSTGRES_PASSWORD:
                 if key == 'POSTGRES_PASSWORD': POSTGRES_PASSWORD = value
 #database_host = "db" # Dev database
 database_host = "searchmysite.net" # Prod database
-sql_select_domains = 'SELECT domain FROM tblIndexedDomains ORDER BY domain ASC LIMIT 2000;'
+sql_select_indexed_domains = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = TRUE AND indexing_enabled = TRUE;'
 
 # Solr
 #solr_url = 'http://localhost:8983/solr/content/' # Dev
@@ -32,7 +32,7 @@ solr_domains = []
 try:
     conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_domains)
+    cursor.execute(sql_select_indexed_domains)
     dd = cursor.fetchall()
     for [d] in dd:
         database_domains.append(d)

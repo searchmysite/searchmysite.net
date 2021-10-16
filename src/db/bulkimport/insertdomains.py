@@ -23,21 +23,24 @@ input_file = 'data/' + inp + '.json'
 database_host = "db" # Dev database
 #database_host = "searchmysite.net" # Prod database
 
-sql_pending = "INSERT INTO tblPendingDomains "\
+# moderator_approved not set, i.e. null, so it will require review
+sql_pending = "INSERT INTO tblDomains "\
     "(domain, home_page, date_domain_added, owner_submitted, submission_method) "\
     "VALUES ((%s), (%s), now(), FALSE, 'SQL');"
 
-sql_indexed = "INSERT INTO tblIndexedDomains "\
+sql_indexed = "INSERT INTO tblDomains "\
     "(domain, home_page, date_domain_added, owner_verified, validation_method, "\
-    "expire_date, api_enabled, indexing_type, indexing_frequency, indexing_page_limit, indexing_current_status, indexing_status_last_updated) "\
+    "expire_date, api_enabled, indexing_type, indexing_frequency, indexing_page_limit, indexing_current_status, indexing_status_last_updated), "\
+    "moderator_approved, moderator_action_date, indexing_enabled "\
     "VALUES ((%s), (%s), now(), FALSE, 'SQL', "\
-    "now() + '1 year', FALSE, 'spider/default', '7 days', 50, 'PENDING', now());"
+    "now() + '1 year', FALSE, 'spider/default', '7 days', 50, 'PENDING', now()), "\
+    "TRUE, now(), TRUE;"
 
 # If valid and reviewed are True and already_in_list and already_in_database are False
-# this will insert straight into tblIndexedDomains for indexing
+# this will insert straight into tblDomains with moderator_approved TRUE for indexing
 # If valid is True and already_in_list and already_in_database are False, but reviewed is False
-# this will insert into tblPendingDomains, requiring manual inspection prior to approve and move to tblIndexedDomains 
-# (or rejection and move to tblExcludeDomains)
+# this will insert into tblDomains with moderator_approved NULL, requiring manual inspection prior to 
+# approval (or rejection)
 
 def insert_pending(domain, home_page):
     conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)

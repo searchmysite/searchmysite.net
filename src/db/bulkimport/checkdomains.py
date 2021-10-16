@@ -32,7 +32,7 @@ input_file = "data/" + inp + ".txt"
 print("Input file: {}".format(input_file))
 
 # Whether the contents of the input file have been reviewed, 
-# i.e. if True they can be inserted direct to tblIndexedDomains or if False
+# i.e. if True they can be inserted direct to tblDomains or if False
 #input_reviewed = False
 input_reviewed = True
 
@@ -41,9 +41,9 @@ input_reviewed = True
 database_host = "searchmysite.net" # Prod database
 
 # SQL
-sql_select_indexed = 'SELECT * FROM tblIndexedDomains WHERE domain = (%s);'
-sql_select_pending = 'SELECT * FROM tblPendingDomains WHERE domain = (%s);'
-sql_select_excluded = 'SELECT * FROM tblExcludeDomains WHERE domain = (%s);'
+sql_select_indexed = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = TRUE AND indexing_enabled = TRUE;'
+sql_select_pending = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved IS NULL;'
+sql_select_excluded = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = FALSE;'
 
 # JSON file where the output will be saved
 output_file = "data/" + inp + ".json"
@@ -64,10 +64,7 @@ print("Output file: {}".format(output_file))
 # For each domain:
 # 1. Find out the home page, e.g. add http:// or https:// if necessary, and
 #    check if the home_page is still valid, i.e. returns a 200 response.
-# 2. Check it isn't already in the database, 
-#    either in tblIndexedDomains or tblPendingDomains or tblExcludeDomains
-# Note: if running on local dev need to turn off https://my.virginmedia.com/advancederrorsearch/ 
-# to prevent non-existent domains getting a 200 response
+# 2. Check it isn't already in the database in tblDomains
 
 def check_domains():
     print("input_domain, input_home, output_domain, output_home, valid, response_code, response, already_in_list, already_in_database")

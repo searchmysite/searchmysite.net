@@ -11,10 +11,10 @@ from os import environ
 admin_username = "searchmysite.test"
 admin_home_page = "https://"+admin_username
 admin_password = "searchmysite"
-insert_test_admin_user_sql = "INSERT INTO tblIndexedDomains (domain, home_page, password) "\
+insert_test_admin_user_sql = "INSERT INTO tblDomains (domain, home_page, password) "\
     "VALUES ((%s), (%s), (%s)); "\
     "INSERT INTO tblPermissions (domain, role) VALUES ((%s), 'admin');"
-delete_test_admin_user_sql = "DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblIndexedDomains WHERE domain = (%s);"
+delete_test_admin_user_sql = "DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);"
 
 # Quick Add test site
 quickadd_domain = "example.com"
@@ -42,8 +42,8 @@ def verifiedadd_details():
     pytest.verifiedadd_email = verifiedadd_email
     pytest.verifiedadd_password = verifiedadd_password
     pytest.verifiedadd_validation_key = verifiedadd_validation_key
-update_validation_key_sql = "UPDATE tblPendingDomains SET validation_key = (%s) WHERE domain = (%s);"
-update_indexing_page_limit_sql = "UPDATE tblIndexedDomains SET indexing_page_limit = (%s) WHERE domain = (%s);"
+update_validation_key_sql = "UPDATE tblDomains SET validation_key = (%s) WHERE domain = (%s);"
+update_indexing_page_limit_sql = "UPDATE tblDomains SET indexing_page_limit = (%s) WHERE domain = (%s);"
 
 # Payment testing details
 server_url = "http://localhost:8080"

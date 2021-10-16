@@ -22,7 +22,7 @@ smtp_to_email = environ.get('SMTP_TO_EMAIL')
 
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
-deletesql = "DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblIndexedDomains WHERE domain = (%s);" # tblIndexingFilters and tblPermissions have a foreign key so delete first
+deletesql = "DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);" # tblIndexingFilters and tblPermissions have a foreign key so delete first
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"

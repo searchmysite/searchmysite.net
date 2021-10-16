@@ -108,7 +108,7 @@ for input_page in input_pages:
             page['is_home'] = True
             # Original wikipedia.org submission date was "2020-11-25T09:43:50.344Z"
             # That is almost the correct format for Solr - just need to remove the .344
-            # Hardcoding date_domain_added for now, but should be "SELECT date_domain_added FROM tblIndexedDomains WHERE domain = 'wikipedia.org';" in case it changes
+            # Hardcoding date_domain_added for now, but should be "SELECT date_domain_added FROM tblDomains WHERE domain = 'wikipedia.org';" in case it changes
             page['date_domain_added'] = '2020-11-25T09:43:50Z'
             page['api_enabled'] = False
         else:

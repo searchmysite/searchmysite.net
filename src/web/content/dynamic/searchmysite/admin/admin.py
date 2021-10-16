@@ -12,24 +12,21 @@ bp = Blueprint('admin', __name__)
 
 # SQL 
 
-sql_select = 'SELECT home_page FROM tblIndexedDomains WHERE domain = (%s);'
+sql_select = 'SELECT home_page FROM tblDomains WHERE domain = (%s);'
 
-sql_select_quickadd_pending = 'SELECT domain, home_page, site_category, date_domain_added FROM tblPendingDomains WHERE submission_method = \'QuickAdd\' OR submission_method = \'SQL\' ORDER BY date_domain_added ASC;'
+sql_select_quickadd_pending = "SELECT domain, home_page, site_category, date_domain_added "\
+    "FROM tblDomains WHERE (validation_method = \'QuickAdd\' OR validation_method = \'SQL\') AND moderator_approved IS NULL "\
+    "ORDER BY date_domain_added ASC;"
 
-sql_quickadd_approve = "INSERT INTO tblIndexedDomains(domain, home_page, date_domain_added, owner_verified, validation_method, site_category) "\
-    "SELECT domain, home_page, date_domain_added, owner_submitted, submission_method, site_category FROM tblPendingDomains WHERE domain = (%s); "\
-    "UPDATE tblIndexedDomains "\
-    "SET expire_date = now() + '1 year', api_enabled = FALSE, indexing_type = 'spider/default', indexing_frequency = '28 days', "\
-    "indexing_page_limit = 50, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
-    "WHERE domain = (%s); "\
-    "DELETE FROM tblPendingDomains WHERE domain = (%s);"
+sql_quickadd_approve = "UPDATE tblDomains SET "\
+    "expire_date = now() + '1 year', indexing_type = 'spider/default', indexing_frequency = '28 days', indexing_page_limit = 50, "\
+    "indexing_current_status = 'PENDING', indexing_status_last_updated = now(), "\
+    "moderator_approved = TRUE, moderator_action_date = now(), moderator_action_user = (%s), indexing_enabled = TRUE "\
+    "WHERE domain = (%s);"
 
-sql_quickadd_reject = "INSERT INTO tblExcludeDomains(domain, home_page) "\
-    "SELECT domain, home_page FROM tblPendingDomains WHERE domain = (%s); "\
-    "UPDATE tblExcludeDomains "\
-    "SET reason = (%s), exclusion_date = now() "\
-    "WHERE domain = (%s); "\
-    "DELETE FROM tblPendingDomains WHERE domain = (%s);"
+sql_quickadd_reject = "UPDATE tblDomains SET "\
+    "moderator_approved = FALSE, moderator_action_date = now(), moderator_action_reason = (%s), moderator_action_user = (%s), indexing_enabled = FALSE "\
+    "WHERE domain = (%s);"
 
 
 actions_list = [
@@ -78,7 +75,8 @@ def review():
                     action = domainaction[1]
                     message += '<li>domain: {}, action: {}</li>'.format(domain, action)                    
                     if action == "approve":
-                        cursor.execute(sql_quickadd_approve, (domain, domain, domain, ))
+                        moderator_action_user = session['logged_in_domain']
+                        cursor.execute(sql_quickadd_approve, (moderator_action_user, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
                         if action == "reject-notpersonal":
@@ -89,7 +87,8 @@ def review():
                             reason = "Shared domain"
                         else:
                             reason = "Reason not listed"
-                        cursor.execute(sql_quickadd_reject, (domain, reason, domain, domain, ))
+                        moderator_action_user = session['logged_in_domain']
+                        cursor.execute(sql_quickadd_reject, (reason, moderator_action_user, domain, ))
                         conn.commit()
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)

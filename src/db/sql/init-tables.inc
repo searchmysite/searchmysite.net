@@ -1,4 +1,4 @@
-CREATE TABLE tblIndexedDomains (
+CREATE TABLE tblDomains (
   domain TEXT PRIMARY KEY,
   home_page TEXT NOT NULL,
   contact_email TEXT,
@@ -10,6 +10,13 @@ CREATE TABLE tblIndexedDomains (
   validation_key TEXT,
   validation_method TEXT,
   validation_date TIMESTAMPTZ,
+  moderator_approved Boolean, -- NEW
+  moderator_action_date TIMESTAMPTZ, -- NEW
+  moderator_action_reason TEXT, -- NEW
+  moderator_action_user TEXT, -- NEW
+  indexing_enabled Boolean, -- NEW
+  indexing_disabled_date TIMESTAMPTZ, -- NEW
+  indexing_disabled_reason TEXT, -- NEW
   indexing_type TEXT,
   indexing_frequency INTERVAL,
   indexing_page_limit SMALLINT,
@@ -21,33 +28,13 @@ CREATE TABLE tblIndexedDomains (
   forgotten_password_key_expiry TIMESTAMPTZ
 );
 
-CREATE TABLE tblPendingDomains (
-  domain TEXT PRIMARY KEY,
-  home_page TEXT NOT NULL,
-  contact_email TEXT,
-  site_category TEXT,
-  date_domain_added TIMESTAMPTZ,
-  owner_submitted Boolean,
-  owner_verified Boolean,
-  submission_method TEXT,
-  validation_key TEXT,
-  password TEXT
-);
-
-CREATE TABLE tblExcludeDomains (
-  domain TEXT PRIMARY KEY,
-  home_page TEXT NOT NULL,
-  reason TEXT,
-  exclusion_date TIMESTAMPTZ
-);
-
 CREATE TABLE tblIndexingFilters (
   domain TEXT NOT NULL,
   action VARCHAR(8),
   type VARCHAR(8),
   value TEXT,
   CONSTRAINT domain_fkey FOREIGN KEY (domain)
-    REFERENCES tblIndexedDomains (domain) MATCH SIMPLE
+    REFERENCES tblDomains (domain) MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
@@ -62,7 +49,7 @@ CREATE TABLE tblPermissions (
   domain TEXT NOT NULL,
   role TEXT,
   CONSTRAINT domain_fkey FOREIGN KEY (domain)
-    REFERENCES tblIndexedDomains (domain) MATCH SIMPLE
+    REFERENCES tblDomains (domain) MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 

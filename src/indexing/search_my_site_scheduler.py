@@ -40,19 +40,20 @@ db_password = settings.get('DB_PASSWORD')
 
 filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 
-# This returns sites, where indexing_type = 'spider/default', which are 
-# due for reindexing, either due to being new ('PENDING') 
+# This returns sites which are due for reindexing, either due to being new ('PENDING') 
 # or having been last indexed more than indexing_frequency ago.
+# Must also have indexing_type = 'spider/default' and indexing_enabled = TRUE
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by owner_verified,
 # i.e. so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled FROM tblIndexedDomains "\
-    "WHERE (indexing_type = 'spider/default' AND indexing_current_status = 'PENDING') "\
-    "OR (indexing_type = 'spider/default' AND indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency) "\
+sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled FROM tblDomains "\
+    "WHERE indexing_type = 'spider/default' "\
+    "AND indexing_enabled = TRUE "\
+    "AND (indexing_current_status = 'PENDING' OR (indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency)) "\
     "ORDER BY indexing_current_status DESC, owner_verified DESC "\
     "LIMIT 16;"
 
-sql_to_check_for_stuck_jobs = "SELECT * FROM tblIndexedDomains "\
+sql_to_check_for_stuck_jobs = "SELECT * FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
     "AND indexing_current_status = 'RUNNING' "\
     "AND indexing_status_last_updated + '6 hours' < NOW();"

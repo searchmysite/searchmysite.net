@@ -9,13 +9,12 @@ from searchmysite.db import get_db
 from searchmysite.util import generate_validation_key, extract_domain, send_email, get_host
 import requests
 
-sql_select_indexed = "SELECT * FROM tblIndexedDomains WHERE domain = (%s);"
-sql_select_pending = "SELECT * FROM tblPendingDomains WHERE domain = (%s);"
+sql_select = "SELECT * FROM tblDomains WHERE domain = (%s);"
 sql_select_admin = "SELECT * from tblPermissions WHERE role = 'admin' AND domain = (%s);"
-sql_last_login_time = "UPDATE tblIndexedDomains SET last_login = now() WHERE domain = (%s);"
-sql_change_password = "UPDATE tblIndexedDomains SET password = (%s) WHERE domain = (%s);"
-sql_forgotten_password = "UPDATE tblIndexedDomains SET forgotten_password_key = (%s), forgotten_password_key_expiry = now() + '30 minutes' WHERE domain = (%s);"
-sql_forgotten_password_login = "SELECT * FROM tblIndexedDomains WHERE forgotten_password_key = (%s) AND forgotten_password_key_expiry < now() + '30 minutes';"
+sql_last_login_time = "UPDATE tblDomains SET last_login = now() WHERE domain = (%s);"
+sql_change_password = "UPDATE tblDomains SET password = (%s) WHERE domain = (%s);"
+sql_forgotten_password = "UPDATE tblDomains SET forgotten_password_key = (%s), forgotten_password_key_expiry = now() + '30 minutes' WHERE domain = (%s);"
+sql_forgotten_password_login = "SELECT * FROM tblDomains WHERE forgotten_password_key = (%s) AND forgotten_password_key_expiry < now() + '30 minutes';"
 
 bp = Blueprint('auth', __name__)
 
@@ -34,7 +33,7 @@ def login():
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         error = None
-        cursor.execute(sql_select_indexed, (domain,))
+        cursor.execute(sql_select, (domain,))
         results = cursor.fetchone()
         if results is None:
             error = 'Incorrect domain. Are you registered?'
@@ -100,7 +99,7 @@ def changepassword():
         if new_password != repeat_password:
             error = 'New passwords do not match.'
         if method != 'changepasswordlink': # Check current password
-            cursor.execute(sql_select_indexed, (domain,))
+            cursor.execute(sql_select, (domain,))
             results = cursor.fetchone()
             if results is None:
                 error = 'Incorrect domain. Are you registered?'
@@ -148,7 +147,7 @@ def forgottenpassword_post():
     else:
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql_select_indexed, (domain,))
+        cursor.execute(sql_select, (domain,))
         results = cursor.fetchone()
         if results: # i.e. if the domain exists
             if results['contact_email']: # and there's a valid email
@@ -272,14 +271,14 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                 session['home_page'] = home_page
                 conn = get_db()
                 cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                cursor.execute(sql_select_indexed, (domain,))
+                cursor.execute(sql_select, (domain,))
                 indexed_result = cursor.fetchone()
                 if addsite_workflow == True:
                     # 3 routes through the add site workflow:
                     # 1. Domain submitted and fully validated, i.e. email entered
                     # 2. Domain submitted but not fully validated, i.e. email not entered
                     # 3. Domain not submitted at all)
-                    cursor.execute(sql_select_pending, (domain,))
+                    cursor.execute(sql_select, (domain,))
                     pending_result = cursor.fetchone()
                     if indexed_result is not None and indexed_result['owner_verified'] == True: # i.e. fully validated and owner_verified (existing but non owner_verified should pass through to next step)
                         current_app.logger.info('Add site: domain already submitted and fully validated')
@@ -297,7 +296,7 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                         return_target = next_page
                     else: # i.e. domain hasn't already been submitted
                         current_app.logger.info('Add site: domain not already submitted, so submitting and redirecting to next step')
-                        cursor.execute(insertdomainsql, (domain, home_page))
+                        cursor.execute(insertdomainsql, (domain, home_page, 'IndieAuth'))
                         conn.commit()
                         return_action = "redirect"
                         return_target = next_page
