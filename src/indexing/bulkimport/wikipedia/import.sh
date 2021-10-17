@@ -4,6 +4,10 @@
 # e.g. https://dumps.wikimedia.org/other/cirrussearch/current/enwiki-20210927-cirrussearch-content.json.gz
 # Look like they're updated approx weekly. Also a significantly smaller test file at
 # e.g. https://dumps.wikimedia.org/other/cirrussearch/current/testwiki-20210927-cirrussearch-content.json.gz
+# Run on prod inside the docker container (so the python libs are available) with:
+# docker exec -it src_indexing_1 /usr/src/app/bulkimport/wikipedia/import.sh >~/logs/bulkimport/wikipedia.log
+# Note that the working directory inside the docker container is /usr/src/app/
+# so we need to cd bulkimport/wikipedia before beginning
 
 # Language code
 LAN_CODE=en
@@ -11,6 +15,7 @@ LAN_CODE=en
 FOLDER=cirrussearch/${LAN_CODE}
 SOLR_URL=http://search:8983/solr/content/
 
+cd bulkimport/wikipedia
 mkdir -p $FOLDER
 
 
