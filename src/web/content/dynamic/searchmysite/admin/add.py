@@ -22,13 +22,19 @@ sql_select = "SELECT home_page, contact_email, site_category, owner_verified, va
 # Step 1: Create the new domain in tblDomains, with owner_verified=FALSE and validation_method='IndieAuth' or 'DCV'
 #         (note also moderator_approved=TRUE and indexing_enabled=FALSE).
 # Step 2: Add the email and site_category, and if DCV also add validation_key and password.
-# Step 3: Set owner_verified=TRUE, and set the expire_date, indexing_frequency etc.
+# Step 3: Set owner_verified=TRUE, and validation_date and expire_date
 # (check if ENABLE_PAYMENT=TRUE and if so action accordingly)
-# Step 4: Set indexing_enabled=TRUE
+# Step 4: Set the new verified indexing_frequency etc., mark as ready for indexing, and of course set 
+#         indexing_enabled=TRUE
+# Note:
+# Some Verified Add submissions may already be being indexed via a Quick Add. If this is the case, they will
+# skip step 1 which sets indexing_enabled to FALSE, and so continue to be indexed right through the verification 
+# process. However, they will only get the main benefits of verification (increased page limit etc.) after the
+# check for ENABLE_PAYMENT.
 
 sql_indieauthanddcv_step1_insert = "INSERT INTO tblDomains "\
-    "(domain, home_page, owner_verified, moderator_approved, validation_method, date_domain_added, indexing_enabled) "\
-    "VALUES ((%s), (%s), FALSE, TRUE, (%s), now(), FALSE);"
+    "(domain, home_page, owner_verified, moderator_approved, validation_method, date_domain_added, indexing_enabled, indexing_type) "\
+    "VALUES ((%s), (%s), FALSE, TRUE, (%s), now(), FALSE, 'spider/default');"
 
 sql_indieauth_step2_update = "UPDATE tblDomains "\
     "SET contact_email = (%s), site_category = (%s) "\
@@ -39,11 +45,13 @@ sql_dcv_step2_update = "UPDATE tblDomains "\
     "WHERE domain = (%s); "
 
 sql_indieauthanddcv_step3_validate = "UPDATE tblDomains SET "\
-    "owner_verified = TRUE, expire_date = now() + '1 year', api_enabled = TRUE, validation_date = now(), indexing_type = 'spider/default', "\
-    "indexing_frequency = '3.5 days', indexing_page_limit = 500, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
+    "owner_verified = TRUE, expire_date = now() + '1 year', validation_date = now() "\
     "WHERE domain = (%s);"
 
-sql_indieauthanddcv_step4_enableindexing = "UPDATE tblDomains SET indexing_enabled = TRUE WHERE domain = (%s); "
+sql_indieauthanddcv_step4_enableindexing = "UPDATE tblDomains SET "\
+    "api_enabled = TRUE, indexing_frequency = '3.5 days', indexing_page_limit = 500, "\
+    "indexing_enabled = TRUE, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
+    "WHERE domain = (%s);"
 
 # Quick Add
 # Quick Add insert SQL below, moderator (admin) approve and reject SQL in admin.py
@@ -76,17 +84,22 @@ def quick():
         # 8 routes:
         # 1. No home page entered (although this shouldn't happen because the front end has it as a required field)
         # 2. No site category entered
-        # 3. Domain is already being indexed and has been owner verified - click on Manage Site and login if you are the owner
-        # 4. Domain is already being indexed but has not been owner verified - click on Add via IndieAuth or Add via DCV if you want to verify
-        # 5. Domain has already been submitted via Quick Add but is awaiting review - no further action 
-        # 6. Domain has already been submitted via Verified Add but is awaiting verification  - no further action 
-        #    (note: if someone does Quick Add and is successfully reviewed they can have their site indexed before completing Verified Add,
-        #    but if they go to Verified Add first but don't complete then they won't be able to complete Quick Add and therefore  
-        #    won't be able to get any indexing - this could be handled by adding pending_result['validation_method'] == 'QuickAdd'
-        #    and allowing other submission methods through, but the issue with this would be that sql_quick_add would set the 
-        #    validation_method to 'QuickAdd' meaning they'd have to restart the Verified Add)
+        # 3. Domain has been owner verified and is already being indexed - click on Manage Site and login if you are the owner
+        # 4. Domain has not been owner verified but is already being indexed - click on Add via IndieAuth or Add via DCV if you want to verify
+        # 5. Domain has been owner verified and but indexing has been disabled - show reason it has been disabled
+        # 6. Domain has already been submitted (Quick Add) but is awaiting moderator approval - no further action
         # 7. Domain has previously been submitted but rejected - show rejection reason
-        # 8. Domain has not already been submitted - submit for review
+        # 8. Domain is already present but not being indexed
+        # Note:
+        #    There are 2 scenarios which aren't explicitly picked up:
+        #    1. Previously approved Quick Add sites which have had indexing disabled
+        #    and
+        #    2. Verified Add sites which haven't already had indexing enabled via Quick Add and which are awaiting verification
+        #    this is because they have the same state, i.e.
+        #    result['owner_verified'] == False and result['moderator_approved'] == True and result['indexing_enabled'] == False
+        # Note also:
+        #    It is possible to do a Quick Add and have a site indexed before a Verified Add, but not the other way around.
+        #    See also comments in the Verified Add SQL section above.
         if not home_page:
             message = 'Home page is required.'
             flash(message)
@@ -96,7 +109,7 @@ def quick():
             flash(message)
             return render_template('admin/add-quick.html')
         elif result is not None and result['owner_verified'] == True and result['moderator_approved'] == True and result['indexing_enabled'] == True:
-            # i.e. verified add, verified (and moderator approved), and indexed
+            # i.e. verified add, moderator approved, and indexed
             message = 'Domain {} is already being indexed with a home page at {} - you can click on Manage Site if you are the owner.'.format(domain, result['home_page'])
             flash(message)
             return render_template('admin/add-quick.html')
@@ -105,19 +118,27 @@ def quick():
             message = 'Domain {} is already being indexed with a home page at {} - click on Verified Add if you are the owner and want to change from Quick Add to Verified Add.'.format(domain,result['home_page'])
             flash(message)
             return render_template('admin/add-quick.html')
-        elif result is not None and result['owner_verified'] == False and result['moderator_approved'] is None and result['indexing_enabled'] == False:
-            # i.e. not already indexed, but already submitted via Quick Add and is pending review
+        elif result is not None and result['owner_verified'] == True and result['moderator_approved'] == True and result['indexing_enabled'] == False:
+            # i.e. verified add, moderator approved, but with indexing disabled
+            message = 'Domain {} with a home page at {} has had indexing disabled for the following reason: {}. '.format(domain, result['home_page'], result['indexing_disabled_reason'])
+            message += 'Please use the Contact link if you would like to query this.'
+            flash(message)
+            return render_template('admin/add-quick.html')
+        elif result is not None and result['moderator_approved'] is None:
+            # i.e. submitted and is pending moderator review
             message = 'Domain {} with a home page at {} has already been submitted and is pending moderator review.'.format(domain, result['home_page'])
             flash(message)
             return render_template('admin/add-quick.html')
-        elif result is not None and result['owner_verified'] == False and result['moderator_approved'] == True and result['indexing_enabled'] == False:
-            # i.e. not already indexed, but already submitted via Verified Add and is pending verification
-            message = 'Domain {} with a home page at {} has already been submitted and is pending owner verification.'.format(domain, result['home_page'])
+        elif result is not None and result['moderator_approved'] == False:
+            # i.e. previously submitted and rejected
+            message = 'Domain {} with a home page at {} has previously been submitted but rejected for the following reason: {}'.format(domain, result['home_page'], result['moderator_action_reason'])
+            message += 'Please use the Contact link if you would like to query this.'
             flash(message)
             return render_template('admin/add-quick.html')
-        elif result is not None and result['moderator_approved'] == False: # i.e. previously submitted and rejected
-            message = 'Domain {} with a home page at {} has previously been submitted but rejected for the following reason: {}. '.format(domain, result['home_page'], result['moderator_action_reason'])
-            message += 'Please use the Contact link if you would like to query this.'
+        elif result is not None and result['indexing_enabled'] == False:
+            # i.e. not being indexed. Should effectively be a catchall because all the indexing_enabled=True and moderator_approved states should be covered
+            message = 'Domain {} with a home page at {} has previously been submitted although is not being indexed. '.format(domain, result['home_page'])
+            message += 'Please use the Contact link if you would like further information.'
             flash(message)
             return render_template('admin/add-quick.html')
         else: # i.e. not already indexed and not already submitted
