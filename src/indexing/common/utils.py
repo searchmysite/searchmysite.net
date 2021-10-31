@@ -90,7 +90,7 @@ def get_last_complete_indexing_log_message(domain):
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(get_last_complete_indexing_log_message_sql, (domain, ))
         log_messages = cursor.fetchone()
-        if log_messages['message']:
+        if log_messages and log_messages['message']:
             log_message = log_messages['message']
     except psycopg2.Error as e:
         logger = logging.getLogger()
