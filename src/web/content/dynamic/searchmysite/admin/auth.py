@@ -156,7 +156,8 @@ def forgottenpassword_post():
                 cursor.execute(sql_forgotten_password, (forgotten_password_key, domain,))
                 conn.commit()
                 subject = "Email from searchmysite.net"
-                text = 'Copy and paste this link into your web browser to reset your password:\n{}?key={}\n'.format(request.base_url, forgotten_password_key)
+                forgotten_password_link = get_host(request.base_url, request.headers)
+                text = 'Copy and paste this link into your web browser to reset your password:\n{}?key={}\n'.format(forgotten_password_link, forgotten_password_key)
                 success_status = send_email(None, email, subject, text)
                 return render_template('admin/success.html', title="Password reminder sent", message="<p>If there is a valid email address associated with that domain, an email will have been sent to it to allow you to change your password. It will be valid for 30 minutes.</p>")
             else:
