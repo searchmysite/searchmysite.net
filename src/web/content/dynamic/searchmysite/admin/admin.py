@@ -35,7 +35,8 @@ actions_list = [
 {'id':'action3', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site'},
 {'id':'action4', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
 {'id':'action5', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
-{'id':'action6', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
+{'id':'action6', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
+{'id':'action8', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
 ]
 
 # Setup routes
@@ -85,6 +86,8 @@ def review():
                             reason = "Not actively maintained"
                         elif action == "reject-shared":
                             reason = "Shared domain"
+                        elif action == "reject-nocontent":
+                            reason = "No content"
                         else:
                             reason = "Reason not listed"
                         moderator_action_user = session['logged_in_domain']
