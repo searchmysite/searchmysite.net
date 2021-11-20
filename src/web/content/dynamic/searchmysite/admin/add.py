@@ -45,11 +45,11 @@ sql_dcv_step2_update = "UPDATE tblDomains "\
     "WHERE domain = (%s); "
 
 sql_indieauthanddcv_step3_validate = "UPDATE tblDomains SET "\
-    "owner_verified = TRUE, expire_date = now() + '1 year', validation_date = now() "\
+    "owner_verified = TRUE, validation_date = now() "\
     "WHERE domain = (%s);"
 
 sql_indieauthanddcv_step4_enableindexing = "UPDATE tblDomains SET "\
-    "api_enabled = TRUE, indexing_frequency = '3.5 days', indexing_page_limit = 500, "\
+    "expire_date = now() + '1 year', api_enabled = TRUE, indexing_frequency = '3.5 days', indexing_page_limit = 500, "\
     "indexing_enabled = TRUE, indexing_current_status = 'PENDING', indexing_status_last_updated = now() "\
     "WHERE domain = (%s);"
 
