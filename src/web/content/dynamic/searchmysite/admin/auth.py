@@ -136,12 +136,17 @@ def forgottenpassword_get():
         return render_template('admin/forgottenpassword.html')
 
 @bp.route('/forgotten/password/', methods=['POST'])
-@login_required
-@admin_required
+#@login_required
+#@admin_required
 def forgottenpassword_post():
     domain = request.form.get('domain')
+    email = request.form.get('email')
     if not domain:
         error = 'Please enter your domain.'
+        flash(error)
+        return render_template('admin/forgottenpassword.html')
+    elif not email:
+        error = 'Please enter your email.'
         flash(error)
         return render_template('admin/forgottenpassword.html')
     else:
@@ -151,15 +156,19 @@ def forgottenpassword_post():
         results = cursor.fetchone()
         if results: # i.e. if the domain exists
             if results['contact_email']: # and there's a valid email
-                email = results['contact_email']
-                forgotten_password_key = generate_validation_key(32)
-                cursor.execute(sql_forgotten_password, (forgotten_password_key, domain,))
-                conn.commit()
-                subject = "Email from searchmysite.net"
-                forgotten_password_link = get_host(request.base_url, request.headers)
-                text = 'Copy and paste this link into your web browser to reset your password:\n{}?key={}\n'.format(forgotten_password_link, forgotten_password_key)
-                success_status = send_email(None, email, subject, text)
-                return render_template('admin/success.html', title="Password reminder sent", message="<p>If there is a valid email address associated with that domain, an email will have been sent to it to allow you to change your password. It will be valid for 30 minutes.</p>")
+                if email == results['contact_email']:
+                    forgotten_password_key = generate_validation_key(32)
+                    cursor.execute(sql_forgotten_password, (forgotten_password_key, domain,))
+                    conn.commit()
+                    subject = "Email from searchmysite.net"
+                    forgotten_password_link = get_host(request.base_url, request.headers)
+                    text = 'Copy and paste this link into your web browser to reset your password:\n{}?key={}\n'.format(forgotten_password_link, forgotten_password_key)
+                    success_status = send_email(None, email, subject, text)
+                    return render_template('admin/success.html', title="Password reminder sent", message="<p>An email has been sent to your registered email address to allow you to change your password. It will be valid for 30 minutes.</p>")
+                else:
+                    error = 'Please enter your registered email address. If you have forgotten this, please use the Contact link.'
+                    flash(error)
+                    return render_template('admin/forgottenpassword.html')
             else:
                 return render_template('admin/forgottenpassword.html')
         else:
