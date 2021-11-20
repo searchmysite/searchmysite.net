@@ -55,6 +55,9 @@ DOWNLOAD_MAXSIZE = 1048576 # 1Mb.
 # Default: 33554432 (32MB)
 DOWNLOAD_WARNSIZE = 524288 # 0.5Mb
 
+# If the spider remains open for more than that number of seconds, it will be automatically closed with the reason closespider_timeout
+CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
+
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
