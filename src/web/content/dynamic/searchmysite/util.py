@@ -93,21 +93,24 @@ def delete_domain(domain):
 def send_email(reply_to_email, to_email, subject, text): 
     success = True
     if not to_email:
-        to_email = smtp_to_email
+        recipients = [smtp_to_email]
+    else:
+        recipients = [to_email, smtp_to_email]
     context = ssl.create_default_context()
     try:
         message = MIMEMultipart()
         message["From"] = smtp_from_email
-        message["To"] = to_email
+        message["To"] = recipients[0]
         if reply_to_email:
             message['Reply-To'] = reply_to_email
+        message["CC"] = smtp_to_email # Always cc the smtp_to_email env variable
         message["Subject"] = subject
         message.attach(MIMEText(text, "plain"))
         server = smtplib.SMTP(smtp_server, smtp_port)
         #server.set_debuglevel(1)
         server.starttls(context=context) # Secure the connection
         server.login(smtp_from_email, smtp_from_password)
-        server.sendmail(smtp_from_email, smtp_to_email, message.as_string())
+        server.sendmail(smtp_from_email, recipients, message.as_string())
     except Exception as e:
         success = False
         current_app.logger.error('Error sending email: {}'.format(e))
