@@ -1,5 +1,5 @@
 import json
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 import psycopg2
 import psycopg2.extras
 import tldextract
@@ -25,9 +25,24 @@ update_indexing_status_sql = "UPDATE tblDomains "\
 indexing_log_sql = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
 get_last_complete_indexing_log_message_sql = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
 deactivate_indexing_sql = "UPDATE tblDomains SET indexing_enabled = FALSE, indexing_disabled_date = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
+# In sql_to_get_expired_unverified_sites, the moderator_approved = TRUE might appear redundant, but it is to stop the same site being returned after it is expired
+get_expired_unverified_sites_sql = "SELECT domain from tblDomains "\
+    "WHERE expire_date < now() "\
+    "AND validation_method IN ('QuickAdd', 'SQL') "\
+    "AND moderator_approved = TRUE "\
+    "AND indexing_type = 'spider/default' "\
+    "ORDER BY date_domain_added ASC;"
+expire_unverified_site_sql = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"
+check_for_stuck_jobs_sql = "SELECT * FROM tblDomains "\
+    "WHERE indexing_type = 'spider/default' "\
+    "AND indexing_current_status = 'RUNNING' "\
+    "AND indexing_status_last_updated + '6 hours' < NOW();"
 
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
+solr_delete_query = "update?commit=true"
+solr_delete_headers = {'Content-Type': 'text/xml'}
+solr_delete_data = "<delete><query>domain:{}</query></delete>"
 
 
 # Database utils
@@ -113,6 +128,48 @@ def deactivate_indexing(domain, reason):
         conn.close()
     return
 
+# Check for stuck jobs
+def check_for_stuck_jobs():
+    logger = logging.getLogger()
+    try:
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute(check_for_stuck_jobs_sql)
+        results = cursor.fetchall()
+        stuck_domains = []
+        for result in results:
+            stuck_domains.append(result['domain'])
+        if stuck_domains:
+            logger.warning('The following domains have had indexing RUNNING for over 6 hours, so something is likely to be wrong: {}'.format(stuck_domains))
+    except psycopg2.Error as e:
+        logger.error(' %s' % e.pgerror)
+    finally:
+        conn.close()
+
+# Expire unverified ('QuickAdd', 'SQL') sites
+def expire_unverified_sites():
+    expired_unverified_sites = []
+    logger = logging.getLogger()
+    try:
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute(get_expired_unverified_sites_sql)
+        results = cursor.fetchall()
+        for result in results:
+            expired_unverified_sites.append(result['domain'])
+        if expired_unverified_sites:
+            for expired_unverified_site in expired_unverified_sites:
+                logger.info('Expiring the following unverified domain: {}'.format(expired_unverified_site))
+                cursor.execute(expire_unverified_site_sql, (expired_unverified_site,))
+                conn.commit()
+                solr_delete_domain(expired_unverified_site)
+    except psycopg2.Error as e:
+        logger.error('expire_unverified_sites: {}'.format(e.pgerror))
+    finally:
+        conn.close()
+    return expired_unverified_sites
+
+
 
 # Solr utils
 # ----------
@@ -145,6 +202,15 @@ def get_all_indexed_inlinks_for_domain(domain):
                     else:
                         indexed_inlinks[indexed_outlink].append(url)
     return indexed_inlinks
+
+# Remove all pages from a domain from the Solr index
+def solr_delete_domain(domain):
+    solrurl = config.SOLR_URL
+    solrquery = solrurl + solr_delete_query
+    data = solr_delete_data.format(domain)
+    req = Request(solrquery, data.encode("utf8"), solr_delete_headers)
+    response = urlopen(req)
+    results = response.read()
 
 
 # Domain utils

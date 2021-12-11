@@ -6,10 +6,8 @@ from scrapy.utils.project import get_project_settings
 import logging
 import psycopg2
 import psycopg2.extras
-from urllib.request import urlopen
-import json
 from indexer.spiders.search_my_site_script import SearchMySiteScript
-from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain
+from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, check_for_stuck_jobs, expire_unverified_sites
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
@@ -53,32 +51,14 @@ sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, inde
     "ORDER BY indexing_current_status DESC, owner_verified DESC "\
     "LIMIT 16;"
 
-sql_to_check_for_stuck_jobs = "SELECT * FROM tblDomains "\
-    "WHERE indexing_type = 'spider/default' "\
-    "AND indexing_current_status = 'RUNNING' "\
-    "AND indexing_status_last_updated + '6 hours' < NOW();"
 
-solrurl = settings.get('SOLR_URL')
-solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
-
-# Maintenance jobs
+# MAINTENANCE JOBS
 # This could be in a separately scheduled job, which could be run less frequently, but is just here for now to save having to setup another job
-# The code to check for and action expired domains could go here too
-try:
-    conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_password)
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_to_check_for_stuck_jobs)
-    results = cursor.fetchall()
-    stuck_domains = []
-    for result in results:
-        stuck_domains.append(result['domain'])
-    if stuck_domains:
-        logger.warning('The following domains have had indexing RUNNING for over 6 hours, so something is likely to be wrong: {}'.format(stuck_domains))
-except psycopg2.Error as e:
-    logger.error(' %s' % e.pgerror)
-finally:
-    conn.close()
+check_for_stuck_jobs()
+expire_unverified_sites()
 
+
+# MAIN INDEXING JOB
 # Read data from database (urls_to_crawl, domains_for_indexed_links, exclusion for each urls_to_crawl)
 
 logger.info('Checking for sites to index')
