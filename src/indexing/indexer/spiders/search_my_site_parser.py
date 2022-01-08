@@ -145,8 +145,13 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item['site_category'] = site_config['site_category']
 
     # owner_verified
+    # Only set owner_verified within the search index when api_enabled
+    # This is because there are a growing number of Verified Add sites which have indexing_enabled (either via Quick Add or expired Verified Add)
+    # and complete step 3 of the Verified Add process, i.e. verify ownership, which sets owner_verified, 
+    # but don't complete step 4, i.e. payment (when present), which sets api_enabled, indexing_frequency etc.
     owner_verified = False
-    if site_config['owner_verified'] == True: owner_verified = True
+    if site_config['owner_verified'] == True and site_config['api_enabled'] == True: 
+        owner_verified = True
     item['owner_verified'] = owner_verified
 
     # contains_adverts
