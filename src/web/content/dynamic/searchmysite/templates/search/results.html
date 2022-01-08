@@ -17,18 +17,20 @@
 							<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">
 						{% endif %}
 						<p>
-						<h5>{% if result['published_date'] %}{{ result['published_date'] }}:{% endif %}
+						<h5 class="fw-normal">{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
 						<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
 						</h5>
 						<a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a>
 						{% if result['highlight'] %}
-							<br>{{ result['highlight'][0] }}
-							{% if result['highlight'][2] %}
-							<b>{{ result['highlight'][1] }}</b>{{ result['highlight'][2] }}
-							{% endif %}
-							{% if result['highlight'][4] %}
-							<b>{{ result['highlight'][3] }}</b>{{ result['highlight'][4] }}
-							{% endif %}
+							<span id="result-hightlight">
+								<br>{{ result['highlight'][0] }}
+								{% if result['highlight'][2] %}
+								<b>{{ result['highlight'][1] }}</b>{{ result['highlight'][2] }}
+								{% endif %}
+								{% if result['highlight'][4] %}
+								<b>{{ result['highlight'][3] }}</b>{{ result['highlight'][4] }}
+								{% endif %}
+							</span>
 						{% endif %}
 						{% if result['subresults'] %}
 							<small>

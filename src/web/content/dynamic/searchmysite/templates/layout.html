@@ -6,10 +6,9 @@
 	<meta name="description" content="searchmysite.net - the open source search engine and search as a service for user-submitted personal and independent websites">
 	<meta name="keywords" content="search my site, independent search engine, search as a service, open source search, blog search engine">
 	<title>{% block title %}{% endblock %}</title>
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.5.1.3.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/static/css/custom.css"/>
-	<script defer src="/static/js/jquery-3.5.1.slim.min.js"></script>
-	<script defer src="/static/js/bootstrap.min.js"></script>
+	<script defer src="/static/js/bootstrap.5.1.3.min.js"></script>
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 	{% block head %}{% endblock %}
@@ -17,37 +16,35 @@
 <body class="d-flex flex-column min-vh-100">
 
 	<header>
-		<nav class="navbar navbar-expand-sm navbar-light bg-light">
-			<ul class="navbar-nav mr-auto">
-				<li class="nav-item">
-					<a class="nav-link navbar-brand" href="/">Search My Site</a>
-				</li>
-			</ul>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse flex-grow-0" id="topnav">
-				<ul class="navbar-nav text-right">
-					<li class="nav-item">
-						<a class="nav-link" href="/admin/add/">Add Site</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/admin/manage/">Manage Site</a>
-					</li>
-					{% if session.get('is_admin') == True %}
-					<li class="nav-item">
-						<a class="nav-link" href="{{ url_for('admin.review') }}">Review</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="{{ url_for('admin.remove') }}">Remove</a>
-					</li>
-					{% endif %}
-					{% if session.get('logged_in_domain') %}
-					<li class="nav-item">
-						<a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-					</li>
-					{% endif %}
-				</ul>
+		<nav class="navbar navbar-expand-sm navbar-light bg-light" aria-label="searchmysite.net navbar">
+			<div class="container-fluid">
+				<a class="nav-link navbar-brand" href="/">Search My Site</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+			  	</button>
+			  	<div class="collapse navbar-collapse flex-grow-0" id="topnav">
+					<ul class="navbar-nav align-items-end">
+				  		<li class="nav-item">
+							<a class="nav-link" href="/admin/add/">Add Site</a>
+				  		</li>
+				  		<li class="nav-item">
+							<a class="nav-link" href="/admin/manage/">Manage Site</a>
+				  		</li>
+						{% if session.get('is_admin') == True %}
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('admin.review') }}">Review</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('admin.remove') }}">Remove</a>
+						</li>
+						{% endif %}
+						{% if session.get('logged_in_domain') %}
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+						</li>
+						{% endif %}
+					</ul>
+			  	</div>
 			</div>
 		</nav>
 	</header>
@@ -69,22 +66,26 @@
 	</main>
 
 	<footer class="footer mt-5">
-		<nav class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
-			<ul class="nav flex-column">
-				<li class="nav-item p-1">Community</li>
-				<li class="nav-item p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
-				<li class="nav-item p-1"><a href="/admin/contact/">Contact</a></li>
-				<li class="nav-item p-1"><a href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
-				<li class="nav-item p-1"><a href="/pages/documentation/">Documentation</a></li>
-				<li class="nav-item p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
-			</ul>
-			<ul class="nav flex-column">
-				<li class="nav-item p-1">Product</li>
-				<li class="nav-item p-1"><a href="/pages/about/">About</a></li>
-				<li class="nav-item p-1"><a href="/pages/privacy/">Privacy</a></li>
-				<li class="nav-item p-1"><a href="/pages/terms/">Terms</a></li>
-			</ul>
-		</nav>
+		<div class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
+			<div class="flex-column ms-3">
+				<ul class="list-unstyled">
+					<li class="p-1">Community</li>
+					<li class="p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
+					<li class="p-1"><a href="/admin/contact/">Contact</a></li>
+					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
+					<li class="p-1"><a href="/pages/documentation/">Documentation</a></li>
+					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
+				</ul>
+			</div>
+			<div class="flex-column me-3">
+				<ul class="list-unstyled">
+					<li class="p-1">Product</li>
+					<li class="p-1"><a href="/pages/about/">About</a></li>
+					<li class="p-1"><a href="/pages/privacy/">Privacy</a></li>
+					<li class="p-1"><a href="/pages/terms/">Terms</a></li>
+				</ul>
+			</div>
+		</div>
 	</footer>
 
 </body>

@@ -6,34 +6,31 @@
 	<meta name="description" content="searchmysite.net - the open source search engine and search as a service for user-submitted personal and independent websites">
 	<meta name="keywords" content="search my site, independent search engine, search as a service, open source search, blog search engine">
 	<title>Search My Site - Open source search engine and search as a service for personal and independent websites</title>
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.5.1.3.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/static/css/custom.css"/>
-	<script defer src="/static/js/jquery-3.5.1.slim.min.js"></script>
-	<script defer src="/static/js/bootstrap.min.js"></script>
+	<script defer src="/static/js/bootstrap.5.1.3.min.js"></script>
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 </head>
 <body class="d-flex flex-column min-vh-100">
 
 	<header>
-		<nav class="navbar navbar-expand-sm navbar-light bg-light">
-			<ul class="navbar-nav mr-auto">
-				<li class="nav-item">
-					<a class="nav-link navbar-brand disabled" href="/">Search My Site</a>
-				</li>
-			</ul>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse flex-grow-0" id="topnav">
-				<ul class="navbar-nav text-right">
-					<li class="nav-item">
-						<a class="nav-link" href="/admin/add/">Add Site</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/admin/manage/">Manage Site</a>
-					</li>
-				</ul>
+		<nav class="navbar navbar-expand-sm navbar-light bg-light" aria-label="searchmysite.net navbar">
+			<div class="container-fluid">
+				<a class="nav-link navbar-brand disabled" href="/">Search My Site</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+			  	</button>
+			  	<div class="collapse navbar-collapse flex-grow-0" id="topnav">
+					<ul class="navbar-nav align-items-end">
+				  		<li class="nav-item">
+							<a class="nav-link" href="/admin/add/">Add Site</a>
+				  		</li>
+				  		<li class="nav-item">
+							<a class="nav-link" href="/admin/manage/">Manage Site</a>
+				  		</li>
+					</ul>
+			  	</div>
 			</div>
 		</nav>
 	</header>
@@ -43,13 +40,15 @@
 
 			<form action="/search/">
 			<div class="row">
-				<div class="col-md-4 offset-md-4 mt-5 pt-3 input-group">
-					<input type="search" class="form-control" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
-					<span class="input-group-append">
+				<div class="col-md-4 offset-md-4 mt-5 pt-3">
+					<div class="input-group">
+						<input type="search" class="form-control" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
 						<button class="input-group-text" type="submit">
-							<img src="/static/images/search.svg" alt="Search" title="Search" />
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+								<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+							</svg>
 						</button>
-					</span>
+					</div>
 				</div>
 			</div>
 			</form>
@@ -80,7 +79,6 @@
 				<div class="col-md-4 offset-md-4 mt-5 text-center">
 					<h1 class="normal">Open source search engine and search&nbsp;as&nbsp;a&nbsp;service
 						for personal and independent websites.
-
 					</h1>
 					<small>
 						Help improve it by submitting your favourite sites 
@@ -93,22 +91,26 @@
 	</main>
 
 	<footer class="footer mt-5">
-		<nav class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
-			<ul class="nav flex-column">
-				<li class="nav-item p-1">Community</li>
-				<li class="nav-item p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
-				<li class="nav-item p-1"><a href="/admin/contact/">Contact</a></li>
-				<li class="nav-item p-1"><a href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
-				<li class="nav-item p-1"><a href="/pages/documentation/">Documentation</a></li>
-				<li class="nav-item p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
-			</ul>
-			<ul class="nav flex-column">
-				<li class="nav-item p-1">Product</li>
-				<li class="nav-item p-1"><a href="/pages/about/">About</a></li>
-				<li class="nav-item p-1"><a href="/pages/privacy/">Privacy</a></li>
-				<li class="nav-item p-1"><a href="/pages/terms/">Terms</a></li>
-			</ul>
-		</nav>
+		<div class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
+			<div class="flex-column ms-3">
+				<ul class="list-unstyled">
+					<li class="p-1">Community</li>
+					<li class="p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
+					<li class="p-1"><a href="/admin/contact/">Contact</a></li>
+					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
+					<li class="p-1"><a href="/pages/documentation/">Documentation</a></li>
+					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
+				</ul>
+			</div>
+			<div class="flex-column me-3">
+				<ul class="list-unstyled">
+					<li class="p-1">Product</li>
+					<li class="p-1"><a href="/pages/about/">About</a></li>
+					<li class="p-1"><a href="/pages/privacy/">Privacy</a></li>
+					<li class="p-1"><a href="/pages/terms/">Terms</a></li>
+				</ul>
+			</div>
+		</div>
 	</footer>
 
 </body>

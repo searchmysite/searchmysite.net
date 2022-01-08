@@ -17,18 +17,24 @@
 			</div>
 
 			<form action="{{ url_for('manage.sitedetails_edit') }}" method="post">
-			<div class="row form-group">
-				<label for="domain" class="col-sm-2 col-form-label text-right">Domain:</label>
-				<div class="col-sm-6">
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="domain" class="col-form-label">Domain:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 					<input type="text" readonly class="form-control-plaintext" id="domain" value="{{ result['domain'] }}" aria-describedby="domain_help">
 					<small id="domain_help" class="form-text text-muted">
 						Only pages on this domain will be indexed. This your login ID if you use a password.
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="home_page" class="col-sm-2 col-form-label text-right">Home page:</label>
-				<div class="col-sm-6">
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="home_page" class="col-form-label">Home page:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 					<input type="text" readonly class="form-control-plaintext" id="home_page" value="{{ result['home_page'] }}" aria-describedby="home_page_help">
 					<small id="home_page_help" class="form-text text-muted">
 						The page where indexing will begin. This is your login ID if you use IndieAuth.
@@ -36,37 +42,44 @@
 				</div>
 			</div>
 
-			<div class="row form-group">
-				<label for="login_method" class="col-sm-2 col-form-label text-right">Login method:</label>
-				<div class="col-sm-6">
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="login_method" class="col-form-label">Login method:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 				{% if session.get('log_in_method') == 'usernamepassword' or session.get('log_in_method') == 'changepasswordlink' %}
 					<input type="text" readonly class="form-control-plaintext" id="login_method" value="Domain and password" aria-describedby="login_method_help">
 				{% elif session.get('log_in_method') == 'indieauth' %}
 					<input type="text" readonly class="form-control-plaintext" id="login_method" value="IndieAuth" aria-describedby="login_method_help">
 				{% endif %}
-						<small id="login_method_help" class="form-text text-muted">
+					<small id="login_method_help" class="form-text text-muted">
 						The method you use to login. Options are "domain and password" and "IndieAuth" (which uses home page as the login ID and does not require a password in this system).
 					</small>
 				</div>
 				{% if session.get('log_in_method') == 'usernamepassword' or session.get('log_in_method') == 'changepasswordlink' %}
-				<div class="col-sm-2">
+				<div class="col-sm-3 col-md-2">
 					<a class="btn btn-primary" href="{{ url_for('auth.changepassword') }}" role="button">Change Password</a>
 				</div>
 				{% endif %}
 			</div>
 
-			<div class="row form-group">
-				<label for="site_category" class="col-sm-2 col-form-label text-right">Category:</label>
-				<div class="col-sm-6">
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="site_category" class="col-form-label">Category:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 					<input type="text" readonly class="form-control-plaintext" id="site_category" value="{{ result['site_category'] }}" aria-describedby="site_category_help">
 					<small id="site_category_help" class="form-text text-muted">
 						The site category. Users might filter search results to certain categories.
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="contact_email" class="col-sm-2 col-form-label text-right">Admin email:</label>
-				<div class="col-sm-6">
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="contact_email" class="col-form-label">Admin email:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 					{% if edit == False %}
 					<input type="email" readonly     class="form-control" id="contact_email" placeholder="{{ result['contact_email'] }}"  aria-describedby="email_help">
 					{% else %}
@@ -76,7 +89,7 @@
 						Site admin email address. Only used for service updates.
 					</small>
 				</div>
-				<div class="col-sm-2">
+				<div class="col-sm-3 col-md-2">
 					{% if edit == False %}
 					<a class="btn btn-primary" href="{{ url_for('manage.sitedetails_edit') }}" role="button">Edit Email</a>
 					{% else %}
@@ -84,17 +97,23 @@
 					{% endif %}
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="date_domain_added" class="col-sm-2 col-form-label text-right">Domain added:</label>
-				<div class="col-sm-6">
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="date_domain_added" class="col-form-label">Domain added:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
 					<input type="text" readonly class="form-control-plaintext" id="date_domain_added" value="{{ result['date_domain_added']|datetimeformat }}" aria-describedby="date_domain_added_help">
 					<small id="date_domain_added_help" class="form-text text-muted">
 						The time and date this domain was first entered into the system.
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="expire_date" class="col-sm-2 col-form-label text-right">Listing expires:</label>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="expire_date" class="col-form-label">Listing expires:</label>
+				</div>
 				<div class="col-sm-6">
 					<input type="text" readonly class="form-control-plaintext" id="expire_date" value="{{ result['expire_date']|datetimeformat }}" aria-describedby="expire_date_help">
 					<small id="expire_date_help" class="form-text text-muted">
@@ -102,8 +121,11 @@
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="api_enabled" class="col-sm-2 col-form-label text-right">API enabled:</label>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="api_enabled" class="col-form-label">API enabled:</label>
+				</div>
 				<div class="col-sm-6">
 					<input type="text" readonly class="form-control-plaintext" id="api_enabled" value="{{ result['api_enabled'] }}" aria-describedby="api_enabled_help">
 					<small id="api_enabled_help" class="form-text text-muted">
@@ -111,8 +133,11 @@
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<label for="api_endpoint" class="col-sm-2 col-form-label text-right">API endpoint:</label>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="api_endpoint" class="col-form-label">API endpoint:</label>
+				</div>
 				<div class="col-sm-6">
 					<a href="/api/v1/search/{{ result['domain'] }}?q=*" aria-describedby="api_endpoint_help">/api/v1/search/{{ result['domain'] }}?q=*</a>
 					<small id="api_endpoint_help" class="form-text text-muted">
@@ -120,12 +145,16 @@
 					</small>
 				</div>
 			</div>
-			<div class="row form-group">
-				<p class="col-sm-2"></p>
+
+			<div class="row mt-5">
+				<div class="col-sm-3 col-md-2 text-end">
+					<p></p>
+				</div>
 				<div class="col-sm-6">
 					<a class="btn btn-primary" href="{{ url_for('manage.delete') }}" role="button">Delete Site</a>
 				</div>
 			</div>
+
 			</form>
 
 {% endblock %}

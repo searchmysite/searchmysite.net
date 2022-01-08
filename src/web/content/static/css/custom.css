@@ -6,13 +6,18 @@ html {
   overflow-y: scroll;
   min-height: 100%;
 }
+a {
+  text-decoration: none;
+}
 .nav-link, a.result-title {
+  font-weight: normal;
   color: #1A0DAB;
 }
 a.result-link {
   color: #006400;
 }
 h1.normal {
+  font-weight: normal;
   font-size: 1rem;
   line-height: 1.5;
   margin-bottom: 1rem;

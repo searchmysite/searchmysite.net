@@ -8,27 +8,31 @@
 				<div class="col-md-4 offset-md-4">
 
 					<form action="https://indielogin.com/auth" method="get">
-						<label for="url" class="sr-only">Domain</label>
-						<input type="text" name="me" class="form-control" id="url" placeholder="Home page" required/>
-						<p><button type="submit" class="btn btn-primary btn-block">Login with IndieAuth</button></p>
-						<input type="hidden" name="client_id" value="{{ client_id }}" />
-						<input type="hidden" name="redirect_uri" value="{{ redirect_uri }}" />
-						<input type="hidden" name="state" value="{{ state }}" />
+						<div class="d-grid">
+							<label for="url" class="visually-hidden">Domain</label>
+							<input type="text" name="me" class="form-control" id="url" placeholder="Home page" required/>
+							<button type="submit" class="btn btn-primary">Login with IndieAuth</button>
+							<input type="hidden" name="client_id" value="{{ client_id }}" />
+							<input type="hidden" name="redirect_uri" value="{{ redirect_uri }}" />
+							<input type="hidden" name="state" value="{{ state }}" />
+						</div>
 					</form>
 
 					<div class="row mt-4 mb-2">
 						<div class="col"><hr/></div>
-						<div class="col"><p class="text-center align-bottom">OR</p></div>
+						<div class="col"><p class="text-center">OR</p></div>
 						<div class="col"><hr/></div>
 					</div>
 
 					<form method="post">
-						<label for="domain" class="sr-only">Domain</label>
-						<input type="text" name="domain" class="form-control" id="domain" placeholder="Domain" required>
-						<label for="password" class="sr-only">Password</label>
-						<input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
-						<button type="submit" class="btn btn-primary btn-block">Login with password</button>
-						<div class="text-center"><small><a class="nav-link" href="{{ url_for('auth.forgottenpassword_get') }}">Forgot password</a></small></div>
+						<div class="d-grid">
+							<label for="domain" class="visually-hidden">Domain</label>
+							<input type="text" name="domain" class="form-control" id="domain" placeholder="Domain" required>
+							<label for="password" class="visually-hidden">Password</label>
+							<input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
+							<button type="submit" class="btn btn-primary">Login with password</button>
+							<div class="text-center"><small><a class="nav-link" href="{{ url_for('auth.forgottenpassword_get') }}">Forgot password</a></small></div>
+						</div>
 					</form>
 
 				</div>
