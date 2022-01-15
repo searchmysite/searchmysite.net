@@ -13,13 +13,12 @@
 
 					{% for result in results %}
 					<div class="search-result">
-						{% if result['contains_adverts'] %}
-							<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">
-						{% endif %}
 						<p>
-						<h5 class="fw-normal">{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
-						<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
-						</h5>
+							<h5 class="fw-normal">
+								{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
+								{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
+								<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
+							</h5>
 						<a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a>
 						{% if result['highlight'] %}
 							<span id="result-hightlight">
