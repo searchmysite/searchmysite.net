@@ -6,7 +6,7 @@
 # rm -r searchmysite.net/
 # git clone https://github.com/searchmysite/searchmysite.net.git
 # cp ~/searchmysite.net/src/deployprod.sh ~/.
-if [ "$USER" = "ubuntu" ] # To try and prevent accidental running on dev
+if [ "$USER" = "root" ] # To try and prevent accidental running on dev
 then
   cd
   rm -r searchmysite.net/
