@@ -1,7 +1,10 @@
 mod-wsgi
+# Get "wsgi:error ModuleNotFoundError: No module named 'pyrsistent'" with latest pyrsistent (0.18.1) so using 0.18.0
+pyrsistent==0.18.0
 flask
 flask-restx
-psycopg2-binary
+# Builds fail with "Error: pg_config executable not found" with latest psycopg2-binary releases (2.9, 2.9.1, 2.9.2, 2.9.3) so using 2.8.6
+psycopg2-binary==2.8.6
 tldextract
 stripe
 # Have to install domcheck from github.com because pip package doesn't yet have fix from 23 Aug 2017 in commit b0d1a1427e22805cea2cedc49039facbb5e516e4
