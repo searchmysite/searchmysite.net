@@ -8,6 +8,7 @@ User-agent: *
 Disallow: /api
 
 User-agent: AhrefsBot
+User-agent: Barkrowler
 User-agent: MJ12bot
 User-agent: PetalBot
 User-agent: SemrushBot
