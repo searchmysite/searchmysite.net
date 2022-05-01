@@ -3,7 +3,7 @@ from flask import (
 )
 from flask_restx import Resource, Namespace, Api, reqparse, fields, marshal_with, abort
 from urllib.request import urlopen
-from urllib.parse import urlencode
+from urllib.parse import quote
 import psycopg2.extras
 import json
 import os
@@ -113,7 +113,7 @@ class Search(Resource):
         # do search
         solrurl = current_app.config['SOLR_URL']
         #queryurl = solrurl + solrquery.format(q, start, resultsperpage, domain, fq_string)
-        queryurl = solrurl + solrquery.format(q, start, resultsperpage, domain)
+        queryurl = solrurl + solrquery.format(quote(q), start, resultsperpage, domain)
         connection = urlopen(queryurl)
         response = json.load(connection)
         totalresults = response['response']['numFound']
