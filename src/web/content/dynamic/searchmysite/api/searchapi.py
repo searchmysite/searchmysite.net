@@ -28,11 +28,13 @@ parser.add_argument('page', type=int, default=1, help='Page number of results li
 parser.add_argument('resultsperpage', type=int, default=10, help='Number of results per page')
 #parser.add_argument('fields', type=str, default="id,url,title,description,keywords,last_modified_date,language", help='Fields to include for each result')
 
-solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}'
+split_text = '--split-here--'
+solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
 # Fields not currently returned are: domain, is_home, content, date_domain_added, contains_adverts, owner_verified, indexed_inlinks_count, indexed_inlink_domains_count
 
 sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
+# Results are returned in the following format, with all fields optional apart from id and url (which will have the same value):
 #{
 #  "params": {
 #    "q": "*",
@@ -42,11 +44,21 @@ sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);
 #  "totalresults": 40,
 #  "results": [
 #    {
-#      "id": "http://...",
-#      "url": "http://...",
-#      "title": "Michael Lewis's site",
-#	...
-#    }]
+#      "id": "https://server/path",
+#      "url": "https://server/path",
+#      "title": "Page title",
+#      "author": "Author",
+#      "description": "Page description",
+#      "tags": ["tag1", "tag2"],
+#      "page_type": "Page type, e.g. article",
+#      "page_last_modified": "2020-07-17T00:00:00+00:00",
+#      "published_date": "2020-07-17T00:00:00+00:00",
+#      "language": "en",
+#      "indexed_inlinks": ["inlink1", "inlink2"],
+#      "indexed_outlinks": ["outlink1", "outlink2"],
+#      "fragment": ["text before the search ", "query", " and text after"]
+#    }
+#  ]
 #}
 results_fields = {
     'id': fields.String,
@@ -61,6 +73,7 @@ results_fields = {
     'language': fields.String,
     'indexed_inlinks': fields.List(fields.String),
     'indexed_outlinks': fields.List(fields.String),
+    'fragment': fields.List(fields.String),
 }
 resource_fields = api.model('Resource', {
 })
@@ -113,11 +126,15 @@ class Search(Resource):
         # do search
         solrurl = current_app.config['SOLR_URL']
         #queryurl = solrurl + solrquery.format(q, start, resultsperpage, domain, fq_string)
-        queryurl = solrurl + solrquery.format(quote(q), start, resultsperpage, domain)
+        queryurl = solrurl + solrquery.format(quote(q), start, resultsperpage, domain, split_text, split_text)
         connection = urlopen(queryurl)
         response = json.load(connection)
         totalresults = response['response']['numFound']
         results = response['response']['docs']
+        for result in results:
+            url = result['url']
+            if response['highlighting'][url]:
+                result['fragment'] = response['highlighting'][url]['content'][0].split(split_text)
         host = request.host_url
         origin = request.headers.get('Origin')
         if host.startswith('http://localhost') or host.startswith('https://localhost'):

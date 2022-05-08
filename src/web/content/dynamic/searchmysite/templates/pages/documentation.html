@@ -236,24 +236,33 @@
 						</ul>		
 					</p>
 					<p>
-						And results are returned in the following format:
+						Results are returned in the following format, with all fields optional apart from id and url (which will have the same value):
 					</p>
 					<pre><code>
 {
-	"params": {
-		"q": "*",
-		"page": 1,
-		"resultsperpage": 10,
-	}
-	"totalresults": 40,
-	"results": [
-		{
-			"id": "https://...",
-			"url": "https://...",
-			"title": "...",
-			...
-		}
-	]
+  "params": {
+    "q": "*",
+    "page": 1,
+    "resultsperpage": 10,
+  }
+  "totalresults": 40,
+  "results": [
+    {
+      "id": "https://server/path",
+      "url": "https://server/path",
+      "title": "Page title",
+      "author": "Author",
+      "description": "Page description",
+      "tags": ["tag1", "tag2"],
+      "page_type": "Page type, e.g. article",
+      "page_last_modified": "2020-07-17T00:00:00+00:00",
+      "published_date": "2020-07-17T00:00:00+00:00",
+      "language": "en",
+      "indexed_inlinks": ["inlink1", "inlink2"],
+      "indexed_outlinks": ["outlink1", "outlink2"],
+      "fragment": ["text before the search ", "query", " and text after"]
+    }
+  ]
 }
 					</code></pre>	
 
