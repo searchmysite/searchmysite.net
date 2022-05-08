@@ -23,7 +23,7 @@ logger = logging.getLogger()
 
 # Initialise variables
 
-urls_to_crawl = []
+sites_to_crawl = []
 # Just lookup domains_for_indexed_links and domains_allowing_subdomains once
 domains_for_indexed_links = get_all_domains()
 domains_allowing_subdomains = get_domains_allowing_subdomains()
@@ -59,7 +59,7 @@ expire_unverified_sites()
 
 
 # MAIN INDEXING JOB
-# Read data from database (urls_to_crawl, domains_for_indexed_links, exclusion for each urls_to_crawl)
+# Read data from database (sites_to_crawl, domains_for_indexed_links, exclusion for each sites_to_crawl)
 
 logger.info('Checking for sites to index')
 
@@ -67,34 +67,34 @@ logger.debug('Reading from database {}'.format(db_name))
 try:
     conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_password)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    # urls_to_crawl
+    # sites_to_crawl
     cursor.execute(sql_to_get_domains_to_index)
     results = cursor.fetchall()
     for result in results:
         # Mark as RUNNING ASAP so if there's another indexer container running it is less likely to double-index 
         # There's a risk something will fail before it gets to the actual indexing, hence the periodic check for stuck RUNNING jobs
         update_indexing_log(result['domain'], 'RUNNING' , "")
-        url = {}
-        url['domain'] = result['domain']
-        url['home_page'] = result['home_page']
-        url['date_domain_added'] = result['date_domain_added']
-        url['indexing_page_limit'] = result['indexing_page_limit']
-        url['owner_verified'] = result['owner_verified']
-        url['site_category'] = result['site_category']
-        url['api_enabled'] = result['api_enabled']
-        urls_to_crawl.append(url)
-    if urls_to_crawl: logger.info('urls_to_crawl: {}'.format(urls_to_crawl))
-    else: logger.debug('urls_to_crawl: {}'.format(urls_to_crawl))
+        site = {}
+        site['domain'] = result['domain']
+        site['home_page'] = result['home_page']
+        site['date_domain_added'] = result['date_domain_added']
+        site['indexing_page_limit'] = result['indexing_page_limit']
+        site['owner_verified'] = result['owner_verified']
+        site['site_category'] = result['site_category']
+        site['api_enabled'] = result['api_enabled']
+        sites_to_crawl.append(site)
+    if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
+    else: logger.debug('sites_to_crawl: {}'.format(sites_to_crawl))
     # domains_for_indexed_links
-    if urls_to_crawl:
+    if sites_to_crawl:
         common_config['domains_for_indexed_links'] = domains_for_indexed_links
     # domains allowing subdomains
-    if urls_to_crawl:
+    if sites_to_crawl:
         common_config['domains_allowing_subdomains'] = domains_allowing_subdomains
     # exclusions for domains
-    if urls_to_crawl:
-        for url_to_crawl in urls_to_crawl:
-            cursor.execute(filters_sql, (url_to_crawl['domain'],))
+    if sites_to_crawl:
+        for site_to_crawl in sites_to_crawl:
+            cursor.execute(filters_sql, (site_to_crawl['domain'],))
             filters = cursor.fetchall()
             exclusions = []
             for f in filters:
@@ -103,7 +103,7 @@ try:
                     exclusion['exclusion_type'] = f['type']
                     exclusion['exclusion_value'] = f['value']
                     exclusions.append(exclusion)
-            url_to_crawl['exclusions'] = exclusions
+            site_to_crawl['exclusions'] = exclusions
 except psycopg2.Error as e:
     logger.error(' %s' % e.pgerror)
 finally:
@@ -111,18 +111,18 @@ finally:
 
 # Read data from Solr (indexed_inlinks)
 
-for url_to_crawl in urls_to_crawl:
-    indexed_inlinks = get_all_indexed_inlinks_for_domain(url_to_crawl['domain'])
+for site_to_crawl in sites_to_crawl:
+    indexed_inlinks = get_all_indexed_inlinks_for_domain(site_to_crawl['domain'])
     logger.debug('indexed_inlinks: {}'.format(indexed_inlinks))
-    url_to_crawl['indexed_inlinks'] = indexed_inlinks
+    site_to_crawl['indexed_inlinks'] = indexed_inlinks
 
 # Run the crawler
 
-if urls_to_crawl:
+if sites_to_crawl:
     runner = CrawlerRunner(settings)
-    for url_to_crawl in urls_to_crawl:
+    for site_to_crawl in sites_to_crawl:
         runner.crawl(SearchMySiteScript, 
-        site_config=url_to_crawl, common_config=common_config 
+        site_config=site_to_crawl, common_config=common_config 
         )
     d = runner.join()
     d.addBoth(lambda _: reactor.stop())
