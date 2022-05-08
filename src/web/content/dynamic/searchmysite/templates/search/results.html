@@ -6,6 +6,10 @@
 			<div class="row">
 				<div class="col-lg-12">
 
+				{% if not referrer %}
+					<p>Please visit <a href="https://searchmysite.net/">https://searchmysite.net/</a> to search searchmysite.net</p>
+				{% else %}
+
 				{% if no_of_results_for_display > 0 %}
 					{% if display_query %}
 					<p>{{ no_of_results_for_display }} results for <em>{{ display_query }}</em></p>
@@ -61,6 +65,7 @@
 				<p>No results found for <em>{{ display_query }}</em>.</p>
 				{% endif %}
 
+				{% endif %}
 				</div>
 			</div>
 {% endblock %}
