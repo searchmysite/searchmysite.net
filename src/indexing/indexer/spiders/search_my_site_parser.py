@@ -98,10 +98,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # body
     only_body = SoupStrainer('body')
     body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
-    for script in body_html(["script", "style"]): # Remove script and style tags and their contents
-        script.decompose()
-    body_text = get_text(body_html)
-    item['body'] = body_text
+    #for script in body_html(["script", "style"]): # Remove script and style tags and their contents
+    #    script.decompose()
+    #body_text = get_text(body_html)
+    #item['body'] = body_text
 
     # content
     for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
