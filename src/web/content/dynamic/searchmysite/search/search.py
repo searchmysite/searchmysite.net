@@ -301,7 +301,7 @@ def newest(results = None):
         if highlight: result['highlight'] = highlight
         results.append(result)
 
-    return render_template('search/results.html', no_of_results_for_display=no_of_results_for_display, results=results, pagination=pagination)
+    return render_template('search/results.html', no_of_results_for_display=no_of_results_for_display, results=results, pagination=pagination, referrer=request.referrer)
 
 @bp.route('/random/')
 def random():
