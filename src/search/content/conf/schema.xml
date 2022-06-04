@@ -38,7 +38,9 @@
     catchall "text" field, and use that for searching.
 -->
 
+<!-- start searchmysite change -->
 <schema name="searchmysite-config" version="1.6">
+<!-- end searchmysite change -->
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and 
        semantics.  It should not normally be changed by applications.
@@ -146,7 +148,7 @@
     <copyField source="tags" dest="_text_" />
     <copyField source="content" dest="_text_" />
     <!-- end searchmysite change -->
-
+    
     <!-- docValues are enabled by default for long type so we don't need to index the version field  -->
     <field name="_version_" type="plong" indexed="false" stored="false"/>
 
@@ -286,7 +288,7 @@
     
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
-
+    
     <!-- 
     RankFields can be used to store scoring factors to improve document ranking. They should be used
     in combination with RankQParserPlugin.
