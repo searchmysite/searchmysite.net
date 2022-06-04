@@ -70,74 +70,72 @@ def search(results = None):
         groupbydomain = False
     current_page = get_currentpage()
 
-    # Get referrer, and don't perform actual search if no referrer set as per https://github.com/searchmysite/searchmysite.net/issues/55 
+    # Get referrer
     referrer = request.referrer
     if not referrer:
         current_app.logger.info('No referrer set for the following search query: {}'.format(query))
-        return render_template('search/results.html', query=query, link_query=link_query, display_query=display_query, referrer=referrer)
+
+    # Get search result
+    start = get_start(current_page, results_per_page_search)
+    solrquery = solr_main_search_query.format(quote(query), str(start), str(results_per_page_search), split_text, split_text)
+    if groupbydomain:
+        solrquery = solrquery + solr_main_search_query_groupbydomain
+    connection = urlopen(solrurl + solrquery)
+    response = json.load(connection)
+
+    # Sort out pagination
+    if groupbydomain:
+        no_of_results_for_pagination = response['grouped']['domain']['ngroups'] 
+        no_of_results_for_display = response['grouped']['domain']['matches']
     else:
+        no_of_results_for_pagination = response['response']['numFound']
+        no_of_results_for_display = no_of_results_for_pagination
+    pages = get_page_range(current_page, no_of_results_for_pagination, results_per_page_search, max_pages_to_display)
+    pagination = get_pagination(current_page, pages)
 
-        # Get search result
-        start = get_start(current_page, results_per_page_search)
-        solrquery = solr_main_search_query.format(quote(query), str(start), str(results_per_page_search), split_text, split_text)
-        if groupbydomain:
-            solrquery = solrquery + solr_main_search_query_groupbydomain
-        connection = urlopen(solrurl + solrquery)
-        response = json.load(connection)
-
-        # Sort out pagination
-        if groupbydomain:
-            no_of_results_for_pagination = response['grouped']['domain']['ngroups'] 
-            no_of_results_for_display = response['grouped']['domain']['matches']
-        else:
-            no_of_results_for_pagination = response['response']['numFound']
-            no_of_results_for_display = no_of_results_for_pagination
-        pages = get_page_range(current_page, no_of_results_for_pagination, results_per_page_search, max_pages_to_display)
-        pagination = get_pagination(current_page, pages)
-
-        # Construct the results list of result dicts for display.
-        # If groupbydomain, the result dict will have subresults list of dicts.
-        results = []
-        if groupbydomain:
-            for domain_results in response['grouped']['domain']['groups']:
-                # The first result per domain should be represented in exactly the same format as if not groupbydomain
-                first_result_from_domain = domain_results['doclist']['docs'][0]
-                result = {}
-                result['contains_adverts'] = first_result_from_domain['contains_adverts']
-                result['url'] = first_result_from_domain['url']
-                (full_title, short_title) = get_title(first_result_from_domain.get('title'), first_result_from_domain['url']) # title could be None, url is always set
-                result['full_title'] = full_title
-                result['short_title'] = short_title
-                highlight = get_highlight(response['highlighting'], first_result_from_domain['url'], first_result_from_domain.get('description'))
-                if highlight: result['highlight'] = highlight
-                # If there is more than one result for a domain, these will be respresented as a list of dicts, with some extra values for the display
-                if len(domain_results['doclist']['docs']) > 1:
-                    subresults = []
-                    for doc in domain_results['doclist']['docs'][1:]: # Not getting the first item in the list because we have that already
-                        subresult = {}
-                        subresult['url'] = doc['url']
-                        (subresult_full_title, subresult_short_title) = get_title(doc.get('title'), doc['url'])
-                        subresult['full_title'] = subresult_full_title
-                        subresult['short_title'] = subresult_short_title
-                        subresults.append(subresult)
-                    result['subresults'] = subresults
-                    subresults_domain  = domain_results['groupValue']
-                    subresults_total = int(domain_results['doclist']['numFound'])
-                    result['subresults_link'] = link_query + " %2Bdomain:" + subresults_domain # The + (%2B) before domain ensures that term is mandatory, otherwise multi word queries would treat the domain as optional
-                    result['subresults_link_text'] = "All " + str(subresults_total) + " results from " + subresults_domain
-                results.append(result)
-        else:
-            for r in response['response']['docs']:
-                result = {}
-                result['contains_adverts'] = r['contains_adverts']
-                result['url'] = r['url']
-                (full_title, short_title) = get_title(r.get('title'), r['url']) # title could be None, url is always set
-                result['full_title'] = full_title
-                result['short_title'] = short_title
-                highlight = get_highlight(response['highlighting'], r['url'], r.get('description'))
-                if highlight: result['highlight'] = highlight
-                results.append(result)
-        return render_template('search/results.html', query=query, link_query=link_query, display_query=display_query, results=results, no_of_results_for_display=no_of_results_for_display, pagination=pagination, referrer=referrer)
+    # Construct the results list of result dicts for display.
+    # If groupbydomain, the result dict will have subresults list of dicts.
+    results = []
+    if groupbydomain:
+        for domain_results in response['grouped']['domain']['groups']:
+            # The first result per domain should be represented in exactly the same format as if not groupbydomain
+            first_result_from_domain = domain_results['doclist']['docs'][0]
+            result = {}
+            result['contains_adverts'] = first_result_from_domain['contains_adverts']
+            result['url'] = first_result_from_domain['url']
+            (full_title, short_title) = get_title(first_result_from_domain.get('title'), first_result_from_domain['url']) # title could be None, url is always set
+            result['full_title'] = full_title
+            result['short_title'] = short_title
+            highlight = get_highlight(response['highlighting'], first_result_from_domain['url'], first_result_from_domain.get('description'))
+            if highlight: result['highlight'] = highlight
+            # If there is more than one result for a domain, these will be respresented as a list of dicts, with some extra values for the display
+            if len(domain_results['doclist']['docs']) > 1:
+                subresults = []
+                for doc in domain_results['doclist']['docs'][1:]: # Not getting the first item in the list because we have that already
+                    subresult = {}
+                    subresult['url'] = doc['url']
+                    (subresult_full_title, subresult_short_title) = get_title(doc.get('title'), doc['url'])
+                    subresult['full_title'] = subresult_full_title
+                    subresult['short_title'] = subresult_short_title
+                    subresults.append(subresult)
+                result['subresults'] = subresults
+                subresults_domain  = domain_results['groupValue']
+                subresults_total = int(domain_results['doclist']['numFound'])
+                result['subresults_link'] = link_query + " %2Bdomain:" + subresults_domain # The + (%2B) before domain ensures that term is mandatory, otherwise multi word queries would treat the domain as optional
+                result['subresults_link_text'] = "All " + str(subresults_total) + " results from " + subresults_domain
+            results.append(result)
+    else:
+        for r in response['response']['docs']:
+            result = {}
+            result['contains_adverts'] = r['contains_adverts']
+            result['url'] = r['url']
+            (full_title, short_title) = get_title(r.get('title'), r['url']) # title could be None, url is always set
+            result['full_title'] = full_title
+            result['short_title'] = short_title
+            highlight = get_highlight(response['highlighting'], r['url'], r.get('description'))
+            if highlight: result['highlight'] = highlight
+            results.append(result)
+    return render_template('search/results.html', query=query, link_query=link_query, display_query=display_query, results=results, no_of_results_for_display=no_of_results_for_display, pagination=pagination, referrer=referrer)
 
 @bp.route('/browse/', methods=['GET', 'POST'])
 def browse(results = None):
