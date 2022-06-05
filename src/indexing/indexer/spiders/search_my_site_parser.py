@@ -28,6 +28,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="owner_verified" type="boolean" indexed="true" stored="true" /> <!-- same value for every page in a site -->
 #    <field name="contains_adverts" type="boolean" indexed="true" stored="true" />
 #    <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
+#    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- include in public search (false only an option where owner_verified=true) -->
 #    <field name="language" type="string" indexed="true" stored="true" />
 #    <field name="language_primary" type="string" indexed="true" stored="true" />
 #    <field name="indexed_inlinks" type="string" indexed="true" stored="true" multiValued="true" />
@@ -165,6 +166,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     if is_home == True:
         api_enabled = site_config['api_enabled']
     item['api_enabled'] = api_enabled
+
+    # public - should always be true, except in rare cases where owner_verified=true (but not checking to enforce)
+    include_in_public_search = True
+    if site_config['include_in_public_search'] == False:
+        include_in_public_search = False
+    item['public'] = include_in_public_search
 
     # language, e.g. en-GB
     language = response.xpath('/html/@lang').get()

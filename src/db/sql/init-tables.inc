@@ -10,18 +10,19 @@ CREATE TABLE tblDomains (
   validation_key TEXT,
   validation_method TEXT,
   validation_date TIMESTAMPTZ,
-  moderator_approved Boolean, -- NEW
-  moderator_action_date TIMESTAMPTZ, -- NEW
-  moderator_action_reason TEXT, -- NEW
-  moderator_action_user TEXT, -- NEW
-  indexing_enabled Boolean, -- NEW
-  indexing_disabled_date TIMESTAMPTZ, -- NEW
-  indexing_disabled_reason TEXT, -- NEW
+  moderator_approved Boolean,
+  moderator_action_date TIMESTAMPTZ,
+  moderator_action_reason TEXT,
+  moderator_action_user TEXT,
+  indexing_enabled Boolean,
+  indexing_disabled_date TIMESTAMPTZ,
+  indexing_disabled_reason TEXT,
   indexing_type TEXT,
   indexing_frequency INTERVAL,
   indexing_page_limit SMALLINT,
   indexing_current_status TEXT,
   indexing_status_last_updated TIMESTAMPTZ,
+  include_in_public_search Boolean,
   password TEXT,
   last_login TIMESTAMPTZ,
   forgotten_password_key TEXT,

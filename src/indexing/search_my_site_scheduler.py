@@ -44,7 +44,7 @@ filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by owner_verified,
 # i.e. so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled FROM tblDomains "\
+sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled, include_in_public_search FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
     "AND indexing_enabled = TRUE "\
     "AND (indexing_current_status = 'PENDING' OR (indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency)) "\
@@ -82,6 +82,7 @@ try:
         site['owner_verified'] = result['owner_verified']
         site['site_category'] = result['site_category']
         site['api_enabled'] = result['api_enabled']
+        site['include_in_public_search'] = result['include_in_public_search']
         sites_to_crawl.append(site)
     if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
     else: logger.debug('sites_to_crawl: {}'.format(sites_to_crawl))

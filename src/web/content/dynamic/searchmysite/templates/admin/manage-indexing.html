@@ -60,6 +60,18 @@
 
 			<div class="row mt-3">
 				<div class="col-sm-3 col-md-2 text-end">
+					<label for="include_in_public_search" class="col-form-label">Include in public search:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
+					<input type="text" readonly class="form-control-plaintext" id="include_in_public_search" value="{{ result['include_in_public_search'] }}" aria-describedby="include_in_public_search_help">
+					<small id="include_in_public_search_help" class="form-text text-muted">
+						True if content from this site is to be included in the public search (along with Browse, Newest and Random) available via the home page.
+					</small>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
 					<label for="indexing_current_status" class="col-form-label">Indexing current status:</label>
 				</div>
 				<div class="col-sm-6 col-md-8">

@@ -33,8 +33,8 @@ sql_select = "SELECT home_page, contact_email, site_category, owner_verified, va
 # check for ENABLE_PAYMENT.
 
 sql_indieauthanddcv_step1_insert = "INSERT INTO tblDomains "\
-    "(domain, home_page, owner_verified, moderator_approved, validation_method, date_domain_added, indexing_enabled, indexing_type) "\
-    "VALUES ((%s), (%s), FALSE, TRUE, (%s), now(), FALSE, 'spider/default');"
+    "(domain, home_page, owner_verified, moderator_approved, validation_method, date_domain_added, indexing_enabled, indexing_type, include_in_public_search) "\
+    "VALUES ((%s), (%s), FALSE, TRUE, (%s), now(), FALSE, 'spider/default', TRUE);"
 
 sql_indieauth_step2_update = "UPDATE tblDomains "\
     "SET contact_email = (%s), site_category = (%s) "\
@@ -57,8 +57,8 @@ sql_indieauthanddcv_step4_enableindexing = "UPDATE tblDomains SET "\
 # Quick Add insert SQL below, moderator (admin) approve and reject SQL in admin.py
 
 sql_quick_add = "INSERT INTO tblDomains "\
-    "(domain, home_page, site_category, date_domain_added, api_enabled, owner_verified, validation_method, indexing_enabled, indexing_type) "\
-    "VALUES ((%s), (%s), (%s), now(), FALSE, FALSE, 'QuickAdd', FALSE, 'spider/default');"
+    "(domain, home_page, site_category, date_domain_added, api_enabled, owner_verified, validation_method, indexing_enabled, indexing_type, include_in_public_search) "\
+    "VALUES ((%s), (%s), (%s), now(), FALSE, FALSE, 'QuickAdd', FALSE, 'spider/default', TRUE);"
 
 # Setup routes
 

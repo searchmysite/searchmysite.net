@@ -134,6 +134,7 @@
     <field name="owner_verified" type="boolean" indexed="true" stored="true" /> <!-- same value for every page in a site -->
     <field name="contains_adverts" type="boolean" indexed="true" stored="true" />
     <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
+    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- include in public search (false only an option where owner_verified=true) -->
     <field name="language" type="string" indexed="true" stored="true" />
     <field name="language_primary" type="string" indexed="true" stored="true" />
     <field name="indexed_inlinks" type="string" indexed="true" stored="true" multiValued="true" />
