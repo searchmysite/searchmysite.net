@@ -124,6 +124,7 @@
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="body" type="text_general" indexed="true" stored="true" multiValued="false" />
     <field name="content" type="text_general" indexed="true" stored="true" multiValued="false" />
+    <field name="content_type" type="string" indexed="true" stored="true" />
     <field name="page_type" type="string" indexed="true" stored="true" />
     <field name="page_last_modified" type="pdate" indexed="true" stored="true" />
     <field name="published_date" type="pdate" indexed="true" stored="true" />

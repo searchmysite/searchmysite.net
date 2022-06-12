@@ -18,6 +18,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
 #    <field name="body" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="content" type="text_general" indexed="true" stored="true" multiValued="false" />
+#    <field name="content_type" type="string" indexed="true" stored="true" />
 #    <field name="page_type" type="string" indexed="true" stored="true" />
 #    <field name="page_last_modified" type="pdate" indexed="true" stored="true" />
 #    <field name="published_date" type="pdate" indexed="true" stored="true" />
@@ -116,6 +117,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     else:
         content_text = get_text(body_html)
     item['content'] = content_text
+
+    # content_type, e.g. text/html; charset=utf-8
+    content_type_header = response.headers.get('Content-Type')
+    if content_type_header:
+        content_type = content_type_header.decode('utf-8').split(';')[0]
+    item['content_type'] = content_type
 
     # last_modified_date
     last_modified_date = response.headers.get('Last-Modified')
