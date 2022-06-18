@@ -131,7 +131,7 @@ def quick():
             return render_template('admin/add-quick.html')
         elif result is not None and result['moderator_approved'] == False:
             # i.e. previously submitted and rejected
-            message = 'Domain {} with a home page at {} has previously been submitted but rejected for the following reason: {}'.format(domain, result['home_page'], result['moderator_action_reason'])
+            message = 'Domain {} with a home page at {} has previously been submitted but rejected for the following reason: {}. '.format(domain, result['home_page'], result['moderator_action_reason'])
             message += 'Please use the Contact link if you would like to query this.'
             flash(message)
             return render_template('admin/add-quick.html')
