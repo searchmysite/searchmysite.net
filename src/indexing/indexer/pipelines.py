@@ -5,7 +5,7 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing
+from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, convert_datetime_to_utc_date
 
 
 # This is the Solr pipeline, for submitting indexed items to Solr
@@ -73,11 +73,26 @@ class SolrPipeline:
             else:
                 message = message + submessage + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
         else:
+            # Get values which are only set for the home page
+            # RSS feed is the first XML content type which isn't named sitemap.xml - not completely robust as it doesn't inspect content but might be good enough 
+            # This is where the currently unset site_last_modified could be calculated and set
+            api_enabled = spider.site_config['api_enabled']
+            date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
+            rss_feed = list(filter(lambda item: item['content_type'][-3:] == 'xml' and item['url'][-11:] != 'sitemap.xml', self.items))[0]['url']
+            # Delete the existing documents
             self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
             self.solr.delete(q='domain:{}'.format(spider.domain))
+            # Add the new documents
             self.logger.info('Submitting {} newly spidered docs to Solr for {}.'.format(str(no_of_docs), spider.domain))
             for item in self.items:
+                # Add the values which are only set for the home page
+                if item['is_home'] == True:
+                    self.logger.info('Home page URL {} has api_enabled {}, date_domain_added {}, and rss_feed {}'.format(item['url'], api_enabled, date_domain_added, rss_feed))
+                    item['api_enabled'] = api_enabled
+                    item['date_domain_added'] = date_domain_added
+                    item['rss_feed'] = rss_feed
                 self.solr.add(dict(item))
+            # Save changes
             self.solr.commit()
             message = 'SUCCESS: {} documents found. '.format(self.stats.get_value('item_scraped_count'))
             if self.stats.get_value('log_count/WARNING'):

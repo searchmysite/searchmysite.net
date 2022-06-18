@@ -25,11 +25,12 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="indexed_date" type="pdate" indexed="true" stored="true" />
 #    <field name="date_domain_added" type="pdate" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
 #    <field name="site_category" type="string" indexed="true" stored="true" />
-#    <field name="site_last_modified" type="pdate" indexed="true" stored="true" /> <!-- same value for every page in a site -->
+#    <field name="site_last_modified" type="pdate" indexed="true" stored="true" />
 #    <field name="owner_verified" type="boolean" indexed="true" stored="true" /> <!-- same value for every page in a site -->
 #    <field name="contains_adverts" type="boolean" indexed="true" stored="true" />
 #    <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
-#    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- include in public search (false only an option where owner_verified=true) -->
+#    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- same value for every page (false only an option where owner_verified=true) -->
+#    <field name="rss_feed" type="string" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
 #    <field name="language" type="string" indexed="true" stored="true" />
 #    <field name="language_primary" type="string" indexed="true" stored="true" />
 #    <field name="indexed_inlinks" type="string" indexed="true" stored="true" multiValued="true" />
@@ -143,11 +144,11 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item['indexed_date'] = indexed_date
 
     # date_domain_added - only set if the entry is the home page
-    date_domain_added = None
-    if is_home == True:
-        date_domain_added = site_config['date_domain_added']
-        date_domain_added = convert_datetime_to_utc_date(date_domain_added)
-    item['date_domain_added'] = date_domain_added
+    #date_domain_added = None
+    #if is_home == True:
+    #    date_domain_added = site_config['date_domain_added']
+    #    date_domain_added = convert_datetime_to_utc_date(date_domain_added)
+    #item['date_domain_added'] = date_domain_added
 
     # site_category
     item['site_category'] = site_config['site_category']
@@ -169,10 +170,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item['contains_adverts'] = contains_adverts
 
     # api_enabled - only set if the entry is the home page
-    api_enabled = None
-    if is_home == True:
-        api_enabled = site_config['api_enabled']
-    item['api_enabled'] = api_enabled
+    #api_enabled = None
+    #if is_home == True:
+    #    api_enabled = site_config['api_enabled']
+    #item['api_enabled'] = api_enabled
 
     # public - should always be true, except in rare cases where owner_verified=true (but not checking to enforce)
     include_in_public_search = True
