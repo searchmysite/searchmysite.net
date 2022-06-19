@@ -78,7 +78,11 @@ class SolrPipeline:
             # This is where the currently unset site_last_modified could be calculated and set
             api_enabled = spider.site_config['api_enabled']
             date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
-            rss_feed = list(filter(lambda item: item['content_type'][-3:] == 'xml' and item['url'][-11:] != 'sitemap.xml', self.items))[0]['url']
+            rss_feed = None
+            for item in self.items:
+                if item['content_type'] and len(item['content_type']) > 3 and item['url'] and len(item['url']) > 11:
+                    if item['content_type'][-3:] == 'xml' and item['url'][-11:] != 'sitemap.xml':
+                        rss_feed = item['url']
             # Delete the existing documents
             self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
             self.solr.delete(q='domain:{}'.format(spider.domain))
