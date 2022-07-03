@@ -22,6 +22,8 @@ DB_NAME = 'searchmysitedb'
 DB_USER = 'postgres'
 DB_HOST = 'db'
 
+SOLR_URL = 'http://search:8983/solr/content/'
+
 LOG_LEVEL = 'INFO'
 
 # Searchmysite custom dupe filter
@@ -93,11 +95,6 @@ CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
 #ITEM_PIPELINES = {
 #    'indexer.pipelines.IndexerPipeline': 300,
 #}
-
-ITEM_PIPELINES = {
-  'indexer.pipelines.SolrPipeline': 300,
-}
-SOLR_URL = 'http://search:8983/solr/content/'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

@@ -19,6 +19,12 @@ IGNORED_EXTENSIONS += ['jar', 'json', 'cbr']
 class SearchMySiteScript(CrawlSpider):
     name = "searchmysitescript"
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'indexer.pipelines.SolrPipeline': 300
+        }
+    }
+
     def __init__(self, *args, **kwargs):
         # Get kwargs
         self.site_config = kwargs.get('site_config')
