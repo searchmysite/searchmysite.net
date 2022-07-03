@@ -187,8 +187,8 @@
 				<div class="col-sm-6 col-md-8">
 					<input type="hidden" name="add" value="exclude_path" />
 					<small id="exclude_path_help" class="form-text text-muted">
-						Exclude these paths. Note that this is a regex with an implied .* at the start and end. 
-						To exclude URLs starting "/search/?query=" you would need to escape the ? i.e. "/search/\?query=".
+						Exclude these paths when indexing. Note that this is a regex with an implied .* at the start and end. 
+						To exclude URLs starting e.g. "/search/?query=" you would need to escape the ? i.e. "/search/\?query=".
 					</small>
 					<br/>
 					<button type="submit" class="btn btn-primary">Add Path</button>
@@ -240,7 +240,7 @@
 				<div class="col-sm-6 col-md-8">
 					<input type="hidden" name="add" value="exclude_type" />
 					<small id="exclude_type_help" class="form-text text-muted">
-						Exclude these page types. See documentation for how page types are defined, and use your API to see what are defined for your site.
+						Exclude these page types when indexing. See documentation for how page types are defined, and use your API to see what are defined for your site.
 					</small>
 					<br/>
 					<button type="submit" class="btn btn-primary">Add Type</button>
