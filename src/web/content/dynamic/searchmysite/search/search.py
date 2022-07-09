@@ -41,7 +41,7 @@ payload = {
   "sort": "date_domain_added desc",
   "offset": 0,
   "limit": 10,
-  "fields": ["title","url","domain","date_domain_added","tags"],
+  "fields": ["title","url","domain","date_domain_added","tags","rss_feed"],
   "facet": {
     "site_category":                { "field": "site_category",                "type": "terms", "limit": 2, "sort": "count" },
     "tags":                         { "field": "tags",                         "type": "terms", "limit": 8, "sort": "count" },
@@ -271,6 +271,8 @@ def browse(results = None):
         else:
             result['tags'] = tags_list
             result['tags_truncated'] = False
+        if 'rss_feed' in queryresult:
+            result['rss_feed'] = queryresult['rss_feed']
         results.append(result)
     return render_template('search/browse.html', no_of_domains=no_of_domains, sort=sort, facets=facets, results=results, pagination=pagination)
 

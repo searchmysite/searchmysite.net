@@ -69,6 +69,7 @@
 									<th scope="col">Site</th>
 									<th scope="col" class="d-none d-sm-table-cell">Domain</th>
 									<th scope="col" class="d-none d-sm-table-cell">Tags</th>
+									<th scope="col" class="d-none d-sm-table-cell">RSS</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -76,7 +77,11 @@
 							<tr class="search-result">
 								<td>
 									<a href="{{ result['url'] }}" class="result-title" title="{{ result['full_title'] }}">{{ result['short_title'] }}</a>
-									<span class="d-block d-sm-none"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a></span>
+									<span class="d-block d-sm-none"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
+									{% if result['rss_feed'] %}
+									<span class="float-end"><a href="{{ result['rss_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="RSS" width="18" height="18"></a></span>
+									{% endif %}
+									</span>
 								</td>
 								<td class="d-none d-sm-table-cell"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a></td>
 								<td class="d-none d-sm-table-cell">
@@ -85,6 +90,11 @@
 									{% endfor %}
 									{% if result['tags_truncated'] == True %}
 										...
+									{% endif %}
+								</td>
+								<td class="d-none d-sm-table-cell">
+									{% if result['rss_feed'] %}
+										<a href="{{ result['rss_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="RSS" width="18" height="18"></a>
 									{% endif %}
 								</td>
 							</tr>
