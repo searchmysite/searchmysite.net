@@ -17,12 +17,20 @@ results_per_page_newest = 12
 max_pages_to_display = 10
 split_text = '--split-here--'
 
+# Search subqueries
+query_highlight = '&hl=on&hl.fl=content,description&hl.simple.pre={}&hl.simple.post={}'.format(split_text, split_text)
+query_filter_content_type = '&fq=!content_type%3A*xml&fq=!content_type%3Aapplication*&fq=!content_type%3Abinary*'
+query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngroups=true'
+
 # Main search query
 # Note the addition of defType=edismax
-# this is to use the edismax query parser, which will activate the relevancy tuning which uses the qf and bq params 
-# Also note the fl (field list) - now we're storing the content for the highlighting it'll be faster to not return it
-solr_main_search_query = 'select?defType=edismax&q={}&start={}&rows={}&wt=json&fl=url,title,description,contains_adverts&hl=on&hl.fl=content,description&hl.simple.pre={}&hl.simple.post={}&mm=2'
-solr_main_search_query_groupbydomain = '&group=true&group.field=domain&group.limit=3&group.ngroups=true'
+# this is to use the edismax query parser, which will activate the relevancy tuning which uses the qf and pf params 
+# Also note the fl (field list) - now we're storing the content for the highlighting it'll be faster to not return the content field
+# Finally note that the group by domain isn't always part of the main search query - it is not used if someone searches for domain:<domain> 
+solr_main_search_query = 'select?defType=edismax&q={}&start={}&rows={}&wt=json&fl=url,title,description,contains_adverts&mm=2'
+solr_main_search_query += query_highlight
+solr_main_search_query += query_filter_content_type
+solr_main_search_query_groupbydomain = query_groupbydomain.format('3')
 
 # Browse query - JSON Facet API
 solr_facet_query = "query"
@@ -45,13 +53,15 @@ payload = {
 }
 
 # Newest pages query. fq=published_date:* ensures there is a published_date
-solr_newest_pages_query = 'select?q=*%3A*&fq=contains_adverts%3Afalse&fq=published_date%3A*&sort=published_date%20desc&start={}&rows={}&fl=url,title,description,published_date,tags'
-solr_newest_pages_query_hlandgroupby = '&hl=on&hl.fl=content,description&hl.simple.pre={}&hl.simple.post={}&mm=2&group=true&group.field=domain&group.limit=1&group.ngroups=true'.format(split_text, split_text)
+solr_newest_pages_query = 'select?q=*%3A*&fq=contains_adverts%3Afalse&fq=published_date%3A*&sort=published_date%20desc&start={}&rows={}&fl=url,title,description,published_date,tags&mm=2'
+solr_newest_pages_query += query_highlight
+solr_newest_pages_query += query_filter_content_type
+solr_newest_pages_query += query_groupbydomain.format('1')
 
 # Random result queries
-random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0&group=true&group.field=domain&group.limit=1&group.ngroups=true'
-random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&group=true&group.field=domain&group.limit=1&group.ngroups=true&start={}&fl=domain'
-random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}'
+random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_groupbydomain.format('1')
+random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_groupbydomain.format('1')
+random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -77,7 +87,7 @@ def search(results = None):
 
     # Get search result
     start = get_start(current_page, results_per_page_search)
-    solrquery = solr_main_search_query.format(quote(query), str(start), str(results_per_page_search), split_text, split_text)
+    solrquery = solr_main_search_query.format(quote(query), str(start), str(results_per_page_search))
     if groupbydomain:
         solrquery = solrquery + solr_main_search_query_groupbydomain
     connection = urlopen(solrurl + solrquery)
@@ -252,7 +262,7 @@ def browse(results = None):
         domain_added_datetime = datetime.strptime(domain_added_string, "%Y-%m-%dT%H:%M:%SZ") # e.g. 2020-07-18T06:11:22Z
         result['date_domain_added'] = domain_added_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
         tags_list = []
-        if "tags" in queryresult:
+        if 'tags' in queryresult:
             tags_list = queryresult['tags']
         tags_truncation_point = 10 # Just so the display doesn't get taken over by a site that does keyword stuffing
         if len(tags_list) > tags_truncation_point:
@@ -272,7 +282,7 @@ def newest(results = None):
     start = get_start(current_page, results_per_page_newest)
 
     # Get results
-    solrquery = solr_newest_pages_query.format(str(start), str(results_per_page_newest)) + solr_newest_pages_query_hlandgroupby
+    solrquery = solr_newest_pages_query.format(str(start), str(results_per_page_newest))
     connection = urlopen(solrurl + solrquery)
     response = json.load(connection)
 
