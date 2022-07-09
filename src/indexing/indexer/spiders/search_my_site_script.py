@@ -41,8 +41,13 @@ class SearchMySiteScript(CrawlSpider):
         self.logger.info('Start URL {}'.format(self.start_urls))
         self.logger.info('Allowed domains {}'.format(self.allowed_domains))
         self.logger.debug('Domains for indexed_outlinks {}'.format(self.domains_for_indexed_links))
-        # Set up deny list, if there are any 
-        deny = []
+        # Set up deny list
+        # Adding the pinterest and tumblr deny rules to prevent urls such as the following being indexed e.g. for example.com
+        # https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fexample.com...
+        # https://www.tumblr.com/widgets/share/tool/preview?shareSource=legacy&canonicalUrl=&url=https%3A%2F%2Fexample.com%2F
+        # These seem to be triggered by links on the original domain such as
+        # https://example.com/page/?share=pinterest
+        deny = [r'.*\?share\=pinterest.*', r'.*\?share\=tumblr.*']
         for exclusion in self.exclusions:
             if exclusion['exclusion_type'] == 'path':
                 exclusion_value = exclusion['exclusion_value']
