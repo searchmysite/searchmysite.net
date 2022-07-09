@@ -120,6 +120,7 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item['content'] = content_text
 
     # content_type, e.g. text/html; charset=utf-8
+    content_type = None
     content_type_header = response.headers.get('Content-Type')
     if content_type_header:
         content_type = content_type_header.decode('utf-8').split(';')[0]
