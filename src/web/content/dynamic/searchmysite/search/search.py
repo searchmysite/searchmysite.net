@@ -20,6 +20,7 @@ split_text = '--split-here--'
 # Search subqueries
 query_highlight = '&hl=on&hl.fl=content,description&hl.simple.pre={}&hl.simple.post={}'.format(split_text, split_text)
 query_filter_content_type = '&fq=!content_type%3A*xml&fq=!content_type%3Aapplication*&fq=!content_type%3Abinary*'
+query_filter_public = '&fq=public%3Atrue'
 query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngroups=true'
 
 # Main search query
@@ -28,14 +29,13 @@ query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngrou
 # Also note the fl (field list) - now we're storing the content for the highlighting it'll be faster to not return the content field
 # Finally note that the group by domain isn't always part of the main search query - it is not used if someone searches for domain:<domain> 
 solr_main_search_query = 'select?defType=edismax&q={}&start={}&rows={}&wt=json&fl=url,title,description,contains_adverts&mm=2'
-solr_main_search_query += query_highlight
-solr_main_search_query += query_filter_content_type
+solr_main_search_query += query_highlight + query_filter_content_type + query_filter_public
 solr_main_search_query_groupbydomain = query_groupbydomain.format('3')
 
 # Browse query - JSON Facet API
 solr_facet_query = "query"
 solr_facet_headers = {'Content-Type': 'text/json'}
-base_payload_filter = ["is_home:true"]
+base_payload_filter = ["is_home:true", "public:true"]
 payload = {
   "query": "*:*",
   "sort": "date_domain_added desc",
@@ -54,13 +54,12 @@ payload = {
 
 # Newest pages query. fq=published_date:* ensures there is a published_date
 solr_newest_pages_query = 'select?q=*%3A*&fq=contains_adverts%3Afalse&fq=published_date%3A*&sort=published_date%20desc&start={}&rows={}&fl=url,title,description,published_date,tags&mm=2'
-solr_newest_pages_query += query_highlight
-solr_newest_pages_query += query_filter_content_type
+solr_newest_pages_query += query_highlight + query_filter_content_type + query_filter_public
 solr_newest_pages_query += query_groupbydomain.format('1')
 
 # Random result queries
-random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_groupbydomain.format('1')
-random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_groupbydomain.format('1')
+random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_public + query_groupbydomain.format('1')
+random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_filter_public + query_groupbydomain.format('1')
 random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
 
 
