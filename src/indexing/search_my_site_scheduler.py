@@ -42,13 +42,14 @@ filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 # or having been last indexed more than indexing_frequency ago.
 # Must also have indexing_type = 'spider/default' and indexing_enabled = TRUE
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
-# The list is sorted so new ('PENDING') are first, followed by owner_verified,
+# The list is sorted so new ('PENDING') are first, followed by higher tiers,
 # i.e. so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_to_get_domains_to_index = "SELECT domain, home_page, date_domain_added, indexing_page_limit, owner_verified, site_category, api_enabled, include_in_public_search FROM tblDomains "\
-    "WHERE indexing_type = 'spider/default' "\
-    "AND indexing_enabled = TRUE "\
-    "AND (indexing_current_status = 'PENDING' OR (indexing_current_status = 'COMPLETE' AND now() - indexing_status_last_updated > indexing_frequency)) "\
-    "ORDER BY indexing_current_status DESC, owner_verified DESC "\
+sql_to_get_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search FROM tblDomains d "\
+    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
+    "WHERE d.indexing_type = 'spider/default' "\
+    "AND d.indexing_enabled = TRUE "\
+    "AND (d.full_indexing_status = 'PENDING' OR (d.full_indexing_status = 'COMPLETE' AND now() - d.full_indexing_status_changed > d.full_reindex_frequency)) "\
+    "ORDER BY d.full_indexing_status DESC, l.tier DESC "\
     "LIMIT 16;"
 
 
@@ -77,10 +78,11 @@ try:
         site = {}
         site['domain'] = result['domain']
         site['home_page'] = result['home_page']
-        site['date_domain_added'] = result['date_domain_added']
+        site['date_domain_added'] = result['domain_first_submitted']
         site['indexing_page_limit'] = result['indexing_page_limit']
-        site['owner_verified'] = result['owner_verified']
-        site['site_category'] = result['site_category']
+        if result['tier'] == 3: site['owner_verified'] = True
+        else: site['owner_verified'] = False
+        site['site_category'] = result['category']
         site['api_enabled'] = result['api_enabled']
         site['include_in_public_search'] = result['include_in_public_search']
         sites_to_crawl.append(site)

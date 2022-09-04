@@ -7,13 +7,7 @@
 				<div class="col-lg-12">
 					<ul class="nav nav-tabs">
 						<li class="nav-item">
-							<a class="nav-link active">Quick Add</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('add.indieauth') }}">Verified Add (IndieAuth)</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('add.dcv') }}">Verified Add (DCV)</a>
+							<a class="nav-link active">Add Site</a>
 						</li>
 					</ul>
 				</div>
@@ -22,86 +16,121 @@
 			<div class="row mt-4">
 				<div class="col-md-6 offset-md-3">
 
-					<form action="{{ url_for('add.quick') }}" method="post">
+					<form action="{{ url_for('add.add') }}" method="post">
 						<div class="form-group">
 							<label for="home_page" class="col-form-label">Home page</label>
 							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
 							<small id="homepage-help" class="form-text text-muted">
-								Enter the home page of the site you would like to see indexed.
+								Enter the home page of your site.
 							</small>
 						</div>
 						<div class="form-group">
 							<label for="site_category" class="col-form-label">Category</label>
 							<div class="form-check">
-								<input class="form-check-input" type="radio" name="site_category" id="site_category-personal-website" value="personal-website">
+								<input class="form-check-input" type="radio" name="site_category" id="site_category-personal-website" value="personal-website" required>
 								<label class="form-check-label" for="site_category-personal-website">
 									Personal website
 								</label>
 							</div>
 							<div class="form-check">
-								<input class="form-check-input" type="radio" name="site_category" id="site_category-independent-website" value="independent-website">
+								<input class="form-check-input" type="radio" name="site_category" id="site_category-independent-website" value="independent-website" required>
 								<label class="form-check-label" for="site_category-independent-website">
 									Independent website
 								</label>
 							</div>
 							<small id="site_category-help" class="form-text text-muted">
-								Confirm site category (only personal and independent sites are currently accepted).
+								Confirm what type of site it is (see <a href="/pages/terms/#submission-guidelines" target="_blank">Terms of Use</a> for definitions).
 							</small>
 						</div>
-					<button type="submit" class="btn btn-primary mt-3">Add site</button>
-					</form>
-
-					<br/>
-					<p>
-						Note that if you choose one of the Verified Add options (i.e. IndieAuth or DCV), you will get additional benefits:
-					</p>
-
+						<div class="form-group">
+							<label for="tier" class="col-form-label">Listing tier</label>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="tier" id="tier-basic" value="1" required>
+								<label class="form-check-label" for="tier-basic">
+									Basic
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="tier" id="tier-free" value="2" required>
+								<label class="form-check-label" for="tier-free">
+									Free Trial
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="tier" id="tier-full" value="3" required>
+								<label class="form-check-label" for="tier-full">
+									Full
+								</label>
+							</div>
+							<small id="tier-help" class="form-text text-muted">
+								Select listing tier for your site. 
+								Listings revert to lower tier on expiry if no action taken.
+							</small>
+						</div>
 					<table class="table">
 						<thead>
 							<tr>
 								<th scope="col"></th>
-								<th scope="col">Quick Add</th>
-								<th scope="col">Verified Add</th>
+								<th scope="col">{{ tiers[0]['tier_name'] }}</th>
+								<th scope="col">{{ tiers[1]['tier_name'] }}</th>
+								<th scope="col">{{ tiers[2]['tier_name'] }}</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<th scope="row">Indexing frequency</th>
-								<td>Every 28 days</td>
-								<td>Every 3.5 days</td>
+								<td>{{ tiers[0]['full_reindex_frequency'] }}</td>
+								<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
+								<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">Indexing page limit</th>
-								<td>50 pages</td>
-								<td>500 pages</td>
+								<td>{{ tiers[0]['indexing_page_limit'] }}</td>
+								<td>{{ tiers[1]['indexing_page_limit'] }}</td>
+								<td>{{ tiers[2]['indexing_page_limit'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">On-demand reindexing</th>
-								<td>No</td>
-								<td>Yes</td>
+								<td>{{ tiers[0]['on_demand_reindexing'] }}</td>
+								<td>{{ tiers[1]['on_demand_reindexing'] }}</td>
+								<td>{{ tiers[2]['on_demand_reindexing'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">API enabled</th>
-								<td>No</td>
-								<td>Yes</td>
+								<td>{{ tiers[0]['api_enabled'] }}</td>
+								<td>{{ tiers[1]['api_enabled'] }}</td>
+								<td>{{ tiers[2]['api_enabled'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">Access Manage Site to configure indexing</th>
-								<td>No</td>
-								<td>Yes</td>
+								<td>{{ tiers[0]['access_to_manage'] }}</td>
+								<td>{{ tiers[1]['access_to_manage'] }}</td>
+								<td>{{ tiers[2]['access_to_manage'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">Cost</th>
-								<td>Free</td>
-								<td>£12 a year</td>
+								<td>{{ tiers[0]['cost'] }}</td>
+								<td>{{ tiers[1]['cost'] }}</td>
+								<td>{{ tiers[2]['cost'] }}</td>
+							</tr>
+							<tr>
+								<th scope="row">Listing duration</th>
+								<td>n/a</td>
+								<td>{{ tiers[1]['duration'] }}</td>
+								<td>{{ tiers[2]['duration'] }}</td>
+							</tr>
+							<tr>
+								<th scope="row"></th>
+								<td></td>
+								<td><small>Requires proof of domain ownership.</small></td>
+								<td><small>Requires proof of domain ownership and one-off credit card payment.</small></td>
 							</tr>
 						</tbody>
 					</table>
 
-					<p>
-						If a site is initially added via "Quick Add", ownership can later be verified and benefits obtained by 
-						a subsequent "Verified Add (IndieAuth)" or "Verified Add (DCV)" submission.
-					</p>
+					<button type="submit" class="btn btn-primary mt-3">Add Site</button>
+					
+					</form>
 
 				</div>
 			</div>

@@ -14,18 +14,35 @@ bp = Blueprint('admin', __name__)
 
 sql_select = 'SELECT home_page FROM tblDomains WHERE domain = (%s);'
 
-sql_select_quickadd_pending = "SELECT domain, home_page, site_category, date_domain_added "\
-    "FROM tblDomains WHERE (validation_method = \'QuickAdd\' OR validation_method = \'SQL\') AND moderator_approved IS NULL "\
-    "ORDER BY date_domain_added ASC;"
+sql_select_basic_pending = "SELECT d.domain, d.home_page, d.category, d.domain_first_submitted FROM tblDomains d "\
+    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
+    "WHERE l.status = 'PENDING' AND l.tier = 1 AND l.pending_state = 'MODERATOR_REVIEW' "\
+    "ORDER BY l.listing_end DESC, l.tier ASC;"
 
-sql_quickadd_approve = "UPDATE tblDomains SET "\
-    "expire_date = now() + '1 year', indexing_type = 'spider/default', indexing_frequency = '28 days', indexing_page_limit = 50, "\
-    "indexing_current_status = 'PENDING', indexing_status_last_updated = now(), "\
-    "moderator_approved = TRUE, moderator_action_date = now(), moderator_action_user = (%s), indexing_enabled = TRUE "\
-    "WHERE domain = (%s);"
+sql_update_basic_approved = "UPDATE tblListingStatus "\
+    "SET status = 'ACTIVE', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW(), listing_start = NOW(), listing_end = NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = 1) "\
+    "WHERE domain = (%s) AND status = 'PENDING' AND tier = 1 AND pending_state = 'MODERATOR_REVIEW'; "\
+    "UPDATE tblDomains SET "\
+    "moderator_approved = TRUE, "\
+    "moderator = (%s), "\
+    "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
+    "part_reindex_frequency = tblTiers.default_part_reindex_frequency, "\
+    "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
+    "api_enabled = tblTiers.default_api_enabled, "\
+    "indexing_enabled = TRUE, "\
+    "full_indexing_status = 'PENDING', "\
+    "full_indexing_status_changed = NOW() "\
+    "FROM tblTiers WHERE tblTiers.tier = 1 and tblDomains.domain = (%s);"
 
-sql_quickadd_reject = "UPDATE tblDomains SET "\
-    "moderator_approved = FALSE, moderator_action_date = now(), moderator_action_reason = (%s), moderator_action_user = (%s), indexing_enabled = FALSE "\
+sql_update_basic_reject = "UPDATE tblListingStatus "\
+    "SET status = 'DISABLED', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW() "\
+    "WHERE domain = (%s) AND tier = 1; "\
+    "UPDATE tblDomains SET "\
+    "moderator_approved = FALSE, "\
+    "moderator = (%s), "\
+    "moderator_action_reason = (%s), "\
+    "moderator_action_changed = NOW() "\
     "WHERE domain = (%s);"
 
 
@@ -39,6 +56,7 @@ actions_list = [
 {'id':'action8', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
 ]
 
+
 # Setup routes
 
 @bp.route('/review/', methods=('GET', 'POST'))
@@ -47,7 +65,7 @@ actions_list = [
 def review():
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_quickadd_pending)
+    cursor.execute(sql_select_basic_pending)
     results = cursor.fetchall()
     if request.method == 'GET':
         review_form = [] # Form will be constructed from a list of dicts, where the dict will have domain, home, category, date and actions values, and actions will be a list
@@ -60,7 +78,7 @@ def review():
                 action_id = name+action['id']
                 action_value = result['domain']+':'+action['value']
                 actions.append({'id':action_id, 'name':name, 'value':action_value, 'checked':action['checked'], 'label':action['label']})
-            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['site_category'], 'date':result['date_domain_added'], 'actions':actions})
+            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['category'], 'date':result['domain_first_submitted'], 'actions':actions})
         return render_template('admin/review.html', results=results, review_form=review_form)
     else: # i.e. if POST 
         if results:
@@ -76,8 +94,8 @@ def review():
                     action = domainaction[1]
                     message += '<li>domain: {}, action: {}</li>'.format(domain, action)                    
                     if action == "approve":
-                        moderator_action_user = session['logged_in_domain']
-                        cursor.execute(sql_quickadd_approve, (moderator_action_user, domain, ))
+                        moderator = session['logged_in_domain']
+                        cursor.execute(sql_update_basic_approved, (domain, moderator, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
                         if action == "reject-notpersonal":
@@ -90,8 +108,8 @@ def review():
                             reason = "No content"
                         else:
                             reason = "Reason not listed"
-                        moderator_action_user = session['logged_in_domain']
-                        cursor.execute(sql_quickadd_reject, (reason, moderator_action_user, domain, ))
+                        moderator = session['logged_in_domain']
+                        cursor.execute(sql_update_basic_reject, (domain, reason, moderator, domain))
                         conn.commit()
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)

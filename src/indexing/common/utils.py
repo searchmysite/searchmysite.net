@@ -15,28 +15,39 @@ db_name = config.DB_NAME
 db_user = config.DB_USER
 db_host = config.DB_HOST
 
-domains_sql = "SELECT DISTINCT domain FROM tblDomains WHERE moderator_approved = TRUE AND indexing_enabled=TRUE;"
+domains_sql = "SELECT DISTINCT domain FROM tblListingStatus WHERE status = 'ACTIVE';"
+
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
+
 update_indexing_status_sql = "UPDATE tblDomains "\
-    "SET indexing_current_status = (%s), indexing_status_last_updated = now() "\
+    "SET full_indexing_status = (%s), full_indexing_status_changed = now() "\
     "WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
     "VALUES ((%s), (%s), now(), (%s));"
+
 indexing_log_sql = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+
 get_last_complete_indexing_log_message_sql = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
-deactivate_indexing_sql = "UPDATE tblDomains SET indexing_enabled = FALSE, indexing_disabled_date = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
-# In sql_to_get_expired_unverified_sites, the moderator_approved = TRUE might appear redundant, but it is to stop the same site being returned after it is expired
-get_expired_unverified_sites_sql = "SELECT domain from tblDomains "\
-    "WHERE expire_date < now() "\
-    "AND validation_method IN ('QuickAdd', 'SQL') "\
-    "AND moderator_approved = TRUE "\
+
+deactivate_indexing_sql = "UPDATE tblDomains SET "\
+    "indexing_enabled = FALSE, indexing_disabled_changed = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
+
+get_expired_unverified_sites_sql = "SELECT d.domain, l.tier from tblDomains d "\
+    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
+    "WHERE l.listing_end < now() "\
+    "AND l.status = 'ACTIVE' "\
+    "AND l.tier = 1 "\
     "AND indexing_type = 'spider/default' "\
-    "ORDER BY date_domain_added ASC;"
-expire_unverified_site_sql = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"
+    "ORDER BY domain_first_submitted ASC;"
+
+expire_unverified_site_sql = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"\
+    "UPDATE tblListingStatus SET status = 'PENDING', status_changed = NOW(), pending_state = 'MODERATOR_REVIEW', pending_state_changed = NOW() "\
+    "WHERE domain = (%s) AND tier = (%s);"
+
 check_for_stuck_jobs_sql = "SELECT * FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
-    "AND indexing_current_status = 'RUNNING' "\
-    "AND indexing_status_last_updated + '6 hours' < NOW();"
+    "AND full_indexing_status = 'RUNNING' "\
+    "AND full_indexing_status_changed + '6 hours' < NOW();"
 
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"

@@ -9,7 +9,10 @@ from searchmysite.db import get_db
 from searchmysite.util import generate_validation_key, extract_domain, send_email, get_host
 import requests
 
-sql_select = "SELECT * FROM tblDomains WHERE domain = (%s);"
+sql_select = "SELECT l.status, l.tier, d.password, d.login_type FROM tblDomains d "\
+    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
+    "WHERE d.domain = (%s) "\
+    "ORDER BY l.tier ASC;"
 sql_select_admin = "SELECT * from tblPermissions WHERE role = 'admin' AND domain = (%s);"
 sql_last_login_time = "UPDATE tblDomains SET last_login = now() WHERE domain = (%s);"
 sql_change_password = "UPDATE tblDomains SET password = (%s) WHERE domain = (%s);"
@@ -37,8 +40,10 @@ def login():
         results = cursor.fetchone()
         if results is None:
             error = 'Incorrect domain. Are you registered?'
-        elif not results['password']: # correct domain but no password set, probably because they initially setup via IndieAuth
+        elif not results['password'] or not results['login_type'] == 'PASSWORD': # correct domain but no password set, probably because they initially setup via IndieAuth
             error = 'Please use the Login with IndieAuth box.'
+        elif not results['status'] == 'ACTIVE' and not (results['tier'] == 2 or results['tier'] == 3):
+            error = 'You don\'t have an active Full or Free Trial subscription. Please subscribe.'
         elif not check_password_hash(results['password'], password):
             error = 'Incorrect password.'
         if error is None:
@@ -321,3 +326,105 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                         return_target = url_for('auth.login')
                         current_app.logger.error('Login: fail, {} to {}'.format(return_action, return_target))
     return return_action, return_target
+
+def do_indieauth_login2(addsite_workflow):
+    current_app.logger.debug('Starting do_indieauth_login2')
+    success = False
+    #return_action = "redirect" # default, alternative is render_template
+    #return_target = current_page # default, alternative is next_page
+    param_state = request.args.get('state')
+    code = request.args.get('code')
+    current_app.logger.debug('request.base_url: {}, request.host_url: {}, request.headers.get(\'X-Forwarded-Host\'): {}'.format(request.base_url, request.host_url, request.headers.get('X-Forwarded-Host')))
+    # Always use the current URL (base_url) for redirect_uri if in addsite_workflow, otherwise it'll pickup the login URL if they've clicked on a login protected URL before Add Site
+    if addsite_workflow or session.get('redirect_uri') is None: 
+        redirect_uri = get_host(request.base_url, request.headers) # need it to be e.g. https://searchmysite.net/admin/login/ (base_url) rather than https://searchmysite.net/admin/ (url_root)
+        session['redirect_uri'] = redirect_uri
+    else:
+        redirect_uri = session.get('redirect_uri')
+    if session.get('client_id') is None:
+        client_id = get_host(request.host_url, request.headers) # need it to be https://searchmysite.net/ (host_url) rather than https://searchmysite.net/admin/ (url_root)
+        session['client_id'] = client_id
+    else:
+        client_id = session.get('client_id')
+    if session.get('state') is None:
+        session_state = generate_validation_key(12)
+        session['state'] = session_state
+    else:
+        session_state = session.get('state')
+    current_app.logger.debug('redirect_uri: {}, client_id: {}, state: {}'.format(redirect_uri, client_id, session_state))
+    # If they haven't been redirected back here by IndieAuth
+    if param_state is None and code is None:
+        current_app.logger.debug('Haven\'t been to IndieAuth yet')
+        #return_action = "render_template"
+        #return_target = current_page
+    # If they have been redirected back here by IndieAuth
+    else: 
+        current_app.logger.debug('Redirected here by IndieAuth')
+        if param_state != session_state: # step 3 check
+            current_app.logger.error('Submitted state does not match returned state')
+            #error_message = 'Submitted state does not match returned state. Please try again.'
+            #flash(error_message)
+            #return_action = "render_template"
+            #return_target = current_page
+        else: # step 4 check
+            current_app.logger.debug('Submitted state matches returned state')
+            indieauth = "https://indielogin.com/auth"
+            headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'Accept': 'application/json'}
+            payload = {'code': code, 'redirect_uri': redirect_uri, 'client_id': client_id}
+            response = requests.post(indieauth, data=payload, headers=headers)
+            responsejson = response.json()
+            if response.status_code != 200:
+                current_app.logger.error('Got an error code from IndieAuth')
+                error = responsejson['error']
+                error_description = responsejson['error_description']
+                error_message = 'Unable to authenticate with IndieAuth: {} {}'.format(error, error_description)
+                current_app.logger.error(error_message)
+                #flash(error_message)
+                #return_action = "render_template"
+                #return_target = current_page
+            else: # Success
+                current_app.logger.info('Got a success code from IndieAuth')
+                home_page = responsejson['me']
+                domain = extract_domain(home_page)
+                session['home_page'] = home_page
+                conn = get_db()
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                cursor.execute(sql_select, (domain,))
+                indexed_result = cursor.fetchone()
+                if addsite_workflow == True:
+                    #cursor.execute(sql_select, (domain,))
+                    pending_result = cursor.fetchone()
+                    if indexed_result is not None and indexed_result['status'] == 'ACTIVE' and indexed_result['tier'] > 1: # i.e. fully validated and owner_verified (existing but non owner_verified should pass through to next step)
+                        current_app.logger.info('Add site: domain already submitted and fully validated')
+                        #error_message = 'This domain has already been registered. Click Manage My Site to manage it, or try submitting a different domain.'
+                        #flash(error_message)
+                        #return_action = "render_template"
+                        #return_target = current_page
+                        #elif pending_result is not None: # i.e. domain submitted but verification process not complete 
+                        # e.g. people who submit the domain but decide not to enter their email
+                        # but then revisit at a later time to complete the process
+                        # Note that this will appear to the user as though they had never submitted at all, given they have to go through step 1 to get to step 2 
+                        # but unknown to them their entry will be in the tblPendingDomains and they will benefit from an earlier date_domain_added
+                        #current_app.logger.info('Add site: domain submitted but not fully validated, so redirecting to next step')
+                        #return_action = "redirect"
+                        #return_target = next_page
+                    else: # i.e. domain hasn't already been submitted
+                        #current_app.logger.info('Add site: domain not already submitted, so submitting and redirecting to next step')
+                        #cursor.execute(insertdomainsql, (domain, home_page, 'IndieAuth'))
+                        #conn.commit()
+                        #return_action = "redirect"
+                        #return_target = next_page
+                        current_app.logger.info('Add site: domain not already submitted')
+                        success = True
+                else: # if logon workflow
+                    if indexed_result is not None and indexed_result['status'] == 'ACTIVE' and indexed_result['tier'] > 1:
+                        set_login_session(domain, "indieauth")
+                        #return_action = "redirect"
+                        #return_target = next_page
+                        current_app.logger.info('Login: success')
+                        success = True
+                    else:
+                        #return_action = "redirect"
+                        #return_target = url_for('auth.login')
+                        current_app.logger.error('Login: fail')
+    return success

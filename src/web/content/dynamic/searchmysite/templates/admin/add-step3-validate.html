@@ -1,19 +1,13 @@
 {% extends "layout.html" %}
 
-{% block title %}Search My Site - Add Site via DCV Step 3{% endblock %}
+{% block title %}Search My Site - Add Site Step 3{% endblock %}
 
 {% block content %}
 			<div class="row">
 				<div class="col-lg-12">
 					<ul class="nav nav-tabs">
 						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('add.quick') }}">Quick Add</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('add.indieauth') }}">Verified Add (IndieAuth)</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link active">Verified Add (DCV)</a>
+							<a class="nav-link active">Add Site</a>
 						</li>
 					</ul>
 				</div>
@@ -22,40 +16,59 @@
 			<div class="row mt-4">
 				<div class="col-md-6 offset-md-3">
 
-					{% if config['ENABLE_PAYMENT'] == True %}
+					{% if config['ENABLE_PAYMENT'] == True and tier == 3 %}
 					<ul id="progressbar5step">
-						<li class="active" id="step1of5">Home Page</li>
-						<li class="active" id="step2of5">Login Details</li>
+						<li class="active" id="step1of5">Login &amp; validation method</li>
+						<li class="active" id="step2of5">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
 						<li class="active" id="step3of5">Validate</li>
 						<li id="step4of5">Payment</li>
 						<li id="step5of5">Complete</li>
 					</ul>
 					{% else %}
 					<ul id="progressbar4step">
-						<li class="active" id="step1of4">Home Page</li>
-						<li class="active" id="step2of4">Login Details</li>
+						<li class="active" id="step1of4">Login &amp; validation method</li>
+						<li class="active" id="step2of4">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
 						<li class="active" id="step3of4">Validate</li>
 						<li id="step4of4">Complete</li>
 					</ul>
 					{% endif %}
 
+					{% if login_type == 'INDIEAUTH' %}
+					<form action="https://indielogin.com/auth" method="get">
+						<div class="form-group">
+							<label for="url" class="col-form-label">Home page</label>
+							<input type="url" name="me" class="form-control" id="url" placeholder="Home page" aria-describedby="homepage-help" required autofocus/>
+							<small id="homepage-help" class="form-text text-muted">
+								Enter the home page of your site, as you normally enter it for IndieAuth logins. 
+								This value is your login ID, 
+								the start page for the indexing of your site, and 
+								is used for your site's entry on the Browse page.
+							</small>
+						</div>
+						<button type="submit" class="btn btn-primary">Validate</button>
+						<input type="hidden" name="client_id" value="{{ client_id }}" />
+						<input type="hidden" name="redirect_uri" value="{{ redirect_uri }}" />
+						<input type="hidden" name="state" value="{{ state }}" />
+					</form>
+					{% else %}
 					<form method="post">
 						<div class="form-group">
 							<label for="validationkey" class="col-form-label">Validation key</label>
 							<input type="text" name="validationkey" class="form-control" id="validationkey" value="{{ validation_key }}" aria-describedby="validationkey-help" readonly>
 							<small id="validationkey-help" class="form-text text-muted">
-								You must use this key to confirm your ownership of this domain in one of the following ways:
+								<p>You must use this key to confirm your ownership of this domain in one of the following ways:
 								<ul>
 									<li>Create a TXT record on the {{ domain }} domain with the following text: searchmysite-verification={{ validation_key }}. Note that DNS changes can take few hours to take effect.</li>
 									<li>Create a file called {{ validation_key }}.html at the root of the domain which contains the text searchmysite-verification={{ validation_key }}</li>
 									<li>Create a &lt;meta name="searchmysite-verification" content="{{ validation_key }}"&gt; in the &lt;head&gt; of the domain's home page</li>
 								</ul>
 								If you are unable to validate in this session, you can return to this point at any time by 
-								clicking on Add Site and entering the same home page again.
+								clicking on Add Site and entering the same home page again.</p>
 							</small>
 						</div>
 						<button type="submit" class="btn btn-primary">Validate</button>
 					</form>
+					{% endif %}
 
 				</div>
 			</div>

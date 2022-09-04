@@ -17,10 +17,10 @@ bp = Blueprint('manage', __name__)
 
 selectsql = "SELECT * FROM tblDomains WHERE domain = (%s);"
 filterssql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
-updateemailsql = "UPDATE tblDomains SET contact_email = (%s) WHERE domain = (%s);"
+updateemailsql = "UPDATE tblDomains SET email = (%s) WHERE domain = (%s);"
 addexcludesql = "INSERT INTO tblIndexingFilters VALUES ((%s), 'exclude', (%s), (%s));"
 deleteexcludesql = "DELETE FROM tblIndexingFilters WHERE domain = (%s) AND action = 'exclude' AND type = (%s) AND VALUE = (%s);"
-reindexsql = "UPDATE tblDomains SET indexing_current_status = 'PENDING', indexing_status_last_updated = now() WHERE domain = (%s); "\
+reindexsql = "UPDATE tblDomains SET full_indexing_status = 'PENDING', full_indexing_status_changed = now() WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog VALUES ((%s), 'PENDING', now());"
 
 # Setup routes
@@ -131,10 +131,10 @@ def get_manage_data(domain):
     # Get main config
     cursor.execute(selectsql, (domain,))
     result = cursor.fetchone()
-    if result['indexing_current_status'] == 'PENDING':
+    if result['full_indexing_status'] == 'PENDING':
         next_reindex = "Any time now"
-    elif result['indexing_status_last_updated'] and result['indexing_frequency']:
-        next_reindex_datetime = result['indexing_status_last_updated'] + result['indexing_frequency']
+    elif result['full_indexing_status_changed'] and result['full_reindex_frequency']:
+        next_reindex_datetime = result['full_indexing_status_changed'] + result['full_reindex_frequency']
         next_reindex = next_reindex_datetime.strftime('%d %b %Y, %H:%M%z')
     else: # This shouldn't happen, but just in case
         next_reindex = "Not quite sure"

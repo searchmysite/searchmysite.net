@@ -22,7 +22,7 @@ smtp_to_email = environ.get('SMTP_TO_EMAIL')
 
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
-deletesql = "DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);" # tblIndexingFilters and tblPermissions have a foreign key so delete first
+deletesql = "DELETE FROM tblValidations WHERE domain = (%s); DELETE FROM tblSubscriptions WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblListingStatus WHERE domain = (%s); DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);" # delete tables with foreign keys first
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
@@ -85,7 +85,7 @@ def delete_domain(domain):
     # Delete from database
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(deletesql, (domain, domain, domain,))
+    cursor.execute(deletesql, (domain, domain, domain, domain, domain, domain,))
     conn.commit()
 
 # reply_to_email and to_email optional.

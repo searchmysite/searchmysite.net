@@ -68,7 +68,7 @@
 					<label for="site_category" class="col-form-label">Category:</label>
 				</div>
 				<div class="col-sm-6 col-md-8">
-					<input type="text" readonly class="form-control-plaintext" id="site_category" value="{{ result['site_category'] }}" aria-describedby="site_category_help">
+					<input type="text" readonly class="form-control-plaintext" id="site_category" value="{{ result['category'] }}" aria-describedby="site_category_help">
 					<small id="site_category_help" class="form-text text-muted">
 						The site category. Users might filter search results to certain categories.
 					</small>
@@ -81,9 +81,9 @@
 				</div>
 				<div class="col-sm-6 col-md-8">
 					{% if edit == False %}
-					<input type="email" readonly     class="form-control" id="contact_email" placeholder="{{ result['contact_email'] }}"  aria-describedby="email_help">
+					<input type="email" readonly     class="form-control" id="contact_email" placeholder="{{ result['email'] }}"  aria-describedby="email_help">
 					{% else %}
-					<input type="email" name="email" class="form-control" id="contact_email" placeholder="{{ result['contact_email'] }}"  aria-describedby="email_help">
+					<input type="email" name="email" class="form-control" id="contact_email" placeholder="{{ result['email'] }}"  aria-describedby="email_help">
 					{% endif %}
 					<small id="email_help" class="form-text text-muted">
 						Site admin email address. Only used for service updates.
@@ -100,11 +100,11 @@
 
 			<div class="row mt-3">
 				<div class="col-sm-3 col-md-2 text-end">
-					<label for="date_domain_added" class="col-form-label">Domain added:</label>
+					<label for="domain_first_submitted" class="col-form-label">Domain added:</label>
 				</div>
 				<div class="col-sm-6 col-md-8">
-					<input type="text" readonly class="form-control-plaintext" id="date_domain_added" value="{{ result['date_domain_added']|datetimeformat }}" aria-describedby="date_domain_added_help">
-					<small id="date_domain_added_help" class="form-text text-muted">
+					<input type="text" readonly class="form-control-plaintext" id="domain_first_submitted" value="{{ result['domain_first_submitted']|datetimeformat }}" aria-describedby="date_domain_added_help">
+					<small id="domain_first_submitted_help" class="form-text text-muted">
 						The time and date this domain was first entered into the system.
 					</small>
 				</div>
