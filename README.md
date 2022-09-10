@@ -89,7 +89,7 @@ The website will be available at [http://localhost:8080/](http://localhost:8080/
 
 ### Setting up an admin login
 
-If you want to be able to Approve or Reject sites added via Quick Add, you will need to set up one or more Admin users. Only verified site owners, i.e. ones able to login, can be permissioned as Admin users. You can use the web interface to add your own site via Verified Add, or insert details directly into the database.
+If you want to be able to Approve or Reject sites added as a Basic listing, you will need to set up one or more Admin users. Only verified site owners, i.e. ones with a Full listing and able to login, can be permissioned as Admin users. You can use the web interface to add your own site as Full listing via Add Site, or insert details directly into the database.
 
 Once you have one or more verified site owners, you can permission them as Admins in the database, e.g.:
 ```
@@ -100,7 +100,7 @@ INSERT INTO tblPermissions (domain, role)
 
 ### Adding other websites
 
-You can use Quick Add to add a site or sites via the web interface. You will need to login as an Admin user, click Review, and select Approve for them to be queued for indexing.
+You can use Add Site to add a site or sites as a Basic listing via the web interface. You will need to login as an Admin user, click Review, and select Approve for them to be queued for indexing.
 
 There are also bulk import scripts in src/db/bulkimport. checkdomains.py takes a list of domains or home pages as input, checks that they are valid sites, and that they aren't already in the list or the database, and generates a file for insertdomains.py to insert.
 
@@ -158,7 +158,7 @@ export FLASK_ENV=development
 export FLASK_APP=~/projects/searchmysite.net/src/web/content/dynamic/searchmysite
 flask run
 ```
-You local Flask website will be available at e.g. [http://localhost:5000/search/](http://localhost:5000/search/) (note that the home page, i.e. [http://localhost:5000/](http://localhost:5000/), isn't served dynamically so won't be available via Flask). Changes to the code will be reflected without a server restart, and full stack traces will be more visible in case of errors.
+You local Flask website will be available at e.g. [http://localhost:5000/search/](http://localhost:5000/search/) (note that the home page, i.e. [http://localhost:5000/](http://localhost:5000/), isn't served dynamically so won't be available via Flask). Changes to the code will be reflected without a server restart, you will see debug log messages, and full stack traces will be more visible in case of errors.
 
 
 ### Indexing changes
@@ -168,7 +168,7 @@ As with the web container, the indexing container on dev is configured to read d
 You would typically trigger a reindex by running SQL like:
 ```
 UPDATE tblDomains 
-  SET  indexing_current_status = 'PENDING'
+  SET  full_indexing_status = 'PENDING'
   WHERE domain = 'michael-lewis.com';	
 ```
 and waiting for the next src/indexing/indexer/run.sh (up to 1 min on dev), or triggering it manually:
@@ -241,8 +241,8 @@ There are two test scripts:
 - `run_tests.sh` - sets up the environment variables, runs the pytest scripts and the indexing.
 
 The pytest scripts:
-- submit and approve a site via Quick Add
-- submit a site via Verified Add (DCV), including making a test payment to the Stripe account specified with the STRIPE_* variables if ENABLE_PAYMENT=True
+- submit and approve a Basic listing
+- submit a Full listing site, including making a test payment to the Stripe account specified with the STRIPE_* variables if ENABLE_PAYMENT=True
 - search the newly indexed sites
 - remove the test sites
 
