@@ -7,10 +7,10 @@ set -a; source ~/projects/searchmysite.net/src/.env; set +a
 echo "Unit test"
 pytest web/unit/test_adminutil.py
 
-echo "PART 1 of 5: Submitting test site via Quick Add"
+echo "PART 1 of 5: Submitting a Basic listing"
 pytest -v web/integration/test_1_quickadd.py
 
-echo "PART 2 of 5: Submitting test site via Verified Add (DCV)"
+echo "PART 2 of 5: Submitting a Full listing, including username password (as opposed to IndieAuth) verification process"
 pytest -v web/integration/test_2_verifiedadddcv.py
 
 echo "PART 3 of 5: Indexing test sites (please wait, this may take some time)"
