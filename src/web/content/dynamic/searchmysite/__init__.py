@@ -74,6 +74,8 @@ def create_app(test_config=None):
     app.register_blueprint(admin.bp, url_prefix=admin_url_prefix)
     from searchmysite.admin import auth
     app.register_blueprint(auth.bp, url_prefix=admin_url_prefix)
+    from searchmysite.admin import checkout
+    app.register_blueprint(checkout.bp, url_prefix=admin_url_prefix)
     from searchmysite.admin import contact
     app.register_blueprint(contact.bp, url_prefix=admin_url_prefix)
     from searchmysite.admin import manage
