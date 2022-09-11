@@ -4,28 +4,10 @@
 
 {% block head %}<script src="https://js.stripe.com/v3/"></script>
 <script>
-// Get Stripe publishable key
-fetch("{{ url_for('add.get_publishable_key') }}")
-.then((result) => { return result.json(); })
-.then((data) => {
-	// Initialize Stripe.js
-	const stripe = Stripe(data.publicKey);
-	// Event handler
-	document.querySelector("#submitBtn").addEventListener("click", () => {
-		// Get Checkout Session ID
-		fetch("{{ url_for('add.create_checkout_session') }}")
-		.then((result) => { return result.json(); })
-		.then((data) => {
-		console.log(data);
-		// Redirect to Stripe Checkout
-		return stripe.redirectToCheckout({sessionId: data.sessionId})
-		})
-		.then((res) => {
-		console.log(res);
-		});
-	});
-});
-</script>{% endblock %}
+	var checkout_config = "{{ url_for('checkout.get_publishable_key') }}";
+	var checkout_url = "{{ url_for('checkout.create_addsite_checkout_session') }}";
+</script>
+<script src="/static/js/searchmysite-stripe.js"></script>{% endblock %}
 
 {% block content %}
 			<div class="row">
