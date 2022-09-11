@@ -34,7 +34,8 @@ class SearchMySiteScript(CrawlSpider):
         self.exclusions = self.site_config['exclusions']
         self.domains_for_indexed_links = self.common_config['domains_for_indexed_links']
         # Need to remove current domain from the list so indexed_outlinks does just contain outlinks
-        self.domains_for_indexed_links.remove(self.domain)
+        # (and also check the current domain is in the list in case it has been removed for another domain allowing subdomains)
+        if self.domain in self.domains_for_indexed_links: self.domains_for_indexed_links.remove(self.domain)
         # Set Scrapy spider attributes, i.e. start_urls and allowed_domains
         self.start_urls = [self.start_url]
         self.allowed_domains = [self.domain]
