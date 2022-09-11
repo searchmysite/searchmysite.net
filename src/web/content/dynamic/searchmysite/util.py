@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, request
 import tldextract
 import domcheck
 import random, string
@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from searchmysite.db import get_db
 import config
+import stripe
 
 smtp_server = environ.get('SMTP_SERVER')
 smtp_port = environ.get('SMTP_PORT')
@@ -20,12 +21,39 @@ smtp_from_email = environ.get('SMTP_FROM_EMAIL')
 smtp_from_password = environ.get('SMTP_FROM_PASSWORD')
 smtp_to_email = environ.get('SMTP_TO_EMAIL')
 
-domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
-deletesql = "DELETE FROM tblValidations WHERE domain = (%s); DELETE FROM tblSubscriptions WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblListingStatus WHERE domain = (%s); DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);" # delete tables with foreign keys first
+# SQL
+
+sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
+
+# Delete tables with foreign keys before finally deleting from tblDomains
+# Note there may still be references to the domain in tblSubscriptions and tblIndexingLog, but we want to keep those and they don't have a foreign key
+sql_delete_domain = "DELETE FROM tblValidations WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblListingStatus WHERE domain = (%s); DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);"
+
+# The SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()
+# returns the latest subscription end date, if the subscription end date is in the future, or NOW() if none is set, so that subscriptions can be "stacked"
+sql_insert_full_subscription = "INSERT INTO tblSubscriptions (domain, tier, subscribed, subscription_start, subscription_end, payment, payment_id) "\
+    "VALUES ((%s), (%s), NOW(), "\
+        "(SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()), "\
+        "(SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()) + (SELECT listing_duration FROM tblTiers WHERE tier = (%s)), "\
+        "(SELECT cost_amount FROM tblTiers WHERE tier = (%s)), (%s));"
+
+sql_update_full_listing_startandend = "UPDATE tblListingStatus "\
+    "SET listing_start = NOW(), "\
+        "listing_end = (SELECT MAX(subscription_end) FROM tblSubscriptions WHERE domain = (%s)) "\
+    "WHERE domain = (%s) AND tier = (%s);"
+
+sql_update_free_listing_startandend = "UPDATE tblListingStatus "\
+    "SET listing_start = NOW(), "\
+        "listing_end = NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = (%s)) "\
+    "WHERE domain = (%s) AND tier = (%s);"
+
+# Solr
+
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
+
 
 # This returns a domain when given a URL, e.g. returns michael-lewis.com for https://www.michael-lewis.com/about/
 # This is a crucial piece of code because it generates the primary key for each account in the system, 
@@ -43,7 +71,7 @@ def extract_domain(url):
     domains_allowing_subdomains = []
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(domains_allowing_subdomains_sql)
+    cursor.execute(sql_select_domains_allowing_subdomains)
     results = cursor.fetchall()
     for result in results:
         domains_allowing_subdomains.append(result['setting_value'])
@@ -85,7 +113,7 @@ def delete_domain(domain):
     # Delete from database
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(deletesql, (domain, domain, domain, domain, domain, domain,))
+    cursor.execute(sql_delete_domain, (domain, domain, domain, domain, domain,))
     conn.commit()
 
 # reply_to_email and to_email optional.
@@ -117,3 +145,21 @@ def send_email(reply_to_email, to_email, subject, text):
     finally:
         server.quit() 
     return success
+
+# THis will insert a new full subscription, 
+# either starting now if there aren't any subscriptions at all or if there are only past (expired) subscriptions
+# or starting when the last subscription ends if there is a current subscription and/or future subscriptions which haven't yet started 
+def insert_subscription(domain, tier):
+    session_id = request.args.get('session_id')
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    session = stripe.checkout.Session.retrieve(session_id)
+    payment_intent = session.get('payment_intent')
+    current_app.logger.debug('session_id {}, payment_intent: {}'.format(session_id, payment_intent))
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if tier == 2:
+        cursor.execute(sql_update_free_listing_startandend, (tier, domain, tier))
+    if tier == 3:
+        cursor.execute(sql_insert_full_subscription, (domain, tier, domain, domain, tier, tier, payment_intent))
+        cursor.execute(sql_update_full_listing_startandend, (domain, domain, tier))
+    conn.commit()
