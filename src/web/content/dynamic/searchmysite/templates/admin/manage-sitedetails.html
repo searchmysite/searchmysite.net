@@ -7,10 +7,13 @@
 				<div class="col-lg-12">
 					<ul class="nav nav-tabs">
 						<li class="nav-item">
-						<a class="nav-link active">Site details</a>
+							<a class="nav-link active">Site details</a>
 						</li>
 						<li class="nav-item">
-						<a class="nav-link" href="{{ url_for('manage.indexing') }}">Indexing</a>
+							<a class="nav-link" href="{{ url_for('manage.indexing') }}">Indexing</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ url_for('manage.subscriptions') }}">Subscriptions</a>
 						</li>
 					</ul>
 				</div>
@@ -44,6 +47,30 @@
 
 			<div class="row mt-3">
 				<div class="col-sm-3 col-md-2 text-end">
+					<label for="site_category" class="col-form-label">Category:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
+					<input type="text" readonly class="form-control-plaintext" id="site_category" value="{{ result['category'] }}" aria-describedby="site_category_help">
+					<small id="site_category_help" class="form-text text-muted">
+						The site category. Users might filter search results to certain categories.
+					</small>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="domain_first_submitted" class="col-form-label">Domain added:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
+					<input type="text" readonly class="form-control-plaintext" id="domain_first_submitted" value="{{ result['domain_first_submitted']|datetimeformat }}" aria-describedby="date_domain_added_help">
+					<small id="domain_first_submitted_help" class="form-text text-muted">
+						The time and date this domain was first entered into the system.
+					</small>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
 					<label for="login_method" class="col-form-label">Login method:</label>
 				</div>
 				<div class="col-sm-6 col-md-8">
@@ -61,18 +88,6 @@
 					<a class="btn btn-primary" href="{{ url_for('auth.changepassword') }}" role="button">Change Password</a>
 				</div>
 				{% endif %}
-			</div>
-
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
-					<label for="site_category" class="col-form-label">Category:</label>
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<input type="text" readonly class="form-control-plaintext" id="site_category" value="{{ result['category'] }}" aria-describedby="site_category_help">
-					<small id="site_category_help" class="form-text text-muted">
-						The site category. Users might filter search results to certain categories.
-					</small>
-				</div>
 			</div>
 
 			<div class="row mt-3">
@@ -95,30 +110,6 @@
 					{% else %}
 					<button type="submit" class="btn btn-primary">Save Email</button>
 					{% endif %}
-				</div>
-			</div>
-
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
-					<label for="domain_first_submitted" class="col-form-label">Domain added:</label>
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<input type="text" readonly class="form-control-plaintext" id="domain_first_submitted" value="{{ result['domain_first_submitted']|datetimeformat }}" aria-describedby="date_domain_added_help">
-					<small id="domain_first_submitted_help" class="form-text text-muted">
-						The time and date this domain was first entered into the system.
-					</small>
-				</div>
-			</div>
-
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
-					<label for="expire_date" class="col-form-label">Listing expires:</label>
-				</div>
-				<div class="col-sm-6">
-					<input type="text" readonly class="form-control-plaintext" id="expire_date" value="{{ result['expire_date']|datetimeformat }}" aria-describedby="expire_date_help">
-					<small id="expire_date_help" class="form-text text-muted">
-						The time and date your current services expire. Initially 1 year after date domain first validated.
-					</small>
 				</div>
 			</div>
 
