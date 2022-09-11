@@ -16,7 +16,7 @@
 			<div class="row mt-4">
 				<div class="col-md-6 offset-md-3">
 
-					<form action="{{ url_for('add.add') }}" method="post">
+					<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
 						<div class="form-group">
 							<label for="home_page" class="col-form-label">Home page</label>
 							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
@@ -128,7 +128,7 @@
 						</tbody>
 					</table>
 
-					<button type="submit" class="btn btn-primary mt-3">Add Site</button>
+					<button type="submit" class="btn btn-primary mt-3" id="add-site">Add Site</button>
 					
 					</form>
 
