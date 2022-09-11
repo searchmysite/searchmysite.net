@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Add Site Success{% endblock %}
+
+{% block content %}
+			<div class="row">
+				<div class="col-lg-12">
+					<ul class="nav nav-tabs">
+						<li class="nav-item">
+							<a class="nav-link active">Add Site</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="row mt-4">
+				<div class="col-md-6 offset-md-3">
+
+					{% if config['ENABLE_PAYMENT'] == True and tier == 3 %}
+					<ul id="progressbar5step">
+						<li class="active" id="step1of5">Login &amp; validation method</li>
+						<li class="active" id="step2of5">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
+						<li class="active" id="step3of5">Validate</li>
+						<li class="active" id="step4of5">Payment</li>
+						<li class="active" id="step5of5">Complete</li>
+					</ul>
+					{% elif tier > 1 %}
+					<ul id="progressbar4step">
+						<li class="active" id="step1of4">Login &amp; validation method</li>
+						<li class="active" id="step2of4">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
+						<li class="active" id="step3of4">Validate</li>
+						<li class="active" id="step4of4">Complete</li>
+					</ul>
+					{% endif %}
+
+					{% if tier == 1 %}
+					<p>
+						You have successfully submitted your site. 
+						The site will now be reviewed by a moderator to confirm it conforms to submission guidelines. 
+						If it passes moderator review, it will be queued for indexing. 
+						The process may take a few hours or days depending on various factors. 
+						You can check on progress by resubmitting the site and viewing the resulting status message.
+					</p>
+					{% else %}
+					<p>
+						You have successfully submitted your site. 
+						Your site has been queued for indexing. 
+						This will normally take around 15-30 minutes to complete, 
+						but may take an hour or more depending on your site and  
+						how busy this system is.
+						You can check on the status of the indexing via <a href="{{ url_for('manage.indexing') }}">Manage Site / Indexing</a>.
+					</p>
+					<p>
+						Once indexing is complete, you will see it on the Browse page (if you have opted to include in the public search), 
+						and you can inspect your data via the API.
+						If you find you have a large amount of content you don't want indexed, e.g. 
+						auto-generated content or microblog entries, you may want to edit robots.txt
+						or set up filters, as described in the <a href="/pages/documentation/">Documentation</a>.
+					</p>
+					<p>
+						Thank you for your support, and I hope you find the service useful.
+					</p>
+					{% endif %}
+					
+				</div>
+			</div>
+
+{% endblock %}
