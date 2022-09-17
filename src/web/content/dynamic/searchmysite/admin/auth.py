@@ -9,7 +9,7 @@ from searchmysite.db import get_db
 from searchmysite.util import generate_validation_key, extract_domain, send_email, get_host
 import requests
 
-sql_select = "SELECT l.status, l.tier, d.password, d.login_type FROM tblDomains d "\
+sql_select = "SELECT l.status, l.tier, d.email, d.password, d.login_type FROM tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.domain = (%s) "\
     "ORDER BY l.tier ASC;"
@@ -160,8 +160,8 @@ def forgottenpassword_post():
         cursor.execute(sql_select, (domain,))
         results = cursor.fetchone()
         if results: # i.e. if the domain exists
-            if results['contact_email']: # and there's a valid email
-                if email == results['contact_email']:
+            if results['email']: # and there's a valid email
+                if email == results['email']:
                     forgotten_password_key = generate_validation_key(32)
                     cursor.execute(sql_forgotten_password, (forgotten_password_key, domain,))
                     conn.commit()
