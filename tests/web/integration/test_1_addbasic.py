@@ -4,7 +4,7 @@ def test_add_view(anon_client):
     response = anon_client.get('/admin/add/')
     assert response.status_code == 200
     assert b'<title>Search My Site - Add Site</title>' in response.data
-    assert b'Enter the home page of your site.' in response.data
+    assert b'Enter the home page of the site you would like to add' in response.data
     assert b'Confirm what type of site it is' in response.data
     assert b'Select listing tier for your site.' in response.data
 
