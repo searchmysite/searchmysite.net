@@ -26,13 +26,26 @@
 				</div>
 			</div>
 
-			{% if subscriptions %}
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="current_tier" class="col-form-label">Current tier:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
+					<input type="text" readonly class="form-control-plaintext" id="current_tier" value="{{ tier['tier_name'] }} Tier {{ tier['status'] }} to {{ tier['listing_end']|datetimeformat }}" aria-describedby="current_tier_help">
+					<small id="current_tier_help" class="form-text text-muted">
+						This is the current listing type and end date for your site.
+					</small>
+				</div>
+			</div>
 
 			<div class="row mt-3">
 				<div class="col-sm-3 col-md-2 text-end">
-					
+					Subscriptions:
 				</div>
 				<div class="col-sm-6 col-md-8">
+
+			{% if subscriptions %}
+
 					<table class="table">
 						<thead>
 							<tr>
@@ -56,14 +69,20 @@
 			{% endfor %}
 
 					</table>
+					<small id="subscriptions_help" class="form-text text-muted">
+						These are the subscription(s) you have purchased for your site.
+					</small>
+					<p></p>
 
-					<form>
-						<button type="button" class="btn btn-primary" id="submitBtn">Purchase additional subscription</button>
-					</form>
-
-				</div>
-			</div>
-
+			{% else %}
+				<p>You have no subscriptions.</p>
 			{% endif %}
+
+			<form>
+				<button type="button" class="btn btn-primary" id="submitBtn">Purchase</button>
+			</form>
+
+		</div>
+	</div>
 
 {% endblock %}

@@ -25,7 +25,16 @@ sql_insert_filter = "INSERT INTO tblIndexingFilters VALUES ((%s), 'exclude', (%s
 sql_delete_filter = "DELETE FROM tblIndexingFilters WHERE domain = (%s) AND action = 'exclude' AND type = (%s) AND VALUE = (%s);"
 sql_update_indexing_status = "UPDATE tblDomains SET full_indexing_status = 'PENDING', full_indexing_status_changed = now() WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog VALUES ((%s), 'PENDING', now());"
-sql_select_tier = "SELECT tier FROM tblListingStatus WHERE domain = (%s) AND status = 'ACTIVE' ORDER BY tier DESC LIMIT 1;"
+sql_select_tier = "SELECT l.status, l.tier, t.tier_name, l.listing_end FROM tblListingStatus l INNER JOIN tblTiers t ON t.tier = l.tier WHERE l.domain = (%s) AND l.status = 'ACTIVE' ORDER BY tier DESC LIMIT 1;"
+sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = 2; "\
+    "INSERT INTO tblListingStatus (domain, tier, status, status_changed, listing_start, listing_end) "\
+    "VALUES ((%s), 3, 'ACTIVE', NOW(), NOW(), NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = 3)) "\
+    "  ON CONFLICT (domain, tier) "\
+    "  DO UPDATE SET "\
+    "    status = EXCLUDED.status, "\
+    "    status_changed = EXCLUDED.status_changed, "\
+    "    listing_start = EXCLUDED.listing_start, "\
+    "    listing_end = EXCLUDED.listing_end;"
 
 # Routes
 # Routes end users will see and potentially bookmark
@@ -74,7 +83,8 @@ def indexing():
 def subscriptions():
     (domain, method, is_admin) = get_login_session()
     subscriptions = get_subscription_data(domain)
-    return render_template('admin/manage-subscriptions.html', subscriptions=subscriptions)
+    tier = get_tier_data(domain)
+    return render_template('admin/manage-subscriptions.html', subscriptions=subscriptions, tier=tier)
 
 @bp.route('/delete/', methods=('GET', 'POST'))
 @login_required
@@ -135,13 +145,15 @@ def renew_subscription_success():
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(sql_select_tier, (domain,))
     result = cursor.fetchone()
-    if result and result['tier']:
-        tier = result['tier']
-    else:
-        tier = 3 # Default to highest current tier. Might want to do a database lookup for this, or allow user to select.
-    current_app.logger.info('Renewing subscription for domain {}, tier {}'.format(domain, tier))
+    if result:
+        if result['tier'] == 2:
+            current_app.logger.info('Current tier for {} is tier 2, and user has pressed Purchase, so need to upgrade to tier 3'.format(domain))
+            cursor.execute(sql_upgrade_tier2_to_tier3, (domain, domain,))
+            conn.commit()
+    tier = 3 # Hardcoding to tier 3 for now given it is the only paid for option at the moment (if they're currently tier 2 we don't want them paying to renew tier 2)
+    current_app.logger.info('Purchasing subscription for domain {}, tier {}'.format(domain, tier))
     insert_subscription(domain, tier)
-    message = 'Subscription successfully renewed for domain {}'.format(domain)
+    message = 'Subscription successfully purchased for domain {}'.format(domain)
     current_app.logger.info(message)
     flash(message)
     return redirect(url_for('manage.subscriptions'))
@@ -185,6 +197,23 @@ def get_manage_data(domain):
                 if f['type'] == 'path': exclude_paths.append(f['value'])
                 if f['type'] == 'type': exclude_types.append(f['value'])
     return result, next_reindex, exclude_paths, exclude_types
+
+def get_tier_data(domain):
+    tier = {}
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(sql_select_tier, (domain,))
+    results = cursor.fetchall()
+    if results:
+        for result in results:
+        #current_app.logger.debug('Status {}'.format(result['status']))
+            if result['status']:
+                tier['status'] = result['status']
+            if result['tier_name']:
+                tier['tier_name'] = result['tier_name']
+            if result['listing_end']:
+                tier['listing_end'] = result['listing_end']
+    return tier
 
 def get_subscription_data(domain):
     subscriptions = []
