@@ -7,7 +7,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 from indexer.spiders.search_my_site_script import SearchMySiteScript
-from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, check_for_stuck_jobs, expire_unverified_sites
+from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, check_for_stuck_jobs, expire_listings
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
@@ -36,15 +36,15 @@ db_user = settings.get('DB_USER')
 db_host = settings.get('DB_HOST')
 db_password = settings.get('DB_PASSWORD')
 
-filters_sql = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
+sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 
 # This returns sites which are due for reindexing, either due to being new ('PENDING') 
 # or having been last indexed more than indexing_frequency ago.
 # Must also have indexing_type = 'spider/default' and indexing_enabled = TRUE
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by higher tiers,
-# i.e. so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_to_get_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search FROM tblDomains d "\
+# so these are prioritised in cases where not all sites are returned due to the LIMIT.
+sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search FROM tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.indexing_type = 'spider/default' "\
     "AND d.indexing_enabled = TRUE "\
@@ -56,7 +56,8 @@ sql_to_get_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_fi
 # MAINTENANCE JOBS
 # This could be in a separately scheduled job, which could be run less frequently, but is just here for now to save having to setup another job
 check_for_stuck_jobs()
-expire_unverified_sites()
+for tier in range(1, 4):
+    expire_listings(tier) # i.e. run 3 times, where tier = 1, tier = 2, tier = 3
 
 
 # MAIN INDEXING JOB
@@ -69,7 +70,7 @@ try:
     conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_password)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     # sites_to_crawl
-    cursor.execute(sql_to_get_domains_to_index)
+    cursor.execute(sql_select_domains_to_index)
     results = cursor.fetchall()
     for result in results:
         # Mark as RUNNING ASAP so if there's another indexer container running it is less likely to double-index 
@@ -78,6 +79,7 @@ try:
         site = {}
         site['domain'] = result['domain']
         site['home_page'] = result['home_page']
+        site['tier'] = result['tier']
         site['date_domain_added'] = result['domain_first_submitted']
         site['indexing_page_limit'] = result['indexing_page_limit']
         if result['tier'] == 3: site['owner_verified'] = True
@@ -97,7 +99,7 @@ try:
     # exclusions for domains
     if sites_to_crawl:
         for site_to_crawl in sites_to_crawl:
-            cursor.execute(filters_sql, (site_to_crawl['domain'],))
+            cursor.execute(sql_select_filters, (site_to_crawl['domain'],))
             filters = cursor.fetchall()
             exclusions = []
             for f in filters:
