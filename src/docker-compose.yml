@@ -42,6 +42,11 @@ services:
     stdin_open: true
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_FROM_PASSWORD: ${SMTP_FROM_PASSWORD}
+      SMTP_TO_EMAIL: ${SMTP_TO_EMAIL}
 
   web:
     build:
