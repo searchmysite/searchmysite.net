@@ -4,8 +4,14 @@ import psycopg2
 import psycopg2.extras
 import tldextract
 import logging
+from os import environ
 import re
 import httplib2
+import smtplib, ssl
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from dateutil.parser import parse, ParserError
 from bs4 import BeautifulSoup, SoupStrainer
 from common import config
@@ -14,37 +20,63 @@ db_password = config.DB_PASSWORD
 db_name = config.DB_NAME
 db_user = config.DB_USER
 db_host = config.DB_HOST
+smtp_server = environ.get('SMTP_SERVER')
+smtp_port = environ.get('SMTP_PORT')
+smtp_from_email = environ.get('SMTP_FROM_EMAIL')
+smtp_from_password = environ.get('SMTP_FROM_PASSWORD')
+smtp_to_email = environ.get('SMTP_TO_EMAIL')
 
-domains_sql = "SELECT DISTINCT domain FROM tblListingStatus WHERE status = 'ACTIVE';"
+sql_select_domains = "SELECT d.domain from tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain WHERE l.status = 'ACTIVE' AND d.indexing_enabled = TRUE;"
 
-domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
+sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
-update_indexing_status_sql = "UPDATE tblDomains "\
+sql_update_indexing_status = "UPDATE tblDomains "\
     "SET full_indexing_status = (%s), full_indexing_status_changed = now() "\
     "WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
     "VALUES ((%s), (%s), now(), (%s));"
 
-indexing_log_sql = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+sql_select_indexing_log = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
 
-get_last_complete_indexing_log_message_sql = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+sql_select_last_complete_indexing_log_message = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
 
-deactivate_indexing_sql = "UPDATE tblDomains SET "\
+sql_deactivate_indexing = "UPDATE tblDomains SET "\
     "indexing_enabled = FALSE, indexing_disabled_changed = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
 
-get_expired_unverified_sites_sql = "SELECT d.domain, l.tier from tblDomains d "\
+sql_select_expired_listings = "SELECT d.domain, d.email from tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE l.listing_end < now() "\
     "AND l.status = 'ACTIVE' "\
-    "AND l.tier = 1 "\
-    "AND indexing_type = 'spider/default' "\
-    "ORDER BY domain_first_submitted ASC;"
+    "AND l.tier = (%s) "\
+    "AND d.indexing_type = 'spider/default' "\
+    "ORDER BY d.domain_first_submitted ASC;"
 
-expire_unverified_site_sql = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"\
+sql_expire_tier1_listing = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"\
     "UPDATE tblListingStatus SET status = 'PENDING', status_changed = NOW(), pending_state = 'MODERATOR_REVIEW', pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = (%s);"
+    "WHERE domain = (%s) AND tier = 1;"
 
-check_for_stuck_jobs_sql = "SELECT * FROM tblDomains "\
+sql_expire_tier2or3_listing = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = (%s); "\
+    "INSERT INTO tblListingStatus (domain, tier, status, status_changed, listing_start, listing_end) "\
+    "VALUES ((%s), (%s), 'ACTIVE', NOW(), NOW(), NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = (%s))) "\
+    "  ON CONFLICT (domain, tier) "\
+    "  DO UPDATE SET "\
+    "    status = EXCLUDED.status, "\
+    "    status_changed = EXCLUDED.status_changed, "\
+    "    listing_start = EXCLUDED.listing_start, "\
+    "    listing_end = EXCLUDED.listing_end;"
+
+sql_reset_indexing_defaults = "UPDATE tblDomains SET "\
+    "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
+    "part_reindex_frequency = tblTiers.default_part_reindex_frequency, "\
+    "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
+    "api_enabled = tblTiers.default_api_enabled, "\
+    "indexing_enabled = TRUE, "\
+    "full_indexing_status = 'PENDING', "\
+    "full_indexing_status_changed = NOW() "\
+    "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
+
+sql_select_stuck_jobs = "SELECT * FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
     "AND full_indexing_status = 'RUNNING' "\
     "AND full_indexing_status_changed + '6 hours' < NOW();"
@@ -65,7 +97,7 @@ def get_all_domains():
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(domains_sql)
+        cursor.execute(sql_select_domains)
         dd = cursor.fetchall()
         for [d] in dd:
             domains.append(d)
@@ -82,7 +114,7 @@ def get_domains_allowing_subdomains():
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(domains_allowing_subdomains_sql)
+        cursor.execute(sql_select_domains_allowing_subdomains)
         domains_allowing_subdomains_results = cursor.fetchall()
         for domains_allowing_subdomain in domains_allowing_subdomains_results:
             domains_allowing_subdomains.append(domains_allowing_subdomain['setting_value'])
@@ -99,7 +131,7 @@ def update_indexing_log(domain, status, message):
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(update_indexing_status_sql, (status, domain, domain, status, message,))
+        cursor.execute(sql_update_indexing_status, (status, domain, domain, status, message,))
         conn.commit()
     except psycopg2.Error as e:
         logger = logging.getLogger()
@@ -114,7 +146,7 @@ def get_last_complete_indexing_log_message(domain):
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(get_last_complete_indexing_log_message_sql, (domain, ))
+        cursor.execute(sql_select_last_complete_indexing_log_message, (domain, ))
         log_messages = cursor.fetchone()
         if log_messages and log_messages['message']:
             log_message = log_messages['message']
@@ -130,7 +162,7 @@ def deactivate_indexing(domain, reason):
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(deactivate_indexing_sql, (reason, domain,))
+        cursor.execute(sql_deactivate_indexing, (reason, domain,))
         conn.commit()
     except psycopg2.Error as e:
         logger = logging.getLogger()
@@ -145,7 +177,7 @@ def check_for_stuck_jobs():
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(check_for_stuck_jobs_sql)
+        cursor.execute(sql_select_stuck_jobs)
         results = cursor.fetchall()
         stuck_domains = []
         for result in results:
@@ -157,29 +189,65 @@ def check_for_stuck_jobs():
     finally:
         conn.close()
 
-# Expire unverified ('QuickAdd', 'SQL') sites
-def expire_unverified_sites():
-    expired_unverified_sites = []
+# Expire listings
+# The expiry process varies per tier.
+# Tier 1 expiry:
+# (i) the site remains on the same tier (tier 1) but has status set to PENDING and pending_state set to 'MODERATOR_REVIEW', and
+# (ii) the site is removed from the search engine results 
+# Tier 2 expiry:
+# (i) the site drops a tier (BTW moderator will approved by default - could potentially be an issue, but unlikely given ownership has to be confirmed for tier 2)
+# (ii) reset the indexing defaults to be those of the lower tier 
+# Tier 3 expiry:
+# As per tier 2 expiry, with the addition of sending an email
+def expire_listings(tier):
+    new_tier = tier - 1
+    expired_listings = []
     logger = logging.getLogger()
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(get_expired_unverified_sites_sql)
+        logger.debug('Looking for expired tier {} domains'.format(tier,))
+        cursor.execute(sql_select_expired_listings, (tier,))
         results = cursor.fetchall()
         for result in results:
-            expired_unverified_sites.append(result['domain'])
-        if expired_unverified_sites:
-            for expired_unverified_site in expired_unverified_sites:
-                logger.info('Expiring the following unverified domain: {}'.format(expired_unverified_site))
-                cursor.execute(expire_unverified_site_sql, (expired_unverified_site,))
+            expired_listing = {}
+            expired_listing['domain'] = result['domain']
+            if result['email']: expired_listing['email'] = result['email']
+            expired_listings.append(expired_listing)
+        if expired_listings:
+            for expired_listing in expired_listings:
+                logger.info('Expiring the following tier {} listing: {}'.format(tier, expired_listing['domain']))
+                if tier == 1:
+                    cursor.execute(sql_expire_tier1_listing, (expired_listing['domain'], expired_listing['domain']))
+                    solr_delete_domain(expired_listing['domain'])
+                elif tier == 2 or tier == 3:
+                    cursor.execute(sql_expire_tier2or3_listing, (expired_listing['domain'], tier, expired_listing['domain'], new_tier, new_tier,))
+                    cursor.execute(sql_reset_indexing_defaults, (new_tier, expired_listing['domain'],))
+                    if tier == 3 and expired_listing['email']:
+                        subject = "searchmysite.net Full listing expiry"
+                        text = 'Dear {},\n\n'.format(expired_listing['email'])
+                        text += 'Thank you for subscribing {} to searchmysite.net. I hope you have found it useful.\n\n'.format(expired_listing['domain'])
+                        text += 'Unfortunately, your subscription has now expired, and your Full listing has reverted to a Free Trial listing. '
+                        #text += 'This means that you can still log on, and still use the API, for the time being. '
+                        text += 'If you would like to continue using the search as a service, you will need to resubscribe. '
+                        text += 'While the Free Trial listing is active you can do this by simply going to https://searchmysite.net/admin/manage/subscriptions/ and selecting Purchase. '
+                        text += 'Once the Free Trial expires, you will need to renew via Add Site (although you will not need to verify ownership of your site again).\n\n'
+                        text += 'If you have any questions or comments, please don\'t hesitate to reply.\n\n'
+                        text += 'Regards,\n\nsearchmysite.net\n\n'
+                        # Currently using:
+                        # success_status = send_email(None, None, subject, text)
+                        # This is so it defaults to sending to admin. Once a few emails have been successfully sent, this should be changed to   
+                        # success_status = send_email(None, expired_listing['email'], subject, text)
+                        # so that the emails go direct to the users
+                        success_status = send_email(None, None, subject, text)
+                        if not success_status:
+                            logger.error('Error sending email')
                 conn.commit()
-                solr_delete_domain(expired_unverified_site)
     except psycopg2.Error as e:
         logger.error('expire_unverified_sites: {}'.format(e.pgerror))
     finally:
         conn.close()
-    return expired_unverified_sites
-
+    return expired_listings
 
 
 # Solr utils
@@ -289,7 +357,7 @@ def get_latest_completed_wikipedia_import(domain):
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(indexing_log_sql, (domain, ))
+        cursor.execute(sql_select_indexing_log, (domain, ))
         result = cursor.fetchone()
         if result and result['message']:
             r = re.search('Using export: (.*)', result['message'])
@@ -315,3 +383,41 @@ def get_latest_available_wikipedia_export(dump_location):
                 exports.append(link['href'][:8])
     sorted_exports = sorted(exports)
     return sorted_exports[-1]
+
+
+# Email utils
+# -----------
+
+# reply_to_email and to_email optional.
+# If reply_to_email None no Reply-To header set, and if to_email None then smtp_to_email env variable is used
+# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/util.py
+# so if it is updated in one it should be updated in the other
+def send_email(reply_to_email, to_email, subject, text): 
+    success = True
+    if not to_email:
+        recipients = [smtp_to_email]
+    else:
+        recipients = [to_email, smtp_to_email]
+    context = ssl.create_default_context()
+    try:
+        message = MIMEMultipart()
+        message["From"] = smtp_from_email
+        message["To"] = recipients[0]
+        if reply_to_email:
+            message['Reply-To'] = reply_to_email
+        message["CC"] = smtp_to_email # Always cc the smtp_to_email env variable
+        message["Subject"] = subject
+        message.attach(MIMEText(text, "plain"))
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        #server.set_debuglevel(1)
+        server.starttls(context=context) # Secure the connection
+        server.login(smtp_from_email, smtp_from_password)
+        server.sendmail(smtp_from_email, recipients, message.as_string())
+    except Exception as e:
+        success = False
+        #current_app.logger.error('Error sending email: {}'.format(e))
+        logger = logging.getLogger()
+        logger.error('Error sending email: {}'.format(e))
+    finally:
+        server.quit() 
+    return success
