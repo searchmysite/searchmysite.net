@@ -4,6 +4,7 @@ import domcheck
 import random, string
 import psycopg2
 import psycopg2.extras
+import logging
 from os import environ
 from urllib.request import urlopen, Request
 import smtplib, ssl
@@ -118,6 +119,8 @@ def delete_domain(domain):
 
 # reply_to_email and to_email optional.
 # If reply_to_email None no Reply-To header set, and if to_email None then smtp_to_email env variable is used
+# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/util.py
+# so if it is updated in one it should be updated in the other
 def send_email(reply_to_email, to_email, subject, text): 
     success = True
     if not to_email:
@@ -141,20 +144,23 @@ def send_email(reply_to_email, to_email, subject, text):
         server.sendmail(smtp_from_email, recipients, message.as_string())
     except Exception as e:
         success = False
-        current_app.logger.error('Error sending email: {}'.format(e))
+        #current_app.logger.error('Error sending email: {}'.format(e))
+        logger = logging.getLogger()
+        logger.error('Error sending email: {}'.format(e))
     finally:
         server.quit() 
     return success
 
-# THis will insert a new full subscription, 
+# This will insert a new full subscription, 
 # either starting now if there aren't any subscriptions at all or if there are only past (expired) subscriptions
 # or starting when the last subscription ends if there is a current subscription and/or future subscriptions which haven't yet started 
 def insert_subscription(domain, tier):
-    session_id = request.args.get('session_id')
-    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
-    session = stripe.checkout.Session.retrieve(session_id)
-    payment_intent = session.get('payment_intent')
-    current_app.logger.debug('session_id {}, payment_intent: {}'.format(session_id, payment_intent))
+    if tier == 3: # Only get the payment details where there is payment, i.e. if tier == 3
+        session_id = request.args.get('session_id')
+        stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+        session = stripe.checkout.Session.retrieve(session_id)
+        payment_intent = session.get('payment_intent')
+        current_app.logger.debug('session_id {}, payment_intent: {}'.format(session_id, payment_intent))
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     if tier == 2:
