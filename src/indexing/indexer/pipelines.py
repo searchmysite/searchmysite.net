@@ -5,7 +5,7 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, convert_datetime_to_utc_date
+from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, convert_datetime_to_utc_date, send_email
 
 
 # This is the Solr pipeline, for submitting indexed items to Solr
@@ -65,11 +65,17 @@ class SolrPipeline:
                 submessage = 'Likely site timeout. '
             last_message = get_last_complete_indexing_log_message(spider.domain)
             if last_message.startswith(message):
-                newmessage = "The previous indexing also found no documents. Deleting existing Solr docs and deactivating indexing."
+                tier = spider.site_config['tier']
+                newmessage = 'The previous indexing for {} also found no documents. Deleting existing Solr docs and deactivating indexing.'.format(spider.domain)
                 self.logger.warning(newmessage)
                 self.solr.delete(q='domain:{}'.format(spider.domain))
                 deactivate_indexing(spider.domain, "Indexing failed twice in a row. {}".format(submessage))
                 message = message + submessage + newmessage
+                if tier == 3: # If a paid for listing, send an email to the site admin for investigation
+                    subject = "Tier 3 site indexing diabled"
+                    success_status = send_email(None, None, subject, message)
+                    if not success_status:
+                       self.logger.error('Error sending email')
             else:
                 message = message + submessage + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
         else:
