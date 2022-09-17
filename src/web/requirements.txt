@@ -1,6 +1,7 @@
 mod-wsgi
-# Get "wsgi:error ModuleNotFoundError: No module named 'pyrsistent'" with latest pyrsistent (0.18.1) so using 0.18.0
-pyrsistent==0.18.0
+pyrsistent
+# werkzeug<=2.1.2 required to avoid ImportError: cannot import name 'parse_rule' from 'werkzeug.routing'
+werkzeug<=2.1.2
 flask
 flask-restx
 # Builds fail with "Error: pg_config executable not found" with latest psycopg2-binary releases (2.9, 2.9.1, 2.9.2, 2.9.3) so using 2.8.6
@@ -9,3 +10,7 @@ tldextract
 stripe
 # Have to install domcheck from github.com because pip package doesn't yet have fix from 23 Aug 2017 in commit b0d1a1427e22805cea2cedc49039facbb5e516e4
 git+https://github.com/rs/domcheck#egg=domcheck
+# cryptography>=35.0 and rust required for scrapy install
+cryptography>=35.0
+rust
+scrapy==2.6.2

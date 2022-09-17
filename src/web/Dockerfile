@@ -4,7 +4,8 @@ FROM httpd:2.4.43
 COPY requirements.txt ./
 
 # Need git for the git+https:// in requirements.txt
-RUN apt-get update && apt-get install -y git && apt-get install -y python3 && apt-get install -y python3-pip && pip3 install --no-cache-dir -r requirements.txt
+# Need build-essential, python-dev, libffi-dev, libssl-dev, zlib1g-dev, libbz2-dev, and liblzma-dev for the cryptography>=35.0 in requirements.txt
+RUN apt-get update && apt-get install -y git && apt-get install -y python3 && apt-get install -y python3-pip && python3 -m pip install --upgrade pip && apt-get install -y build-essential python-dev libffi-dev libssl-dev zlib1g-dev libbz2-dev liblzma-dev && pip3 install --no-cache-dir -r requirements.txt
 
 # Need this to prevent "[wsgi:error] ... ModuleNotFoundError: No module named ..."
 ENV PYTHONPATH /usr/local/apache2/htdocs/dynamic/
