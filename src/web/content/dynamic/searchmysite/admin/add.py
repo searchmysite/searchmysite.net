@@ -1,4 +1,3 @@
-from re import S
 from flask import (
     Blueprint, flash, redirect, render_template, request, session, url_for, current_app
 )
@@ -8,6 +7,7 @@ from os import environ
 from searchmysite.db import get_db
 from searchmysite.util import extract_domain, generate_validation_key, check_for_validation_key, get_host, insert_subscription
 import requests
+import subprocess
 
 bp = Blueprint('add', __name__)
 
@@ -71,6 +71,12 @@ sql_update_freefull_approved = "UPDATE tblListingStatus "\
     "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
 
 sql_select_validation_key = "SELECT validation_key FROM tblValidations WHERE domain = (%s);"
+
+
+# User message strings
+
+verification_failed_message = 'Unfortunately the site ownership verification failed. Please ensure it is configured correctly and try again.'
+indexing_check_failed_message = 'Unfortunately your site cannot currently be indexed. There could be a number of reasons for this, e.g. robots.txt or Cloudflare blocking indexing. Please make the necessary changes and try again, or use the Contact link to request further information.'
 
 
 # Setup routes
@@ -224,18 +230,24 @@ def step3():
             else:
                 prefix = 'searchmysite-verification'
                 validation_method = check_for_validation_key(domain, prefix, validation_key)
-                if validation_method == 'DCV': # i.e. if the validation is successful
-                    cursor.execute(sql_update_freefull_validated, (domain,))
-                    conn.commit()
-                    if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
-                        cursor.execute(sql_update_freefull_step3, (domain, tier))
+                if validation_method == 'DCV': # i.e. if the ownership verification has succeeded
+                    indexable = check_a_site_can_be_indexed(domain, home_page)
+                    if indexable: # i.e. if the site is indexable
+                        cursor.execute(sql_update_freefull_validated, (domain,))
                         conn.commit()
-                        return redirect(url_for('add.step4'))
+                        if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
+                            cursor.execute(sql_update_freefull_step3, (domain, tier))
+                            conn.commit()
+                            return redirect(url_for('add.step4'))
+                        else:
+                            return redirect(url_for('add.success'))
                     else:
-                        return redirect(url_for('add.success'))
+                        current_app.logger.warn('check_a_site_can_be_indexed failed for {}'.format(domain))
+                        flash(indexing_check_failed_message)
+                        return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, validation_key=validation_key)
                 else:
-                    message = 'Failed validation!'
-                    flash(message)
+                    current_app.logger.warn('check_for_validation_key failed for {}'.format(domain))
+                    flash(verification_failed_message)
                     return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, validation_key=validation_key)
         elif login_type == 'INDIEAUTH':
             current_app.logger.info('Starting IndieAuth')
@@ -266,16 +278,22 @@ def step3():
                         flash(message)
                         return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type)
                     else: # Validated
-                        conn = get_db()
-                        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                        cursor.execute(sql_update_freefull_validated, (domain,))
-                        conn.commit()
-                        if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
-                            cursor.execute(sql_update_freefull_step3, (domain, tier))
+                        indexable = check_a_site_can_be_indexed(domain, home_page)
+                        if indexable: # i.e. if the site is indexable
+                            conn = get_db()
+                            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                            cursor.execute(sql_update_freefull_validated, (domain,))
                             conn.commit()
-                            return redirect(url_for('add.step4'))
+                            if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
+                                cursor.execute(sql_update_freefull_step3, (domain, tier))
+                                conn.commit()
+                                return redirect(url_for('add.step4'))
+                            else:
+                                return redirect(url_for('add.success'))
                         else:
-                            return redirect(url_for('add.success'))
+                            flash(indexing_check_failed_message)
+                            return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type)
+
 
 @bp.route('/add/step4/', methods=('GET', 'POST'))
 def step4():
@@ -283,10 +301,7 @@ def step4():
     if not home_page:
         return redirect(url_for('add.add'))
     else:
-        if request.method == 'GET':
-            return render_template('admin/add-step4-payment.html', tier=tier, login_type=login_type)
-        else:
-            return render_template('admin/add-step4-payment.html', tier=tier, login_type=login_type)
+        return render_template('admin/add-step4-payment.html', tier=tier, login_type=login_type)
 
 @bp.route('/add/success/')
 def success():
@@ -384,3 +399,11 @@ def start_freefull_approval_session(domain, home_page, tier):
     session.clear()
     session['home_page'] = home_page
     return
+
+def check_a_site_can_be_indexed(domain, home_page):
+    current_app.logger.debug('Running check_a_site_can_be_indexed for domain {} with home page {}'.format(domain, home_page))
+    indexable = False # Assume a site can't be indexed
+    process_output = subprocess.run(['scrapy', 'shell', '-s', 'ROBOTSTXT_OBEY=True', '-s', "USER_AGENT='Mozilla/5.0 (compatible; SearchMySiteBot/1.0; +https://searchmysite.net)'", '--nolog', home_page, '-c', 'response'], capture_output=True)
+    if process_output.stdout.decode().startswith('<200'): indexable = True
+    current_app.logger.debug('check_a_site_can_be_indexed return value {} and full response: {}'.format(indexable, process_output.stdout.decode()))
+    return indexable
