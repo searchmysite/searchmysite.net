@@ -109,7 +109,7 @@ def review():
                         else:
                             reason = "Reason not listed"
                         moderator = session['logged_in_domain']
-                        cursor.execute(sql_update_basic_reject, (domain, reason, moderator, domain))
+                        cursor.execute(sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)
