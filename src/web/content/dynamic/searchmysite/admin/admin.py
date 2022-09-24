@@ -53,7 +53,9 @@ actions_list = [
 {'id':'action4', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
 {'id':'action5', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
 {'id':'action6', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
-{'id':'action8', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
+{'id':'action7', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding'},
+{'id':'action8', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use'},
+{'id':'action9', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
 ]
 
 
@@ -106,6 +108,10 @@ def review():
                             reason = "Shared domain"
                         elif action == "reject-nocontent":
                             reason = "No content"
+                        elif action == "reject-notresponding":
+                            reason = "Site not responding"
+                        elif action == "reject-breach":
+                            reason = "Site breaches Terms of Use"
                         else:
                             reason = "Reason not listed"
                         moderator = session['logged_in_domain']
