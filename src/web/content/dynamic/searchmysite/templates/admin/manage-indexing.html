@@ -86,18 +86,6 @@
 
 			<div class="row mt-3">
 				<div class="col-sm-3 col-md-2 text-end">
-					<label for="indexing_frequency" class="col-form-label">Indexing type:</label>
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<input type="text" readonly class="form-control-plaintext" id="indexing_type" value="{{ result['indexing_type'] }}" aria-describedby="indexing_type_help">
-					<small id="indexing_type_help" class="form-text text-muted">
-						What mechanism is used to index the site. In almost all cases it will be the default spider.
-					</small>
-				</div>
-			</div>
-
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
 					<label for="indexing_frequency" class="col-form-label">Indexing frequency:</label>
 				</div>
 				<div class="col-sm-6 col-md-8">
@@ -116,6 +104,18 @@
 					<input type="text" readonly class="form-control-plaintext" id="next_reindex" value="{{ next_reindex }}" aria-describedby="next_reindex_help">
 					<small id="next_reindex_help" class="form-text text-muted">
 						Earliest start time for the next reindex.
+					</small>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-sm-3 col-md-2 text-end">
+					<label for="indexing_type" class="col-form-label">Indexing type:</label>
+				</div>
+				<div class="col-sm-6 col-md-8">
+					<input type="text" readonly class="form-control-plaintext" id="indexing_type" value="{{ result['indexing_type'] }}" aria-describedby="indexing_type_help">
+					<small id="indexing_type_help" class="form-text text-muted">
+						What mechanism is used to index the site. In almost all cases it will be the default spider.
 					</small>
 				</div>
 			</div>
