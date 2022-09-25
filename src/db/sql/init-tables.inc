@@ -14,8 +14,10 @@ CREATE TABLE tblDomains (
   email TEXT,
   include_in_public_search BOOLEAN,
   password TEXT, -- only where login_type = PASSWORD
-  rss_feed TEXT,
-  sitemap TEXT,
+  web_feed_system_generated TEXT,
+  web_feed_user_entered TEXT,
+  sitemap_system_generated TEXT,
+  sitemap_user_entered TEXT,
   moderator_approved BOOLEAN, -- NULL when listing created, TRUE or FALSE when Basic tier reviewed (typically remaining NULL for Free and Full tier)
   moderator_action_reason TEXT, -- only set when moderator_approved = FALSE
   moderator_action_changed TIMESTAMPTZ, 
