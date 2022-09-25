@@ -81,6 +81,10 @@ sql_select_stuck_jobs = "SELECT * FROM tblDomains "\
     "AND full_indexing_status = 'RUNNING' "\
     "AND full_indexing_status_changed + '6 hours' < NOW();"
 
+sql_select_user_entered = "SELECT web_feed_user_entered, sitemap_user_entered FROM tblDomains WHERE domain = (%s);"
+
+sql_update_system_generated = "UPDATE tblDomains SET web_feed_system_generated = (%s), sitemap_system_generated = (%s) WHERE domain = (%s);"
+
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
 solr_delete_query = "update?commit=true"
@@ -290,6 +294,67 @@ def solr_delete_domain(domain):
     req = Request(solrquery, data.encode("utf8"), solr_delete_headers)
     response = urlopen(req)
     results = response.read()
+
+
+# Database and Solr utils
+# -----------------------
+
+# Get web_feed and sitemap
+# This takes as input a list of items from the current indexing job, 
+# calculates the web_feed_system_generated and sitemap_system_generated values based on this and saves in the database,
+# then determines which values to return for the web_feed and sitemap attributes stored in the Solr index
+# Notes: 
+# 1. The web_feed is the last XML content type which isn't named sitemap.xml, and the sitemap is the last
+#    which is named sitemap.xml. This isn't robust because e.g. it doesn't inspect the content to confirm if it 
+#    is an RSS or Atom feed (the content is not available at this stage), and doesn't look in robots.txt for the sitemap 
+#    which might not be called sitemap.xml (again this is long after robots.txt is loaded). 
+#    The item['content_type'][-3:] == 'xml' will find text/xml, application/xml, application/rss+xml, application/atom+xml.
+# 2. If there's a *_user_entered it'll return that for Solr, otherwise if there's a *_system_generated it'll use that.
+# 3. It is the only part of the indexing process which writes data discovered from indexing directly to tblDomains -
+#    all other indexed data is saved to the Solr index. This is so that Solr just has 1 value for web_feed rather than 2, 
+#    simplifying the searching logic.
+
+def web_feed_and_sitemap(domain, items):
+    logger = logging.getLogger()
+    web_feed = None
+    sitemap = None
+    web_feed_system_generated = None
+    sitemap_system_generated = None
+    web_feed_user_entered = None
+    sitemap_user_entered = None
+    try:
+        # Step 1: Get the user entered values from the database
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute(sql_select_user_entered, (domain,))
+        result = cursor.fetchone()
+        if result['web_feed_user_entered']: web_feed_user_entered = result['web_feed_user_entered']
+        if result['sitemap_user_entered']: sitemap_user_entered = result['sitemap_user_entered']
+        # Step 2: Calculate the new system generated values from the items in the current indexing job
+        for item in items:
+            if item['content_type'] and len(item['content_type']) > 3 and item['url'] and len(item['url']) > 11:
+                if item['content_type'][-3:] == 'xml':
+                    if item['url'][-11:] == 'sitemap.xml':
+                        sitemap_system_generated = item['url']
+                    else:
+                        web_feed_system_generated = item['url']
+        # Step 3: Update the system generated values based on the current indexing job
+        cursor.execute(sql_update_system_generated, (web_feed_system_generated, sitemap_system_generated, domain,))
+        conn.commit()
+        # Step 4: 
+        if web_feed_user_entered:
+            web_feed = web_feed_user_entered
+        elif web_feed_system_generated:
+            web_feed = web_feed_system_generated
+        if sitemap_user_entered:
+            sitemap = sitemap_user_entered
+        elif sitemap_system_generated:
+            sitemap = sitemap_system_generated
+    except psycopg2.Error as e:
+        logger.error(' %s' % e.pgerror)
+    finally:
+        conn.close()
+    return web_feed, sitemap
 
 
 # Domain utils

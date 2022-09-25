@@ -5,7 +5,7 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, convert_datetime_to_utc_date, send_email
+from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, web_feed_and_sitemap, convert_datetime_to_utc_date, send_email
 
 
 # This is the Solr pipeline, for submitting indexed items to Solr
@@ -80,15 +80,11 @@ class SolrPipeline:
                 message = message + submessage + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
         else:
             # Get values which are only set for the home page
-            # RSS feed is the first XML content type which isn't named sitemap.xml - not completely robust as it doesn't inspect content but might be good enough 
             # This is where the currently unset site_last_modified could be calculated and set
             api_enabled = spider.site_config['api_enabled']
             date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
-            web_feed = None
-            for item in self.items:
-                if item['content_type'] and len(item['content_type']) > 3 and item['url'] and len(item['url']) > 11:
-                    if item['content_type'][-3:] == 'xml' and item['url'][-11:] != 'sitemap.xml':
-                        web_feed = item['url']
+            web_feed, sitemap = web_feed_and_sitemap(spider.domain, self.items)
+            self.logger.info('Using web_feed: {}, sitemap: {}'.format(web_feed, sitemap))
             # Delete the existing documents
             self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
             self.solr.delete(q='domain:{}'.format(spider.domain))
