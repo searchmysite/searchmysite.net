@@ -84,11 +84,11 @@ class SolrPipeline:
             # This is where the currently unset site_last_modified could be calculated and set
             api_enabled = spider.site_config['api_enabled']
             date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
-            rss_feed = None
+            web_feed = None
             for item in self.items:
                 if item['content_type'] and len(item['content_type']) > 3 and item['url'] and len(item['url']) > 11:
                     if item['content_type'][-3:] == 'xml' and item['url'][-11:] != 'sitemap.xml':
-                        rss_feed = item['url']
+                        web_feed = item['url']
             # Delete the existing documents
             self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
             self.solr.delete(q='domain:{}'.format(spider.domain))
@@ -97,10 +97,10 @@ class SolrPipeline:
             for item in self.items:
                 # Add the values which are only set for the home page
                 if item['is_home'] == True:
-                    self.logger.info('Home page URL {} has api_enabled {}, date_domain_added {}, and rss_feed {}'.format(item['url'], api_enabled, date_domain_added, rss_feed))
+                    self.logger.info('Home page URL {} has api_enabled {}, date_domain_added {}, and web_feed {}'.format(item['url'], api_enabled, date_domain_added, web_feed))
                     item['api_enabled'] = api_enabled
                     item['date_domain_added'] = date_domain_added
-                    item['rss_feed'] = rss_feed
+                    item['web_feed'] = web_feed
                 self.solr.add(dict(item))
             # Save changes
             self.solr.commit()
