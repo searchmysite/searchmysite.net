@@ -72,7 +72,7 @@ class SearchMySiteSpider(CrawlSpider):
                 callback="parse_item", follow=True
                 ),
             )
-        super(SearchMySiteScript, self).__init__(self, *args, **kwargs)
+        super(SearchMySiteSpider, self).__init__(self, *args, **kwargs)
 
     def parse_start_url(self, response): # This is required so the start_url is actually parsed rather than skipped
         configure_logging(get_project_settings())
