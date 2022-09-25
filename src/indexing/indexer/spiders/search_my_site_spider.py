@@ -16,8 +16,8 @@ import re
 # extensions which have caused issues
 IGNORED_EXTENSIONS += ['jar', 'json', 'cbr'] 
 
-class SearchMySiteScript(CrawlSpider):
-    name = "searchmysitescript"
+class SearchMySiteSpider(CrawlSpider):
+    name = "searchmysitespider"
 
     custom_settings = {
         'ITEM_PIPELINES': {

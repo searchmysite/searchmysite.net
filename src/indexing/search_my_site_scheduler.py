@@ -6,7 +6,7 @@ from scrapy.utils.project import get_project_settings
 import logging
 import psycopg2
 import psycopg2.extras
-from indexer.spiders.search_my_site_script import SearchMySiteScript
+from indexer.spiders.search_my_site_spider import SearchMySiteSpider
 from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, check_for_stuck_jobs, expire_listings
 
 
@@ -126,7 +126,7 @@ for site_to_crawl in sites_to_crawl:
 if sites_to_crawl:
     runner = CrawlerRunner(settings)
     for site_to_crawl in sites_to_crawl:
-        runner.crawl(SearchMySiteScript, 
+        runner.crawl(SearchMySiteSpider, 
         site_config=site_to_crawl, common_config=common_config 
         )
     d = runner.join()
