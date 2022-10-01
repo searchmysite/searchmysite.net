@@ -16,7 +16,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="author" type="string" indexed="true" stored="true" />
 #    <field name="description" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
-#    <field name="body" type="text_general" indexed="true" stored="true" multiValued="false" />
+#    <field name="body" type="text_general" indexed="true" stored="true" multiValued="false" /> <!-- no longer in use -->
 #    <field name="content" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="content_type" type="string" indexed="true" stored="true" />
 #    <field name="page_type" type="string" indexed="true" stored="true" />
@@ -24,13 +24,15 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="published_date" type="pdate" indexed="true" stored="true" />
 #    <field name="indexed_date" type="pdate" indexed="true" stored="true" />
 #    <field name="date_domain_added" type="pdate" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
-#    <field name="site_category" type="string" indexed="true" stored="true" />
-#    <field name="site_last_modified" type="pdate" indexed="true" stored="true" />
+#    <field name="site_category" type="string" indexed="true" stored="true" /> <!-- same value for every page in a site -->
+#    <field name="site_last_modified" type="pdate" indexed="true" stored="true" /> <!-- not currently in use -->
 #    <field name="owner_verified" type="boolean" indexed="true" stored="true" /> <!-- same value for every page in a site -->
 #    <field name="contains_adverts" type="boolean" indexed="true" stored="true" />
 #    <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
 #    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- same value for every page (false only an option where owner_verified=true) -->
-#    <field name="rss_feed" type="string" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
+#    <field name="in_web_feed" type="boolean" indexed="true" stored="true" />
+#    <field name="rss_feed" type="string" indexed="true" stored="true" /> <!-- no longer in use -->
+#    <field name="web_feed" type="string" indexed="true" stored="true" />
 #    <field name="language" type="string" indexed="true" stored="true" />
 #    <field name="language_primary" type="string" indexed="true" stored="true" />
 #    <field name="indexed_inlinks" type="string" indexed="true" stored="true" multiValued="true" />
@@ -181,6 +183,13 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     if site_config['include_in_public_search'] == False:
         include_in_public_search = False
     item['public'] = include_in_public_search
+
+    # web_feed - True if the page is in a web feed (RSS or Atom), False otherwise
+    if response.url in site_config['feed_links']:
+        item['in_web_feed'] = True
+        item['web_feed'] = site_config['web_feed']
+    else:
+        item['in_web_feed'] = False
 
     # language, e.g. en-GB
     language = response.xpath('/html/@lang').get()

@@ -130,12 +130,13 @@
     <field name="published_date" type="pdate" indexed="true" stored="true" />
     <field name="indexed_date" type="pdate" indexed="true" stored="true" />
     <field name="date_domain_added" type="pdate" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
-    <field name="site_category" type="string" indexed="true" stored="true" />
-    <field name="site_last_modified" type="pdate" indexed="true" stored="true" />
+    <field name="site_category" type="string" indexed="true" stored="true" /> <!-- same value for every page in a site -->
+    <field name="site_last_modified" type="pdate" indexed="true" stored="true" /> <!-- not currently in use -->
     <field name="owner_verified" type="boolean" indexed="true" stored="true" /> <!-- same value for every page in a site -->
     <field name="contains_adverts" type="boolean" indexed="true" stored="true" />
     <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
     <field name="public" type="boolean" indexed="true" stored="true" /> <!-- same value for every page (false only an option where owner_verified=true) -->
+    <field name="in_web_feed" type="boolean" indexed="true" stored="true" />
     <field name="rss_feed" type="string" indexed="true" stored="true" /> <!-- no longer in use -->
     <field name="web_feed" type="string" indexed="true" stored="true" />
     <field name="language" type="string" indexed="true" stored="true" />
