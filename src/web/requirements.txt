@@ -13,4 +13,4 @@ git+https://github.com/rs/domcheck#egg=domcheck
 # cryptography>=35.0 and rust required for scrapy install
 cryptography>=35.0
 rust
-scrapy==2.6.2
+scrapy==2.6.3
