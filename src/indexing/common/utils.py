@@ -87,6 +87,7 @@ sql_update_system_generated = "UPDATE tblDomains SET web_feed_system_generated =
 
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
+solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fl=url&rows=1000"
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
@@ -294,6 +295,19 @@ def solr_delete_domain(domain):
     req = Request(solrquery, data.encode("utf8"), solr_delete_headers)
     response = urlopen(req)
     results = response.read()
+
+# Find all the pages in the site which have already been indexed (used for identifying pages which haven't already been indexed)
+def get_already_indexed_links(domain):
+    already_indexed_links = []
+    solrquery = solr_query_to_get_already_indexed_links.format(domain)
+    connection = urlopen(solr_url + solrquery)
+    results = json.load(connection)
+    if results['response']['docs']:
+        for doc in results['response']['docs']:
+            url = doc['url']
+            if url:
+                already_indexed_links.append(url)
+    return already_indexed_links
 
 
 # Database and Solr utils
