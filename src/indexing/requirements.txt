@@ -5,3 +5,4 @@ python-dateutil
 psycopg2
 tldextract
 httplib2
+feedparser
