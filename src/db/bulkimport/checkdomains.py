@@ -11,7 +11,8 @@ import os
 if len(sys.argv) > 1:
     inp = sys.argv[1]
 else:
-    exit("You need to provide an input, e.g. sitelist1 will load from data/sitelist1.txt and save to data/sitelist1.json")
+    inp = ""
+#    exit("You need to provide an input, e.g. sitelist1 will load from data/sitelist1.txt and save to data/sitelist1.json")
 
 # Get database password from ../../.env
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
@@ -29,7 +30,7 @@ if not POSTGRES_PASSWORD:
 #input_file = "data/domains_wiki_users.txt"
 #input_file = "data/chatnames.txt"
 input_file = "data/" + inp + ".txt"
-print("Input file: {}".format(input_file))
+#print("Input file: {}".format(input_file))
 
 # Whether the contents of the input file have been reviewed, 
 # i.e. if True they can be inserted direct to tblDomains or if False
@@ -38,7 +39,7 @@ input_reviewed = True
 
 # Which database to read to check if the domains already exist in the database
 #database_host = "db" # Dev database
-database_host = "searchmysite.net" # Prod database
+database_host = "142.132.178.149" # Prod database
 
 # SQL
 sql_select_indexed = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = TRUE AND indexing_enabled = TRUE;'
@@ -47,7 +48,7 @@ sql_select_excluded = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderato
 
 # JSON file where the output will be saved
 output_file = "data/" + inp + ".json"
-print("Output file: {}".format(output_file))
+#print("Output file: {}".format(output_file))
 
 # Output will be a list of dicts, where each dict has the following keys:
 # domain, e.g. "aaronparecki.com"
@@ -193,9 +194,9 @@ def extract_domain(url):
 
 domains = []
 
-check_domains()
+#check_domains()
 
-json = json.dumps(domains, sort_keys=True, indent=4)
-f = open(output_file,"w")
-f.write(json)
-f.close()
+#json = json.dumps(domains, sort_keys=True, indent=4)
+#f = open(output_file,"w")
+#f.write(json)
+#f.close()
