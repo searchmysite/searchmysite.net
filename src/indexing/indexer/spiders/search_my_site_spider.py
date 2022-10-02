@@ -118,12 +118,19 @@ class SearchMySiteSpider(CrawlSpider):
                 for entry in entries:
                     if 'link' in entry:
                         self.site_config['feed_links'].append(entry.link)
-            if self.full_index:
+            if self.full_index == True:
+                # Index all links on full index
                 links_to_index = self.site_config['feed_links']
-            else: # remove seen links if not full_index
+            else: 
+                # Only index new links on incremental index, i.e. remove seen links
                 links_to_index = [link for link in self.site_config['feed_links'] if link not in self.site_config['already_indexed_links']]
             logger.info('Web feed version: {}, total links: {}, total links to index: {}'.format(version, len(self.site_config['feed_links']), len(links_to_index)))
             #logger.debug('Links in web feed to index: {}'.format(links_to_index))
+            # Also need to index the web feed itself
+            # If this is not done, the web feed will not be processed by process_item in the pipeline and so the web_feed_auto_discovered will be removed in close_spider
+            is_home = False
+            item = customparser(response, self.domain, is_home, self.domains_for_indexed_links, self.site_config, self.common_config)
+            yield item
             for link in links_to_index:
                 yield Request(link, callback=self.parse_item)
         elif isinstance(response, HtmlResponse):
