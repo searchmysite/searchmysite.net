@@ -7,11 +7,11 @@ import logging
 import psycopg2
 import psycopg2.extras
 from indexer.spiders.search_my_site_spider import SearchMySiteSpider
-from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, check_for_stuck_jobs, expire_listings
+from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, get_already_indexed_links, check_for_stuck_jobs, expire_listings
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
-# This runs the SearchMySiteScript directly rather than via 'scrapy crawl' at the command line
+# This runs the SearchMySiteSpider directly rather than via 'scrapy crawl' at the command line
 # CrawlerProcess will start a Twisted reactor for you
 # CrawlerRunner "provides more control over the crawling process" but
 # "the reactor should be explicitly run after scheduling your spiders" and 
@@ -44,7 +44,7 @@ sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by higher tiers,
 # so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search FROM tblDomains d "\
+sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered FROM tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.indexing_type = 'spider/default' "\
     "AND d.indexing_enabled = TRUE "\
@@ -54,10 +54,10 @@ sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_fi
 
 
 # MAINTENANCE JOBS
-# This could be in a separately scheduled job, which could be run less frequently, but is just here for now to save having to setup another job
+# These could be in a separately scheduled job, which could be run less frequently, but is just here for now to save having to setup another job
 check_for_stuck_jobs()
 for tier in range(1, 4):
-    expire_listings(tier) # i.e. run 3 times, where tier = 1, tier = 2, tier = 3
+    expire_listings(tier) # i.e. expire any tier 1 listings that are due for expiry, then tier 2, then tier 3
 
 
 # MAIN INDEXING JOB
@@ -69,7 +69,7 @@ logger.debug('Reading from database {}'.format(db_name))
 try:
     conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_password)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    # sites_to_crawl
+    # sites_to_crawl is the config specific to each site
     cursor.execute(sql_select_domains_to_index)
     results = cursor.fetchall()
     for result in results:
@@ -87,17 +87,22 @@ try:
         site['site_category'] = result['category']
         site['api_enabled'] = result['api_enabled']
         site['include_in_public_search'] = result['include_in_public_search']
+        # Use web_feed_user_entered if there is one, otherwise use web_feed_auto_discovered
+        if result['web_feed_user_entered']: 
+            site['web_feed'] = result['web_feed_user_entered']
+        elif result['web_feed_auto_discovered']:
+            site['web_feed'] = result['web_feed_auto_discovered']
+        site['full_index'] = True # Hardcode full indexing for all sites all the time for now
         sites_to_crawl.append(site)
     if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
     else: logger.debug('sites_to_crawl: {}'.format(sites_to_crawl))
-    # domains_for_indexed_links
+    # common_config is the config shared between all sites
     if sites_to_crawl:
+        # domains_for_indexed_links
         common_config['domains_for_indexed_links'] = domains_for_indexed_links
-    # domains allowing subdomains
-    if sites_to_crawl:
+        # domains allowing subdomains
         common_config['domains_allowing_subdomains'] = domains_allowing_subdomains
-    # exclusions for domains
-    if sites_to_crawl:
+        # exclusions for domains
         for site_to_crawl in sites_to_crawl:
             cursor.execute(sql_select_filters, (site_to_crawl['domain'],))
             filters = cursor.fetchall()
@@ -114,12 +119,17 @@ except psycopg2.Error as e:
 finally:
     conn.close()
 
-# Read data from Solr (indexed_inlinks)
+# Read data from Solr (indexed_inlinks and if necessary already_indexed_links)
 
 for site_to_crawl in sites_to_crawl:
     indexed_inlinks = get_all_indexed_inlinks_for_domain(site_to_crawl['domain'])
     logger.debug('indexed_inlinks: {}'.format(indexed_inlinks))
     site_to_crawl['indexed_inlinks'] = indexed_inlinks
+    # Only get the list of already_indexed_links if it is needed, i.e. for an incremental index
+    if site['full_index'] == False: 
+        already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
+        logger.debug('already_indexed_links: {}'.format(already_indexed_links))
+        site_to_crawl['already_indexed_links'] = already_indexed_links
 
 # Run the crawler
 

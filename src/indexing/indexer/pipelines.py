@@ -48,15 +48,17 @@ class SolrPipeline:
         self.solr = pysolr.Solr(self.solr_url) # always_commit=False by default
         return
 
+    # close_spider is run for each site at the end of the spidering process
+    # Depending on the type of index (full or incremental) and and the outcome
+    # - If it is a full reindex, but zero documents have been found, that suggests an error somewhere, e.g. site unavailable.
+    #   If that happens twice in a row, that suggests a more permanent error, so indexing for the site is deactivated.
+    # - If it is a full reindex, but documents are found, get all the site specific data which is set on the hoem page,
+    #   and clear out the exiting index for that site.
+    # - If it is an incremental reindex, don't delete the existign docs, just add the new ones.
     def close_spider(self, spider):
         no_of_docs = len(self.items)
-        # Step 1: update Solr
-        # Check that there are new documents - if not that suggests an error somewhere, in which case don't delete the old docs
-        # If there are new docs, delete existing docs immediately before adding the new docs
-        # This is to ensure any old docs that have been deleted or moved after the last index are cleaned up
-        # The delete and add are in the same transaction so there shouldn't be a visible period with no docs 
-        if no_of_docs == 0:
-            self.logger.warning('No documents found at start url {} (domain {}). This is likely an error with the site or with this system.'.format(spider.start_url, spider.domain))
+        if spider.site_config['full_index'] == True and no_of_docs == 0:
+            self.logger.warning('No documents found at start urls {} (domain {}). This is likely an error with the site or with this system.'.format(spider.start_urls, spider.domain))
             message = 'WARNING: No documents found. '
             submessage = ''
             if self.stats.get_value('robotstxt/forbidden'):
@@ -64,6 +66,7 @@ class SolrPipeline:
             elif self.stats.get_value('retry/max_reached'):
                 submessage = 'Likely site timeout. '
             last_message = get_last_complete_indexing_log_message(spider.domain)
+            # For the first zero document error, don't delete the old docs, but if the listing is deactivated, then delete the existing docs.
             if last_message.startswith(message):
                 tier = spider.site_config['tier']
                 newmessage = 'The previous indexing for {} also found no documents. Deleting existing Solr docs and deactivating indexing.'.format(spider.domain)
@@ -79,25 +82,34 @@ class SolrPipeline:
             else:
                 message = message + submessage + 'robotstxt/forbidden {}, retry/max_reached {}'.format(self.stats.get_value('robotstxt/forbidden'), self.stats.get_value('retry/max_reached'))
         else:
-            # Get values which are only set for the home page
-            # This is where the currently unset site_last_modified could be calculated and set
-            api_enabled = spider.site_config['api_enabled']
-            date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
-            web_feed, sitemap = web_feed_and_sitemap(spider.domain, self.items)
-            self.logger.info('Using web_feed: {}, sitemap: {}'.format(web_feed, sitemap))
-            # Delete the existing documents
-            self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
-            self.solr.delete(q='domain:{}'.format(spider.domain))
-            # Add the new documents
-            self.logger.info('Submitting {} newly spidered docs to Solr for {}.'.format(str(no_of_docs), spider.domain))
-            for item in self.items:
-                # Add the values which are only set for the home page
-                if item['is_home'] == True:
-                    self.logger.info('Home page URL {} has api_enabled {}, date_domain_added {}, and web_feed {}'.format(item['url'], api_enabled, date_domain_added, web_feed))
-                    item['api_enabled'] = api_enabled
-                    item['date_domain_added'] = date_domain_added
-                    item['web_feed'] = web_feed
-                self.solr.add(dict(item))
+            if spider.site_config['full_index'] == True:
+                # Get values which are only set for the home page
+                # Note that the home page will only be updated in a full reindex
+                api_enabled = spider.site_config['api_enabled']
+                date_domain_added = convert_datetime_to_utc_date(spider.site_config['date_domain_added'])
+                web_feed, sitemap = web_feed_and_sitemap(spider.domain, self.items)
+                self.logger.info('Using web_feed: {}, sitemap: {}'.format(web_feed, sitemap))
+                # Delete the existing documents
+                # It is important to delete all existing documents on a full reindex to clean up moved and deleted documents
+                # but the delete all existing documents must only be performed for a full rather than incremental reindex
+                self.logger.info('Deleting existing Solr docs for {}.'.format(spider.domain))
+                self.solr.delete(q='domain:{}'.format(spider.domain))
+                # Add the new documents
+                self.logger.info('Full index, submitting {} newly spidered docs to Solr for {}.'.format(str(no_of_docs), spider.domain))
+                for item in self.items:
+                    # Add the values which are only set for the home page
+                    if item['is_home'] == True:
+                        self.logger.info('Home page URL {} has api_enabled {}, date_domain_added {}, and web_feed {}'.format(item['url'], api_enabled, date_domain_added, web_feed))
+                        item['api_enabled'] = api_enabled
+                        item['date_domain_added'] = date_domain_added
+                        item['web_feed'] = web_feed
+                    self.solr.add(dict(item))
+            else:
+                # i.e. if just an incremental index
+                # Note that the first incremental index for a site must come after the first full index, to ensure the full index sets e.g. the home page values
+                self.logger.info('Incremental index, submitting {} docs to Solr for {}.'.format(str(no_of_docs), spider.domain))
+                for item in self.items:
+                    self.solr.add(dict(item))
             # Save changes
             self.solr.commit()
             message = 'SUCCESS: {} documents found. '.format(self.stats.get_value('item_scraped_count'))
@@ -105,7 +117,7 @@ class SolrPipeline:
                 message = message + 'log_count/WARNING: {} '.format(self.stats.get_value('log_count/WARNING'))
             if self.stats.get_value('log_count/ERROR'):
                 message = message + 'log_count/ERROR: {} '.format(self.stats.get_value('log_count/ERROR'))
-        # Step 2: update database table
+        # Update database table
         # Status either RUNNING or COMPLETE. Message starts with SUCCESS or WARNING
         update_indexing_log(spider.domain, 'COMPLETE', message)
 
