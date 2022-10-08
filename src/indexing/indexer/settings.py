@@ -51,11 +51,12 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 4
 DOWNLOAD_TIMEOUT = 30
 
 # Need to set this because large files like https://drwho.virtadpt.net/files/OMNI_1987_11.cbr were crashing production
+# Can't set it too small though because some RSS feeds are >2.5Mb
 # Default: 1073741824 (1024MB)
-DOWNLOAD_MAXSIZE = 1048576 # 1Mb.
+DOWNLOAD_MAXSIZE = 2097152 # 2Mb
 
 # Default: 33554432 (32MB)
-DOWNLOAD_WARNSIZE = 524288 # 0.5Mb
+DOWNLOAD_WARNSIZE = 1048576 # 1Mb
 
 # If the spider remains open for more than that number of seconds, it will be automatically closed with the reason closespider_timeout
 CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
