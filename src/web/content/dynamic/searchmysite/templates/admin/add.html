@@ -78,10 +78,16 @@
 						</thead>
 						<tbody>
 							<tr>
-								<th scope="row">Indexing frequency</th>
+								<th scope="row">Full indexing frequency</th>
 								<td>{{ tiers[0]['full_reindex_frequency'] }}</td>
 								<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
 								<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
+							</tr>
+							<tr>
+								<th scope="row">Incremental indexing frequency</th>
+								<td>{{ tiers[0]['incremental_reindex_frequency'] }}</td>
+								<td>{{ tiers[1]['incremental_reindex_frequency'] }}</td>
+								<td>{{ tiers[2]['incremental_reindex_frequency'] }}</td>
 							</tr>
 							<tr>
 								<th scope="row">Indexing page limit</th>
