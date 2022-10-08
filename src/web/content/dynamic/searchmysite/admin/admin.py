@@ -26,13 +26,13 @@ sql_update_basic_approved = "UPDATE tblListingStatus "\
     "moderator_approved = TRUE, "\
     "moderator = (%s), "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
-    "part_reindex_frequency = tblTiers.default_part_reindex_frequency, "\
+    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
-    "full_indexing_status = 'PENDING', "\
-    "full_indexing_status_changed = NOW() "\
+    "indexing_status = 'PENDING', "\
+    "indexing_status_changed = NOW() "\
     "FROM tblTiers WHERE tblTiers.tier = 1 and tblDomains.domain = (%s);"
 
 sql_update_basic_reject = "UPDATE tblListingStatus "\

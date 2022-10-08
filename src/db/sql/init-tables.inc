@@ -23,7 +23,7 @@ CREATE TABLE tblDomains (
   moderator_action_changed TIMESTAMPTZ, 
   moderator TEXT, -- domain of moderator
   full_reindex_frequency INTERVAL,
-  part_reindex_frequency INTERVAL,
+  incremental_reindex_frequency INTERVAL,
   indexing_page_limit SMALLINT,
   on_demand_reindexing BOOLEAN,
   api_enabled BOOLEAN,
@@ -31,10 +31,10 @@ CREATE TABLE tblDomains (
   indexing_disabled_reason TEXT, -- only set when indexing_enabled = FALSE
   indexing_disabled_changed TIMESTAMPTZ,
   indexing_type TEXT, -- Just 'spider/default' now, but there was a 'bulkimport/wikipedia'
-  full_indexing_status TEXT, -- 'PENDING', 'RUNNING', 'COMPLETE'
-  full_indexing_status_changed TIMESTAMPTZ,
-  part_indexing_status TEXT, -- 'PENDING', 'RUNNING', 'COMPLETE'
-  part_indexing_status_changed TIMESTAMPTZ,
+  indexing_status TEXT, -- 'PENDING', 'RUNNING', 'COMPLETE'
+  indexing_status_changed TIMESTAMPTZ,
+  last_index_completed TIMESTAMPTZ,
+  last_full_index_completed TIMESTAMPTZ,
   last_login TIMESTAMPTZ,
   forgotten_password_key TEXT,
   forgotten_password_key_expiry TIMESTAMPTZ
@@ -44,7 +44,7 @@ CREATE TABLE tblTiers (
   tier SMALLINT PRIMARY KEY,
   tier_name TEXT,
   default_full_reindex_frequency INTERVAL,
-  default_part_reindex_frequency INTERVAL,
+  default_incremental_reindex_frequency INTERVAL,
   default_indexing_page_limit SMALLINT,
   default_on_demand_reindexing BOOLEAN,
   default_api_enabled BOOLEAN,
@@ -130,7 +130,7 @@ CREATE TABLE tblSettings (
 );
 
 INSERT INTO tblTiers 
-(tier, tier_name, default_full_reindex_frequency, default_part_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration)
+(tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration)
 VALUES 
 (1, 'Basic',      '28 days', '7 days',   50, FALSE, FALSE,  0.00, '£', '1 year'),
 (2, 'Free Trial', '28 days', '7 days',  100, FALSE,  TRUE,  0.00, '£', '1 month'),

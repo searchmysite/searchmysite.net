@@ -24,7 +24,7 @@ sql_select_subscriptions = "SELECT t.tier_name, s.subscribed, s.subscription_sta
 sql_update_value = "UPDATE tblDomains SET %s = (%s) WHERE domain = (%s);"
 sql_insert_filter = "INSERT INTO tblIndexingFilters VALUES ((%s), 'exclude', (%s), (%s));"
 sql_delete_filter = "DELETE FROM tblIndexingFilters WHERE domain = (%s) AND action = 'exclude' AND type = (%s) AND VALUE = (%s);"
-sql_update_indexing_status = "UPDATE tblDomains SET full_indexing_status = 'PENDING', full_indexing_status_changed = now() WHERE domain = (%s); "\
+sql_update_indexing_status = "UPDATE tblDomains SET indexing_status = 'PENDING', indexing_status_changed = now() WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog VALUES ((%s), 'PENDING', now());"
 sql_select_tier = "SELECT l.status, l.tier, t.tier_name, l.listing_end FROM tblListingStatus l INNER JOIN tblTiers t ON t.tier = l.tier WHERE l.domain = (%s) AND l.status = 'ACTIVE' ORDER BY tier DESC LIMIT 1;"
 sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = 2; "\
@@ -53,15 +53,15 @@ manage_details_form = [
 
 # Manage Site / Indexing
 # Notes:
-# There isn't a database field for next_reindex - this will be populated in get_manage_data based on full_indexing_status, full_indexing_status_changed and full_reindex_frequency
+# There isn't a database field for next_reindex - this will be populated in get_manage_data based on indexing_status, indexing_status_changed and full_reindex_frequency
 # There aren't database fields for web_feed and sitemap - this will be populated in get_manage_data based on web_feed_auto_discovered and web_feed_user_entered
 manage_indexing_form = [
 {'label':'indexing_enabled', 'label-text':'Indexing enabled', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'True if indexing is enabled, and False if indexing is disabled (e.g. because of repeated failed indexing attempts).'},
 {'label':'include_in_public_search', 'label-text':'Include in public search', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'True if content from this site is to be included in the public search (along with Browse, Newest and Random).'},
-{'label':'full_indexing_status', 'label-text':'Indexing current status', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The latest status of indexing (either RUNNING, COMPLETE, PENDING).'},
-{'label':'full_indexing_status_changed', 'label-text':'Indexing status last updated', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time the indexing status was last changed.'},
-{'label':'full_reindex_frequency', 'label-text':'Indexing frequency', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time period between site reindexing.'},
-{'label':'next_reindex', 'label-text':'Next reindex', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Earliest start time for the next reindex.'},
+{'label':'indexing_status', 'label-text':'Indexing current status', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The latest status of indexing (either RUNNING, COMPLETE, PENDING).'},
+{'label':'indexing_status_changed', 'label-text':'Indexing status last updated', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time the indexing status was last changed.'},
+{'label':'full_reindex_frequency', 'label-text':'Full reindexing frequency', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time period between full reindexes of the site.'},
+{'label':'next_reindex', 'label-text':'Next full reindex', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Earliest start time for the next full reindex.'},
 {'label':'web_feed', 'label-text':'Web feed', 'type':'text', 'class':'form-control', 'editable':True, 'help':'This is the web feed (RSS or Atom), used for indexing and for identifying pages which are part of a feed. The system tries to identify a feed but it can be entered or overridden here.'},
 {'label':'indexing_page_limit', 'label-text':'Indexing page limit', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The maximum number of pages on your domain which will be indexed.'},
 {'label':'indexing_type', 'label-text':'Indexing type', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'What mechanism is used to index the site. In almost all cases it will be the default spider.'},
@@ -218,15 +218,15 @@ def get_manage_data(domain, manage_form):
                 manage_data['indexing_disabled_reason'] = result['indexing_disabled_reason']
             elif label == 'domain_first_submitted' and result['domain_first_submitted']:
                 manage_data['domain_first_submitted'] = result['domain_first_submitted'].strftime('%d %b %Y, %H:%M%z')
-            elif label == 'full_indexing_status_changed' and result['full_indexing_status_changed']:
-                manage_data['full_indexing_status_changed'] = result['full_indexing_status_changed'].strftime('%d %b %Y, %H:%M%z')
+            elif label == 'indexing_status_changed' and result['indexing_status_changed']:
+                manage_data['indexing_status_changed'] = result['indexing_status_changed'].strftime('%d %b %Y, %H:%M%z')
             else:
                 manage_data[label] = result[label]
         elif label == 'next_reindex':
-            if result['full_indexing_status'] == 'PENDING':
+            if result['indexing_status'] == 'PENDING':
                 next_reindex = "Any time now"
-            elif result['full_indexing_status_changed'] and result['full_reindex_frequency']:
-                next_reindex_datetime = result['full_indexing_status_changed'] + result['full_reindex_frequency']
+            elif result['indexing_status_changed'] and result['full_reindex_frequency']:
+                next_reindex_datetime = result['indexing_status_changed'] + result['full_reindex_frequency']
                 next_reindex = next_reindex_datetime.strftime('%d %b %Y, %H:%M%z')
             else: # This shouldn't happen, but just in case
                 next_reindex = "Not quite sure"

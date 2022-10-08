@@ -14,7 +14,7 @@ bp = Blueprint('add', __name__)
 
 # SQL
 
-sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_part_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
+sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
     "FROM tblTiers;"
 
 # Selects the status of the highest listed tier (whether active or not)
@@ -61,13 +61,13 @@ sql_update_freefull_approved = "UPDATE tblListingStatus "\
     "WHERE domain = (%s) AND tier = (%s); "\
     "UPDATE tblDomains SET "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
-    "part_reindex_frequency = tblTiers.default_part_reindex_frequency, "\
+    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
-    "full_indexing_status = 'PENDING', "\
-    "full_indexing_status_changed = NOW() "\
+    "indexing_status = 'PENDING', "\
+    "indexing_status_changed = NOW() "\
     "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
 
 sql_select_validation_key = "SELECT validation_key FROM tblValidations WHERE domain = (%s);"
@@ -325,7 +325,7 @@ def success():
 
 # Fields in tblTiers:
 # tier_no, tier_name, 
-# default_full_reindex_frequency, default_part_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, 
+# default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, 
 # cost_amount, cost_currency, listing_duration
 def get_tier_data():
     tiers = []
@@ -341,10 +341,15 @@ def get_tier_data():
             # tier_name
             tier['tier_name'] = result['tier_name']
             # full_reindex_frequency
-            full_reindex_frequency = 'Every ' + str(result['default_full_reindex_frequency'])
+            full_reindex_frequency = str(result['default_full_reindex_frequency'])
             if full_reindex_frequency.endswith(', 0:00:00'): # Only tidies whole days for now, half days would end ', 12:00:00'
                 full_reindex_frequency = full_reindex_frequency.replace(', 0:00:00', '')
             tier['full_reindex_frequency'] = full_reindex_frequency 
+            # incremental_reindex_frequency
+            incremental_reindex_frequency = str(result['default_incremental_reindex_frequency'])
+            if incremental_reindex_frequency.endswith(', 0:00:00'):
+                incremental_reindex_frequency = incremental_reindex_frequency.replace(', 0:00:00', '')
+            tier['incremental_reindex_frequency'] = incremental_reindex_frequency 
             # indexing_page_limit
             indexing_page_limit = str(result['default_indexing_page_limit']) + ' pages'
             tier['indexing_page_limit'] = indexing_page_limit
