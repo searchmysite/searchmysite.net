@@ -31,10 +31,14 @@ sql_select_domains = "SELECT d.domain from tblDomains d INNER JOIN tblListingSta
 sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
 sql_update_indexing_status = "UPDATE tblDomains "\
-    "SET full_indexing_status = (%s), full_indexing_status_changed = now() "\
+    "SET indexing_status = (%s), indexing_status_changed = now() "\
     "WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
     "VALUES ((%s), (%s), now(), (%s));"
+
+sql_update_indexing_complete = "UPDATE tblDomains SET last_index_completed = now() WHERE domain = (%s);"
+
+sql_update_full_indexing_complete = "UPDATE tblDomains SET last_index_completed = now(), last_full_index_completed = now() WHERE domain = (%s);"
 
 sql_select_indexing_log = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
 
@@ -67,19 +71,19 @@ sql_expire_tier2or3_listing = "UPDATE tblListingStatus SET status = 'EXPIRED', s
 
 sql_reset_indexing_defaults = "UPDATE tblDomains SET "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
-    "part_reindex_frequency = tblTiers.default_part_reindex_frequency, "\
+    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
-    "full_indexing_status = 'PENDING', "\
-    "full_indexing_status_changed = NOW() "\
+    "indexing_status = 'PENDING', "\
+    "indexing_status_changed = NOW() "\
     "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
 
 sql_select_stuck_jobs = "SELECT * FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
-    "AND full_indexing_status = 'RUNNING' "\
-    "AND full_indexing_status_changed + '6 hours' < NOW();"
+    "AND indexing_status = 'RUNNING' "\
+    "AND indexing_status_changed + '6 hours' < NOW();"
 
 sql_select_user_entered = "SELECT web_feed_user_entered, sitemap_user_entered FROM tblDomains WHERE domain = (%s);"
 
@@ -130,17 +134,25 @@ def get_domains_allowing_subdomains():
         conn.close()
     return domains_allowing_subdomains
 
-# Update indexing log
+# Update indexing status
+# This is called at both the start and the end of indexing 
 # status either RUNNING or COMPLETE
-def update_indexing_log(domain, status, message):
+# full_index only required if status = 'COMPLETE'
+def update_indexing_status(domain, full_index, status, message):
     try:
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(sql_update_indexing_status, (status, domain, domain, status, message,))
         conn.commit()
+        if status == 'COMPLETE':
+            if full_index == True:
+                cursor.execute(sql_update_full_indexing_complete, (domain,))
+            else:
+                cursor.execute(sql_update_indexing_complete, (domain,))
+            conn.commit()
     except psycopg2.Error as e:
         logger = logging.getLogger()
-        logger.error('update_indexing_log: {}'.format(e.pgerror))
+        logger.error('update_indexing_status: {}'.format(e.pgerror))
     finally:
         conn.close()
     return
@@ -345,13 +357,18 @@ def web_feed_and_sitemap(domain, items):
         if result['web_feed_user_entered']: web_feed_user_entered = result['web_feed_user_entered']
         if result['sitemap_user_entered']: sitemap_user_entered = result['sitemap_user_entered']
         # Step 2: Calculate the new system generated values from the items in the current indexing job
+        web_feeds = []
         for item in items:
+            if 'is_web_feed' in item:
+                web_feed_auto_discovered = item['url']
+                web_feeds.append(item['url'])
+                del item['is_web_feed'] # Don't currently have an entry for this in the Solr schema so need to remove for now
             if item['content_type'] and len(item['content_type']) > 3 and item['url'] and len(item['url']) > 11:
                 if item['content_type'][-3:] == 'xml':
                     if item['url'][-11:] == 'sitemap.xml':
                         sitemap_auto_discovered = item['url']
-                    else:
-                        web_feed_auto_discovered = item['url']
+        if len(web_feeds) > 1:
+            logger.info('More than one potential web feed: {}'.format(web_feeds)) # May need logic to chose between them if there are many
         # Step 3: Update the system generated values based on the current indexing job
         cursor.execute(sql_update_auto_discovered, (web_feed_auto_discovered, sitemap_auto_discovered, domain,))
         conn.commit()

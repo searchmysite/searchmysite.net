@@ -7,7 +7,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 from indexer.spiders.search_my_site_spider import SearchMySiteSpider
-from common.utils import update_indexing_log, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, get_already_indexed_links, check_for_stuck_jobs, expire_listings
+from common.utils import update_indexing_status, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, get_already_indexed_links, check_for_stuck_jobs, expire_listings
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
@@ -38,18 +38,29 @@ db_password = settings.get('DB_PASSWORD')
 
 sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 
-# This returns sites which are due for reindexing, either due to being new ('PENDING') 
-# or having been last indexed more than indexing_frequency ago.
-# Must also have indexing_type = 'spider/default' and indexing_enabled = TRUE
+# This returns sites which are due for reindexing, either due to being new ('PENDING'), 
+# or having the last full index completed more than full_reindex_frequency ago, or
+# having the last index of any type (full or incremental) completed more than incremental_reindex_frequency ago.
+# Must also have indexing_type = 'spider/default' and indexing_enabled = TRUE.
 # Only LIMIT results are returned to reduce the chance of memory issues in the indexing container.
 # The list is sorted so new ('PENDING') are first, followed by higher tiers,
 # so these are prioritised in cases where not all sites are returned due to the LIMIT.
-sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered FROM tblDomains d "\
-    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
+# The CASE statement sets a column full_index to be TRUE when a full index is required
+# and FALSE when an incremental index is required. In cases where both a full and 
+# incremental index are due to be triggered the full index will come first.
+sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered, "\
+    "    CASE "\
+    "        WHEN d.indexing_status = 'PENDING' THEN TRUE "\
+    "        WHEN NOW() - d.last_full_index_completed > d.full_reindex_frequency THEN TRUE "\
+    "        WHEN NOW() - d.last_index_completed > d.incremental_reindex_frequency THEN FALSE "\
+    "    END AS full_index "\
+    "FROM tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.indexing_type = 'spider/default' "\
     "AND d.indexing_enabled = TRUE "\
-    "AND (d.full_indexing_status = 'PENDING' OR (d.full_indexing_status = 'COMPLETE' AND now() - d.full_indexing_status_changed > d.full_reindex_frequency)) "\
-    "ORDER BY d.full_indexing_status DESC, l.tier DESC "\
+    "AND (d.indexing_status = 'PENDING') "\
+    "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_full_index_completed > full_reindex_frequency) "\
+    "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_index_completed > incremental_reindex_frequency) "\
+    "ORDER BY d.indexing_status DESC, l.tier DESC "\
     "LIMIT 16;"
 
 
@@ -75,7 +86,7 @@ try:
     for result in results:
         # Mark as RUNNING ASAP so if there's another indexer container running it is less likely to double-index 
         # There's a risk something will fail before it gets to the actual indexing, hence the periodic check for stuck RUNNING jobs
-        update_indexing_log(result['domain'], 'RUNNING' , "")
+        update_indexing_status(result['domain'], None, 'RUNNING' , "")
         site = {}
         site['domain'] = result['domain']
         site['home_page'] = result['home_page']
@@ -92,7 +103,7 @@ try:
             site['web_feed'] = result['web_feed_user_entered']
         elif result['web_feed_auto_discovered']:
             site['web_feed'] = result['web_feed_auto_discovered']
-        site['full_index'] = True # Hardcode full indexing for all sites all the time for now
+        site['full_index'] = result['full_index']
         sites_to_crawl.append(site)
     if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
     else: logger.debug('sites_to_crawl: {}'.format(sites_to_crawl))
@@ -128,8 +139,22 @@ for site_to_crawl in sites_to_crawl:
     # Only get the list of already_indexed_links if it is needed, i.e. for an incremental index
     if site['full_index'] == False: 
         already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
-        logger.debug('already_indexed_links: {}'.format(already_indexed_links))
-        site_to_crawl['already_indexed_links'] = already_indexed_links
+        no_of_already_indexed_links = len(already_indexed_links)
+        indexing_page_limit = site_to_crawl['indexing_page_limit']
+        if no_of_already_indexed_links == indexing_page_limit:
+            # if the indexing_page_limit was reached in the last index then abandon this index
+            # update the status in the database so that it isn't selected again until the next scheduled full or incremental reindex
+            sites_to_crawl.remove(site_to_crawl)
+            message = 'The indexing page limit was reached on the last index, so not going to perform incremental reindex for {}'.format(site_to_crawl['domain'])
+            update_indexing_status(site_to_crawl['domain'], site['full_index'], 'COMPLETE' , message)
+            logger.warning(message)
+        else:
+            # reduce the indexing_page_limit according to the number of pages already in the index
+            # so the incremental reindex doesn't exceed the indexing_page_limit
+            new_indexing_page_limit = indexing_page_limit - no_of_already_indexed_links
+            site_to_crawl['indexing_page_limit'] = new_indexing_page_limit
+            logger.info('no_of_already_indexed_links: {}, indexing_page_limit: {}, new_indexing_page_limit: {}'.format(no_of_already_indexed_links, indexing_page_limit, new_indexing_page_limit))
+            site_to_crawl['already_indexed_links'] = already_indexed_links
 
 # Run the crawler
 
