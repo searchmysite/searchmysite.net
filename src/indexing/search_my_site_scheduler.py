@@ -153,7 +153,7 @@ for site_to_crawl in sites_to_crawl:
             # so the incremental reindex doesn't exceed the indexing_page_limit
             new_indexing_page_limit = indexing_page_limit - no_of_already_indexed_links
             site_to_crawl['indexing_page_limit'] = new_indexing_page_limit
-            logger.info('no_of_already_indexed_links: {}, indexing_page_limit: {}, new_indexing_page_limit: {}'.format(no_of_already_indexed_links, indexing_page_limit, new_indexing_page_limit))
+            logger.info('no_of_already_indexed_links: {}, indexing_page_limit: {}, new_indexing_page_limit: {}, for {}'.format(no_of_already_indexed_links, indexing_page_limit, new_indexing_page_limit, site_to_crawl['domain']))
             site_to_crawl['already_indexed_links'] = already_indexed_links
 
 # Run the crawler
