@@ -70,7 +70,8 @@ class SearchMySiteSpider(CrawlSpider):
                     self.logger.info('Changing {} in deny path to {}'.format(old_exclusion_value, exclusion_value))
                 deny.append(exclusion_value)
         self.logger.info('Deny path {}'.format(deny))
-        # Common rules are to only index pages on the same domain, deny paths as above, and use an extended IGNORED_EXTENSIONS list as above
+        # Common rules are to only index pages on the same domain, deny paths as above, use an extended IGNORED_EXTENSIONS list as above,
+        # and add link to the tags to pick up RSS feeds from <link rel="alternate" type="application/rss+xml" href=
         # There are two key differences if it is not a full index:
         # 1. Only index new links, i.e. links which aren't already in the index (use process_links to remove 
         #    already indexed links from the home_page links and parse_start_url to remove already indexed links
@@ -79,14 +80,14 @@ class SearchMySiteSpider(CrawlSpider):
         if self.full_index == True:
             self.rules = (
                 Rule(
-                    LinkExtractor(allow_domains=self.allowed_domains, deny=deny, deny_extensions=IGNORED_EXTENSIONS),
+                    LinkExtractor(allow_domains=self.allowed_domains, deny=deny, deny_extensions=IGNORED_EXTENSIONS, tags=('a','area','link')),
                     callback=self.parse_item, follow=True
                     ),
                 )
         else:
             self.rules = (
                 Rule(
-                    LinkExtractor(allow_domains=self.allowed_domains, deny=deny, deny_extensions=IGNORED_EXTENSIONS),
+                    LinkExtractor(allow_domains=self.allowed_domains, deny=deny, deny_extensions=IGNORED_EXTENSIONS, tags=('a','area','link')),
                     callback=self.parse_item, process_links=self.remove_already_indexed_links, follow=False
                     ),
                 )
