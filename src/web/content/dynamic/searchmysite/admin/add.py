@@ -342,13 +342,17 @@ def get_tier_data():
             tier['tier_name'] = result['tier_name']
             # full_reindex_frequency
             full_reindex_frequency = str(result['default_full_reindex_frequency'])
-            if full_reindex_frequency.endswith(', 0:00:00'): # Only tidies whole days for now, half days would end ', 12:00:00'
+            if full_reindex_frequency.endswith(', 0:00:00'): # Only tidies whole and half days for now
                 full_reindex_frequency = full_reindex_frequency.replace(', 0:00:00', '')
+            elif full_reindex_frequency.endswith(', 12:00:00'):
+                full_reindex_frequency = full_reindex_frequency.replace(', 12:00:00', ' 12 hrs')
             tier['full_reindex_frequency'] = full_reindex_frequency 
             # incremental_reindex_frequency
             incremental_reindex_frequency = str(result['default_incremental_reindex_frequency'])
             if incremental_reindex_frequency.endswith(', 0:00:00'):
                 incremental_reindex_frequency = incremental_reindex_frequency.replace(', 0:00:00', '')
+            elif incremental_reindex_frequency.endswith(', 12:00:00'):
+                incremental_reindex_frequency = incremental_reindex_frequency.replace(', 12:00:00', ' 12 hrs')
             tier['incremental_reindex_frequency'] = incremental_reindex_frequency 
             # indexing_page_limit
             indexing_page_limit = str(result['default_indexing_page_limit']) + ' pages'
