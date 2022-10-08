@@ -22,10 +22,16 @@ ALTER TABLE tblTiers RENAME COLUMN default_part_reindex_frequency TO default_inc
 
 -- set incremental_reindex_frequency for all indexed sites (tier 1, tier 2, tier 3) and check for sites which have had indexing disabled
 
-UPDATE tblDomains d SET full_reindex_frequency = '28 DAYS', incremental_reindex_frequency = '7 DAYS'
+UPDATE tblDomains d SET full_reindex_frequency = '28 DAYS', incremental_reindex_frequency = '14 DAYS'
 FROM tblListingStatus l WHERE d.domain = l.domain AND tier = 1 OR tier = 2;
-UPDATE tblDomains d SET full_reindex_frequency = '7 DAYS', incremental_reindex_frequency = '1 DAY'
+UPDATE tblDomains d SET full_reindex_frequency = '7 DAYS', incremental_reindex_frequency = '3.5 DAYS'
 FROM tblListingStatus l WHERE d.domain = l.domain AND tier = 3;
+
+-- set tier defaults
+
+UPDATE tblTiers SET default_incremental_reindex_frequency = '14 DAYS' WHERE tier = 1;
+UPDATE tblTiers SET default_incremental_reindex_frequency = '14 DAYS' WHERE tier = 2;
+UPDATE tblTiers SET default_incremental_reindex_frequency = '3.5 DAYS' WHERE tier = 3;
 
 -- set last_index_completed & last_full_index_completed to indexing_status_changed where indexing_status = COMPLETE
 
