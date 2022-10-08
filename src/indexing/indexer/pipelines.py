@@ -5,7 +5,7 @@ import re
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
-from common.utils import update_indexing_log, get_last_complete_indexing_log_message, deactivate_indexing, web_feed_and_sitemap, convert_datetime_to_utc_date, send_email
+from common.utils import update_indexing_status, get_last_complete_indexing_log_message, deactivate_indexing, web_feed_and_sitemap, convert_datetime_to_utc_date, send_email
 
 
 # This is the Solr pipeline, for submitting indexed items to Solr
@@ -109,6 +109,9 @@ class SolrPipeline:
                 # Note that the first incremental index for a site must come after the first full index, to ensure the full index sets e.g. the home page values
                 self.logger.info('Incremental index, submitting {} docs to Solr for {}.'.format(str(no_of_docs), spider.domain))
                 for item in self.items:
+                    # This is removed by web_feed_and_sitemap for a full index, so have to remove here for incremental otherwise Solr will return error
+                    if 'is_web_feed' in item:
+                        del item['is_web_feed'] 
                     self.solr.add(dict(item))
             # Save changes
             self.solr.commit()
@@ -117,9 +120,10 @@ class SolrPipeline:
                 message = message + 'log_count/WARNING: {} '.format(self.stats.get_value('log_count/WARNING'))
             if self.stats.get_value('log_count/ERROR'):
                 message = message + 'log_count/ERROR: {} '.format(self.stats.get_value('log_count/ERROR'))
-        # Update database table
-        # Status either RUNNING or COMPLETE. Message starts with SUCCESS or WARNING
-        update_indexing_log(spider.domain, 'COMPLETE', message)
+        # Update indexing status to mark as 'COMPLETE'.
+        # Pass in whether full index or not (i.e. whether indexing type full or incremental) to set the appropriate completed times.
+        # Message starts with SUCCESS or WARNING.
+        update_indexing_status(spider.domain, spider.site_config['full_index'], 'COMPLETE', message)
 
     def process_item(self, item, spider):
         new_url = item['url']
