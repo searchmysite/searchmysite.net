@@ -1,11 +1,13 @@
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.exceptions import DropItem
+from scrapy.http import HtmlResponse, XmlResponse
 from bs4 import BeautifulSoup, SoupStrainer
 import datetime
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
+import feedparser
 from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text
 
 # Solr schema is:
@@ -42,6 +44,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="indexed_outlinks" type="string" indexed="true" stored="true" multiValued="true" />
 
 def customparser(response, domain, is_home, domains_for_indexed_links, site_config, common_config):
+
     configure_logging(get_project_settings())
     logger = logging.getLogger()
     logger.info('Parsing {}'.format(response.url))
@@ -58,7 +61,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
                     return None
 
     item = {}
-    item['page_type'] = ctype
+
+
+    # Attributes set on all TextResponse, i.e. on both HtmlResponse and XmlResponse
+    # -----------------------------------------------------------------------------
 
     # id
     item['id'] = response.url
@@ -75,51 +81,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item['is_home'] = is_home
 
     # title
+    # XML can have a title tag
     item['title'] = response.xpath('//title/text()').get() # <title>...</title>
-
-    # author
-    item['author'] = response.xpath('//meta[@name="author"]/@content').get() # <meta name="author" content="...">
-
-    # description
-    description = response.xpath('//meta[@name="description"]/@content').get() # <meta name="description" content="...">
-    if not description: description = response.xpath('//meta[@property="og:description"]/@content').get() # <meta property="og:description" content="..." />
-    item['description'] = description
-
-    # tags
-    # Should be comma delimited as per https://www.w3.org/TR/2011/WD-html5-author-20110809/the-meta-element.html
-    # but unfortunately some sites are space delimited
-    tags = response.xpath('//meta[@name="keywords"]/@content').get() # <meta name="keywords" content="...">
-    if not tags: tags = response.xpath('//meta[@property="article:tag"]/@content').get() # <meta property="article:tag" content="..."/>
-    tag_list = []
-    if tags:
-        if tags.count(',') == 0 and tags.count(' ') > 1: # no commas and more than one space
-            for tag in tags.split(" "):
-                tag_list.append(tag.lstrip())
-        else:
-            for tag in tags.split(","):
-                tag_list.append(tag.lstrip())
-    item['tags'] = tag_list
-
-    # body
-    only_body = SoupStrainer('body')
-    body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
-    #for script in body_html(["script", "style"]): # Remove script and style tags and their contents
-    #    script.decompose()
-    #body_text = get_text(body_html)
-    #item['body'] = body_text
-
-    # content
-    for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
-        non_content.decompose()
-    main_html = body_html.find('main')
-    article_html = body_html.find('article')
-    if main_html:
-        content_text = get_text(main_html)
-    elif article_html:
-        content_text = get_text(article_html)
-    else:
-        content_text = get_text(body_html)
-    item['content'] = content_text
 
     # content_type, e.g. text/html; charset=utf-8
     content_type = None
@@ -135,72 +98,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         last_modified_date = convert_string_to_utc_date(last_modified_date)
     item['page_last_modified'] = last_modified_date
 
-    # published_date
-    published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
-    if not published_date: published_date = response.xpath('//meta[@name="dc.date.issued"]/@content').get()
-    if not published_date: published_date = response.xpath('//meta[@itemprop="datePublished"]/@content').get()
-    published_date = convert_string_to_utc_date(published_date)
-    item['published_date'] = published_date
-
     # indexed_date
     indexed_date = convert_datetime_to_utc_date(datetime.datetime.now())
     item['indexed_date'] = indexed_date
 
-    # date_domain_added - only set if the entry is the home page
-    #date_domain_added = None
-    #if is_home == True:
-    #    date_domain_added = site_config['date_domain_added']
-    #    date_domain_added = convert_datetime_to_utc_date(date_domain_added)
-    #item['date_domain_added'] = date_domain_added
-
     # site_category
     item['site_category'] = site_config['site_category']
-
-    # owner_verified
-    # Only set owner_verified within the search index when api_enabled
-    # This is because there are a growing number of Verified Add sites which have indexing_enabled (either via Quick Add or expired Verified Add)
-    # and complete step 3 of the Verified Add process, i.e. verify ownership, which sets owner_verified, 
-    # but don't complete step 4, i.e. payment (when present), which sets api_enabled, indexing_frequency etc.
-    owner_verified = False
-    if site_config['owner_verified'] == True and site_config['api_enabled'] == True: 
-        owner_verified = True
-    item['owner_verified'] = owner_verified
-
-    # contains_adverts
-    # Just looks for Google Ads at the moment
-    contains_adverts = False # assume a page has no adverts unless proven otherwise
-    if response.xpath('//ins[contains(@class,"adsbygoogle")]') != []: contains_adverts = True
-    item['contains_adverts'] = contains_adverts
-
-    # api_enabled - only set if the entry is the home page
-    #api_enabled = None
-    #if is_home == True:
-    #    api_enabled = site_config['api_enabled']
-    #item['api_enabled'] = api_enabled
-
-    # public - should always be true, except in rare cases where owner_verified=true (but not checking to enforce)
-    include_in_public_search = True
-    if site_config['include_in_public_search'] == False:
-        include_in_public_search = False
-    item['public'] = include_in_public_search
-
-    # web_feed - True if the page is in a web feed (RSS or Atom), False otherwise
-    if response.url in site_config['feed_links']:
-        item['in_web_feed'] = True
-        item['web_feed'] = site_config['web_feed']
-    else:
-        item['in_web_feed'] = False
-
-    # language, e.g. en-GB
-    language = response.xpath('/html/@lang').get()
-    #if language: language = language.lower() # Lowercasing to prevent facetted nav thinking e.g. en-GB and en-gb are different
-    item['language'] = language
-
-    # language_primary, e.g. en
-    language_primary = None
-    if language:
-        language_primary = language[:2] # First two characters, e.g. en-GB becomes en
-    item['language_primary'] = language_primary
 
     # indexed_inlinks
     # i.e. the pages in the search collection on other domains which link to this page
@@ -241,5 +144,112 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         for link in links:
             indexed_outlinks.append(link.url)
     item['indexed_outlinks'] = indexed_outlinks
+
+    # owner_verified
+    # This used to be an explicit field, but now is set by search_my_site_scheduler.py when tier = 3
+    owner_verified = False
+    if site_config['owner_verified'] == True: 
+        owner_verified = True
+    item['owner_verified'] = owner_verified
+
+    # api_enabled & date_domain_added
+    # Now site in pipelines.py if is_home == True
+
+    # public - should always be true, except in rare cases where owner_verified=true (but not checking to enforce)
+    include_in_public_search = True
+    if site_config['include_in_public_search'] == False:
+        include_in_public_search = False
+    item['public'] = include_in_public_search
+
+    # web_feed - True if the page is in a web feed (RSS or Atom), False otherwise
+    if response.url in site_config['feed_links']:
+        item['in_web_feed'] = True
+        item['web_feed'] = site_config['web_feed']
+    else:
+        item['in_web_feed'] = False
+
+
+    # Attributes set only on HtmlResponse
+    # -----------------------------------
+
+    if isinstance(response, HtmlResponse):
+
+        # page_type (value obtained at the start in case there was a page type exclusion) 
+        item['page_type'] = ctype
+
+        # author
+        item['author'] = response.xpath('//meta[@name="author"]/@content').get() # <meta name="author" content="...">
+
+        # description
+        description = response.xpath('//meta[@name="description"]/@content').get() # <meta name="description" content="...">
+        if not description: description = response.xpath('//meta[@property="og:description"]/@content').get() # <meta property="og:description" content="..." />
+        item['description'] = description
+
+        # tags
+        # Should be comma delimited as per https://www.w3.org/TR/2011/WD-html5-author-20110809/the-meta-element.html
+        # but unfortunately some sites are space delimited
+        tags = response.xpath('//meta[@name="keywords"]/@content').get() # <meta name="keywords" content="...">
+        if not tags: tags = response.xpath('//meta[@property="article:tag"]/@content').get() # <meta property="article:tag" content="..."/>
+        tag_list = []
+        if tags:
+            if tags.count(',') == 0 and tags.count(' ') > 1: # no commas and more than one space
+                for tag in tags.split(" "):
+                    tag_list.append(tag.lstrip())
+            else:
+                for tag in tags.split(","):
+                    tag_list.append(tag.lstrip())
+        item['tags'] = tag_list
+
+        # content
+        only_body = SoupStrainer('body')
+        body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
+        for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
+            non_content.decompose()
+        main_html = body_html.find('main')
+        article_html = body_html.find('article')
+        if main_html:
+            content_text = get_text(main_html)
+        elif article_html:
+            content_text = get_text(article_html)
+        else:
+            content_text = get_text(body_html)
+        item['content'] = content_text
+
+        # published_date
+        published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
+        if not published_date: published_date = response.xpath('//meta[@name="dc.date.issued"]/@content').get()
+        if not published_date: published_date = response.xpath('//meta[@itemprop="datePublished"]/@content').get()
+        published_date = convert_string_to_utc_date(published_date)
+        item['published_date'] = published_date
+
+        # contains_adverts
+        # Just looks for Google Ads at the moment
+        contains_adverts = False # assume a page has no adverts unless proven otherwise
+        if response.xpath('//ins[contains(@class,"adsbygoogle")]') != []: contains_adverts = True
+        item['contains_adverts'] = contains_adverts
+
+        # language, e.g. en-GB
+        language = response.xpath('/html/@lang').get()
+        #if language: language = language.lower() # Lowercasing to prevent facetted nav thinking e.g. en-GB and en-gb are different
+        item['language'] = language
+
+        # language_primary, e.g. en
+        language_primary = None
+        if language:
+            language_primary = language[:2] # First two characters, e.g. en-GB becomes en
+        item['language_primary'] = language_primary
+
+    elif isinstance(response, XmlResponse):
+
+        # For XML this will record the rood node name 
+        item['page_type'] = response.xpath('name(/*)').get()
+
+        d = feedparser.parse(response.text)
+        entries = d.entries
+        version = None
+        if entries:
+            version = d.version
+            item['is_web_feed'] = True
+
 
     return item
