@@ -1,7 +1,11 @@
 mod-wsgi
 pyrsistent
 # werkzeug<=2.1.2 required to avoid ImportError: cannot import name 'parse_rule' from 'werkzeug.routing'
-werkzeug<=2.1.2
+#werkzeug<=2.1.2
+# Temporarily downgrading werkzeug because werkzeug<=2.1.2 breaks the API with "The browser (or proxy) sent a request that this server could not understand." (I think it is something to do with the new reqparse)
+werkzeug==1.0.1
+# Downgrading werkzeug requires downgrading MarkupSafe to avoid "cannot import name 'soft_unicode' from 'markupsafe'" error
+MarkupSafe==1.1.1
 flask
 flask-restx
 # Builds fail with "Error: pg_config executable not found" with latest psycopg2-binary releases (2.9, 2.9.1, 2.9.2, 2.9.3) so using 2.8.6
