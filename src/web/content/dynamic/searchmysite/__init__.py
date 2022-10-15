@@ -1,6 +1,6 @@
 from flask import Flask, Blueprint
 import os
-from flask_restx import Api
+#from flask_restx import Api
 from logging.config import dictConfig
 
 def create_app(test_config=None):
