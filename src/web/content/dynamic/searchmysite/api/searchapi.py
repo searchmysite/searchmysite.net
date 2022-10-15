@@ -71,7 +71,15 @@ def search(domain):
         query = request.args.get('q', '*')
         if query == '': query = '*'
         page = request.args.get('page', 1)
+        try:
+            page = int(page)
+        except:
+            page = 1
         resultsperpage = request.args.get('resultsperpage', 10)
+        try:
+            resultsperpage = int(resultsperpage)
+        except:
+            resultsperpage = 10
         start = (page * resultsperpage) - resultsperpage
         # Do search
         solrurl = current_app.config['SOLR_URL']
