@@ -1,9 +1,9 @@
 from flask import (
-    Blueprint, request, current_app
+    Blueprint, jsonify, request, current_app, make_response
 )
-from flask_restx import Resource, Namespace, Api, reqparse, fields, marshal_with, abort
 from urllib.request import urlopen
 from urllib.parse import quote
+from datetime import datetime
 import psycopg2.extras
 import json
 import os
@@ -11,30 +11,28 @@ from searchmysite.db import get_db
 
 bp = Blueprint('api', __name__)
 
-api = Api(bp, version='1.0', title='Search My Site API', description='API for Search My Site search as a service')
-ns = api.namespace("search", description="Search")
-
-# /api/v1/search/<domain>?q=
-# <domain> maps to fq=domain%3A<domain>
-# q [query param]
-# page [default 1 - generate solr's start via (current_page * rows) - rows]
-# resultsperpage [default 10 - maps to solr's rows]
-# sort [default score desc - maps to solr's sort]
-# fields [default url, title, description, keywords, score]
-parser = reqparse.RequestParser()
-parser.add_argument('q', type=str, default="", help='Query string')
-#parser.add_argument('filter', type=str, default="", help='Filter query for name=value')
-parser.add_argument('page', type=int, default=1, help='Page number of results list')
-parser.add_argument('resultsperpage', type=int, default=10, help='Number of results per page')
-#parser.add_argument('fields', type=str, default="id,url,title,description,keywords,last_modified_date,language", help='Fields to include for each result')
-
 split_text = '--split-here--'
 solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
-# Fields not currently returned are: domain, is_home, content, date_domain_added, contains_adverts, owner_verified, indexed_inlinks_count, indexed_inlink_domains_count
 
 sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
-# Results are returned in the following format, with all fields optional apart from id and url (which will have the same value):
+# Full URL:
+#   /api/v1/search/<domain>?q=<query>
+#
+# Parameters:
+#   <domain>: the domain being searched (mandatory)
+#   q: query string (mandatory, default *)
+#   page: the page number from which multi-page results should start (optional, default 1)
+#   resultsperpage: the number of results per page (optional, default 10)
+#
+# Responses:
+#   Domain not found:
+#     404 {"message": "Domain <domain> not found"}
+#   Domain does not have API enabled:
+#     400 {"message": "Domain <domain> does not have the API enabled"}
+#   No results:
+#     200 {"params": {"q": "<query>", "page": 1, "resultsperpage": 10}, "totalresults": 0, "results": []}
+#   Results:
 #{
 #  "params": {
 #    "q": "*",
@@ -60,81 +58,48 @@ sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);
 #    }
 #  ]
 #}
-results_fields = {
-    'id': fields.String,
-    'url': fields.String,
-    'title': fields.String,
-    'author': fields.String,
-    'description': fields.String,
-    'tags': fields.List(fields.String),
-    'page_type': fields.String,
-    'page_last_modified': fields.DateTime(dt_format='iso8601'),
-    'published_date': fields.DateTime(dt_format='iso8601'),
-    'language': fields.String,
-    'indexed_inlinks': fields.List(fields.String),
-    'indexed_outlinks': fields.List(fields.String),
-    'fragment': fields.List(fields.String),
-}
-resource_fields = api.model('Resource', {
-})
-resource_fields['params'] = {}
-resource_fields['params']['q'] = fields.String
-#resource_fields['params']['filter'] = fields.String(attribute='fq')
-resource_fields['params']['page'] = fields.Integer
-resource_fields['params']['resultsperpage'] = fields.Integer
-#resource_fields['params']['fields'] = fields.String
-resource_fields['totalresults'] = fields.Integer
-resource_fields['results'] = fields.List(fields.Nested(results_fields, skip_none=True))
-
-
-class SearchDao(object):
-    #def __init__(self, q, fq, totalresults, page, resultsperpage, results):
-    def __init__(self, q, totalresults, page, resultsperpage, results):
-        self.q = q
-        #self.fq = fq
-        self.totalresults = totalresults
-        self.page = page
-        self.resultsperpage = resultsperpage
-        #self.fields = fields
-        self.results = results
-        # This field will not be sent in the response
-        self.status = 'active'
-
-@ns.route("/<domain>")
-class Search(Resource):
-    @marshal_with(resource_fields)
-    @api.doc(responses={
-        200: 'Success',
-        400: 'Validation Error'
-    })
-    @api.expect(parser)
-    def get(self, domain):
-        abort_if_api_not_enabled_for_domain(domain)
-        # get params
-        args = parser.parse_args(strict=True)
-        q = args['q']
-        #if 'filter' in args:
-        #    fq = args['filter']
-        #    fq_string = '&fq={}'.format(fq)
-        #else:
-        #    fq = ''
-        #    fq_string = ''
-        page = args['page']
-        resultsperpage = args['resultsperpage']
+#
+@bp.route('/search/<domain>', methods=['GET']) # the /api/v1 URL prefix is set in ../__init__.py
+def search(domain):
+    api_enabled = check_if_api_enabled_for_domain(domain)
+    if api_enabled is None:
+        return error_response(404, message="Domain {} not found".format(domain))
+    elif api_enabled is False:
+        return error_response(400, message="Domain {} does not have the API enabled".format(domain))
+    else:
+        # Get params
+        query = request.args.get('q', '*')
+        if query == '': query = '*'
+        page = request.args.get('page', 1)
+        resultsperpage = request.args.get('resultsperpage', 10)
         start = (page * resultsperpage) - resultsperpage
-        #fields = args['fields']
-        # do search
+        # Do search
         solrurl = current_app.config['SOLR_URL']
-        #queryurl = solrurl + solrquery.format(q, start, resultsperpage, domain, fq_string)
-        queryurl = solrurl + solrquery.format(quote(q), start, resultsperpage, domain, split_text, split_text)
+        queryurl = solrurl + solrquery.format(quote(query), start, resultsperpage, domain, split_text, split_text)
         connection = urlopen(queryurl)
         response = json.load(connection)
+        # Process results, i.e. get data, reformat dates, and add fragment
         totalresults = response['response']['numFound']
         results = response['response']['docs']
         for result in results:
+            if 'page_last_modified' in result:
+                result['page_last_modified'] = convert_java_utc_string_to_python_utc_string(result['page_last_modified'])
+            if 'published_date' in result:
+                result['published_date'] = convert_java_utc_string_to_python_utc_string(result['published_date'])
             url = result['url']
             if response['highlighting'][url]:
                 result['fragment'] = response['highlighting'][url]['content'][0].split(split_text)
+        # Construct results response
+        current_app.config['JSON_SORT_KEYS'] = False # Make sure the order is preserved (not essential, but I like seeing e.g. params before results and id as the first value in results)
+        response = {}
+        params = {}
+        params['q'] = query
+        params['page'] = page
+        params['resultsperpage'] = resultsperpage
+        response['params'] = params
+        response['totalresults'] = totalresults
+        response['results'] = results
+        # Add the Access-Control-Allow-Origin header
         host = request.host_url
         origin = request.headers.get('Origin')
         if host.startswith('http://localhost') or host.startswith('https://localhost'):
@@ -143,19 +108,42 @@ class Search(Resource):
             alloworigin = origin
         else:
             alloworigin = 'https://' + domain
-        return SearchDao(q=q, totalresults=totalresults, page=page, resultsperpage=resultsperpage, results=results), 200, {'Access-Control-Allow-Origin': alloworigin}
+        # Return
+        resp = make_response(jsonify(response))
+        resp.headers['Access-Control-Allow-Origin'] = alloworigin
+        return resp
 
-
-# Return a 400 error is the API is not enabled for the domain
+# Checks if the API is enabled or not for a domain
+# Returns True or False, or None is the domain isn't found
 # Requires a database lookup for every API request, which isn't ideal
-def abort_if_api_not_enabled_for_domain(domain):
+def check_if_api_enabled_for_domain(domain):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(sql_check_api_enabled, (domain,))
     result = cursor.fetchone()
-    if result['api_enabled'] == True:
+    if not result:
+        api_enabled_for_domain = None
+    elif result['api_enabled'] == True:
         api_enabled_for_domain = True
-    else:
+    elif result['api_enabled'] == False:
         api_enabled_for_domain = False
-    if not api_enabled_for_domain:
-        abort(400, message="Domain {} does not have the API enabled".format(domain))
+    else:
+        api_enabled_for_domain = None
+    return api_enabled_for_domain
+
+def error_response(status_code, message=None):
+    #payload = {'error': HTTP_STATUS_CODES.get(status_code, 'Unknown error')}
+    payload = {}
+    if message:
+        payload['message'] = message
+    response = jsonify(payload)
+    response.status_code = status_code
+    return response
+
+# Convert the UTC time returned by Solr in Java's DateTimeFormatter.ISO_INSTANT format,
+# i.e. YYYY-MM-DDThh:mm:ssZ      e.g. 2022-08-14T14:50:45Z
+# to Python's UTC time in ISO 8601 format
+# i.e. YYYY-MM-DDThh:mm:ss+00:00 e.g. 2022-08-14T14:50:45+00:00
+def convert_java_utc_string_to_python_utc_string(input):
+    output = datetime.strptime(input, "%Y-%m-%dT%H:%M:%S%z").isoformat()
+    return output
