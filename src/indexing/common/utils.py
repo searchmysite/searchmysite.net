@@ -341,6 +341,7 @@ def get_already_indexed_links(domain):
 #    simplifying the searching logic.
 
 def web_feed_and_sitemap(domain, items):
+    preferred_feeds = ['/posts/index.xml', '/feed/', '/feed', '/feed.xml', '/feed/rss', '/feeds/all.xml', '/feeds/all.atom.xml', '/blog/atom', '/blog/atom.xml', '/blog/index.xml', '/blog/feed.xml', '/blog?format=rss', '/blog/feeds/all.xml', '/notes/index.xml', '/index.xml', '/atom.xml', '/rss.xml', '/rss']
     logger = logging.getLogger()
     web_feed = None
     sitemap = None
@@ -367,8 +368,24 @@ def web_feed_and_sitemap(domain, items):
                 if item['content_type'][-3:] == 'xml':
                     if item['url'][-11:] == 'sitemap.xml':
                         sitemap_auto_discovered = item['url']
+        # This iterates through the ordered preferred feeds list and checks against each of the discovered feeds. 
+        # The first match that is found, i.e. the closest to the top of the preferred list, is selected.
+        # If no feeds that match the preferred list, then the first is selected.
         if len(web_feeds) > 1:
-            logger.info('More than one potential web feed: {}'.format(web_feeds)) # May need logic to chose between them if there are many
+            match_found = False
+            for preferred_feed in preferred_feeds:
+                for web_feed in web_feeds:
+                    if web_feed.endswith(preferred_feed):
+                        web_feed_auto_discovered = web_feed
+                        match_found = True
+                        break # break out of inner loop, i.e. for web_feed in web_feeds 
+                if match_found:
+                    break # break out of outer loop, i.e. for preferred_feed in preferred_feeds, if broken out of inner loop
+            if match_found == True:
+                logger.info('Multiple web feeds: {}. Choosing best match: {}'.format(web_feeds, web_feed_auto_discovered))
+            else:
+                web_feed_auto_discovered = web_feeds[0]
+                logger.info('Multiple web feeds: {}. Choosing the first: {}'.format(web_feeds, web_feed_auto_discovered))
         # Step 3: Update the system generated values based on the current indexing job
         cursor.execute(sql_update_auto_discovered, (web_feed_auto_discovered, sitemap_auto_discovered, domain,))
         conn.commit()
