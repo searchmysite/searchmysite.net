@@ -5,8 +5,8 @@ def test_search(anon_client, add_basic_details, add_full_details):
     assert response.status_code == 200
     assert b"<title>Search My Site - Results</title>" in response.data
     assert b"results for <em>query = *</em>" in response.data # This is the message shown when there are 1 or more results
-    assert b"results found for <em>query = *</em>" not in response.data # This is the message shown when there are no results
-    assert b"Search engine for personal websites" not in response.data # This is the text on the home page, i.e. /, rather than /search/
+    assert b"No results found for <em>query = *</em>" not in response.data # This is the message shown when there are no results
+    assert b"searchmysite.net is an open source search engine and search as a service" not in response.data # This is the text on the home page, i.e. /, rather than /search/
     assert bytes('class="result-link">{}</a>'.format(pytest.add_basic_home_page).encode('utf-8')) in response.data
     assert bytes('class="result-link">{}</a>'.format(pytest.add_full_home_page).encode('utf-8')) in response.data
 
