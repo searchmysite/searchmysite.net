@@ -5,7 +5,7 @@ from os import environ
 import psycopg2.extras
 from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
-from searchmysite.util import delete_domain
+from searchmysite.adminutils import delete_domain
 import config
 
 bp = Blueprint('admin', __name__)

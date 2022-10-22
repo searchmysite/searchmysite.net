@@ -11,7 +11,7 @@ import json
 import config
 from searchmysite.admin.auth import login_required, set_login_session, get_login_session
 from searchmysite.db import get_db
-from searchmysite.util import delete_domain, insert_subscription
+from searchmysite.adminutils import delete_domain, insert_subscription
 
 bp = Blueprint('manage', __name__)
 

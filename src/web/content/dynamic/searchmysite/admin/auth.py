@@ -6,7 +6,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from searchmysite.db import get_db
-from searchmysite.util import generate_validation_key, extract_domain, send_email, get_host
+from searchmysite.adminutils import generate_validation_key, extract_domain, send_email, get_host
 import requests
 
 sql_select = "SELECT l.status, l.tier, d.email, d.password, d.login_type FROM tblDomains d "\

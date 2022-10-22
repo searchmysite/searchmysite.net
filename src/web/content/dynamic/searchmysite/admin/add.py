@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash
 import psycopg2.extras
 from os import environ
 from searchmysite.db import get_db
-from searchmysite.util import extract_domain, generate_validation_key, check_for_validation_key, get_host, insert_subscription
+from searchmysite.adminutils import extract_domain, generate_validation_key, check_for_validation_key, get_host, insert_subscription
 import requests
 import subprocess
 

@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 from os import environ
-from searchmysite.util import send_email
+from searchmysite.adminutils import send_email
 
 bp = Blueprint('contact', __name__)
 

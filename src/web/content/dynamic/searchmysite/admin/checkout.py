@@ -2,7 +2,7 @@ from flask import (
     Blueprint, render_template, request, url_for, current_app, jsonify
 )
 from os import environ
-from searchmysite.util import get_host
+from searchmysite.adminutils import get_host
 import stripe
 
 bp = Blueprint('checkout', __name__)
