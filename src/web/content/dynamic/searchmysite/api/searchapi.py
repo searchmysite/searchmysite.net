@@ -4,17 +4,15 @@ from flask import (
 from urllib.request import urlopen
 from urllib.parse import quote
 from datetime import datetime
-import psycopg2.extras
 import json
 import os
 from searchmysite.db import get_db
+import config
+import searchmysite.solr
+from searchmysite.searchutils import get_search_params, get_start, check_if_api_enabled_for_domain
+
 
 bp = Blueprint('api', __name__)
-
-split_text = '--split-here--'
-solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
-
-sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
 # Full URL:
 #   /api/v1/search/<domain>?q=<query>
@@ -68,22 +66,11 @@ def search(domain):
         return error_response(400, message="Domain {} does not have the API enabled".format(domain))
     else:
         # Get params
-        query = request.args.get('q', '*')
-        if query == '': query = '*'
-        page = request.args.get('page', 1)
-        try:
-            page = int(page)
-        except:
-            page = 1
-        resultsperpage = request.args.get('resultsperpage', 10)
-        try:
-            resultsperpage = int(resultsperpage)
-        except:
-            resultsperpage = 10
-        start = (page * resultsperpage) - resultsperpage
+        params = get_search_params(request)
+        start = get_start(params['page'], searchmysite.solr.default_results_per_page_api)
         # Do search
-        solrurl = current_app.config['SOLR_URL']
-        queryurl = solrurl + solrquery.format(quote(query), start, resultsperpage, domain, split_text, split_text)
+        solrurl = config.SOLR_URL
+        queryurl = solrurl + searchmysite.solr.solrquery.format(quote(params['q']), start, params['resultsperpage'], domain, searchmysite.solr.split_text, searchmysite.solr.split_text)
         connection = urlopen(queryurl)
         response = json.load(connection)
         # Process results, i.e. get data, reformat dates, and add fragment
@@ -96,15 +83,15 @@ def search(domain):
                 result['published_date'] = convert_java_utc_string_to_python_utc_string(result['published_date'])
             url = result['url']
             if response['highlighting'][url]:
-                result['fragment'] = response['highlighting'][url]['content'][0].split(split_text)
+                result['fragment'] = response['highlighting'][url]['content'][0].split(searchmysite.solr.split_text)
         # Construct results response
         current_app.config['JSON_SORT_KEYS'] = False # Make sure the order is preserved (not essential, but I like seeing e.g. params before results and id as the first value in results)
         response = {}
-        params = {}
-        params['q'] = query
-        params['page'] = page
-        params['resultsperpage'] = resultsperpage
-        response['params'] = params
+        p = {}
+        p['q'] = params['q']
+        p['page'] = params['page']
+        p['resultsperpage'] = params['resultsperpage']
+        response['params'] = p
         response['totalresults'] = totalresults
         response['results'] = results
         # Add the Access-Control-Allow-Origin header
@@ -120,24 +107,6 @@ def search(domain):
         resp = make_response(jsonify(response))
         resp.headers['Access-Control-Allow-Origin'] = alloworigin
         return resp
-
-# Checks if the API is enabled or not for a domain
-# Returns True or False, or None is the domain isn't found
-# Requires a database lookup for every API request, which isn't ideal
-def check_if_api_enabled_for_domain(domain):
-    conn = get_db()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_check_api_enabled, (domain,))
-    result = cursor.fetchone()
-    if not result:
-        api_enabled_for_domain = None
-    elif result['api_enabled'] == True:
-        api_enabled_for_domain = True
-    elif result['api_enabled'] == False:
-        api_enabled_for_domain = False
-    else:
-        api_enabled_for_domain = None
-    return api_enabled_for_domain
 
 def error_response(status_code, message=None):
     #payload = {'error': HTTP_STATUS_CODES.get(status_code, 'Unknown error')}
