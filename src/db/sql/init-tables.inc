@@ -130,10 +130,30 @@ CREATE TABLE tblSettings (
 );
 
 INSERT INTO tblTiers 
-(tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration)
+(tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration) 
 VALUES 
 (1, 'Basic',      '28 days',  '14 days',   50, FALSE, FALSE,  0.00, '£', '1 year'),
 (2, 'Free Trial', '28 days',  '14 days',  100, FALSE,  TRUE,  0.00, '£', '1 month'),
 (3, 'Full',        '7 days', '3.5 days',  500,  TRUE,  TRUE, 12.00, '£', '1 year');
 
+INSERT INTO tblSettings 
+(setting_name, setting_value) 
+VALUES 
+('domain_allowing_subdomains', 'github.io'),
+('domain_allowing_subdomains', 'gitlab.io'),
+('domain_allowing_subdomains', 'netlify.app'),
+('domain_allowing_subdomains', 'codeberg.page'),
+('domain_allowing_subdomains', 'flounder.online'),
+('domain_allowing_subdomains', 'neocities.org'),
+('domain_allowing_subdomains', 'writeas.com'),
+('domain_allowing_subdomains', 'now.sh'),
+('domain_allowing_subdomains', 'tumblr.com'),
+('domain_allowing_subdomains', 'tripod.com'),
+('domain_allowing_subdomains', 'bitbucket.io'),
+('domain_allowing_subdomains', 'eu.org'),
+('domain_allowing_subdomains', 'mataroa.blog'),
+('domain_allowing_subdomains', 'substack.com'),
+('domain_allowing_subdomains', 'ghost.io'),
+('domain_allowing_subdomains', 'blogspot.com'),
+('domain_allowing_subdomains', 'bearblog.dev')
 
