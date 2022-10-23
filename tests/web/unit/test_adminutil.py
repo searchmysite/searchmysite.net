@@ -1,4 +1,4 @@
-from searchmysite.util import extract_domain
+from searchmysite.adminutils import extract_domain
 
 # Might also want to test domain_allowing_subdomains, e.g. user.github.io
 # That would require initialising tblSettings accordingly
