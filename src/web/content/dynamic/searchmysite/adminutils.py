@@ -12,9 +12,10 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from searchmysite.db import get_db
-import config
 import stripe
+from searchmysite.db import get_db
+import searchmysite.solr
+import config
 
 smtp_server = environ.get('SMTP_SERVER')
 smtp_port = environ.get('SMTP_PORT')
@@ -48,12 +49,6 @@ sql_update_free_listing_startandend = "UPDATE tblListingStatus "\
     "SET listing_start = NOW(), "\
         "listing_end = NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = (%s)) "\
     "WHERE domain = (%s) AND tier = (%s);"
-
-# Solr
-
-solr_delete_query = "update?commit=true"
-solr_delete_headers = {'Content-Type': 'text/xml'}
-solr_delete_data = "<delete><query>domain:{}</query></delete>"
 
 
 # This returns a domain when given a URL, e.g. returns michael-lewis.com for https://www.michael-lewis.com/about/
@@ -106,9 +101,9 @@ def check_for_validation_key(domain, prefix, validation_key):
 def delete_domain(domain):
     # Delete from Solr
     solrurl = config.SOLR_URL
-    solrquery = solrurl + solr_delete_query
-    data = solr_delete_data.format(domain)
-    req = Request(solrquery, data.encode("utf8"), solr_delete_headers)
+    solrquery = solrurl + searchmysite.solr.solr_delete_query
+    data = searchmysite.solr.solr_delete_data.format(domain)
+    req = Request(solrquery, data.encode("utf8"), searchmysite.solr.solr_delete_headers)
     response = urlopen(req)
     results = response.read()
     # Delete from database

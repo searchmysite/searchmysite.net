@@ -1,4 +1,6 @@
-# Variables
+# Search config, (defaults etc.)
+# ------------------------------
+
 max_pages_to_display = 10
 default_results_per_page_search = 10
 default_results_per_page_browse = 20
@@ -18,7 +20,9 @@ solr_request_handler = "select" # The custom config in solrconfig.xml, especiall
 solr_request_headers = {'Content-Type': 'text/json'}
 
 
-# Search queries
+# Solr search queries
+# -------------------
+
 # There are 5 search queries. The main differences are the mandatory filter queries:
 # 1. Main search, i.e. queries from the search box. This has to show only public content, and filters out non-web friendly results.
 # 2. Browse Sites search. This has to show only public content, and only home pages.
@@ -26,15 +30,15 @@ solr_request_headers = {'Content-Type': 'text/json'}
 # 4. Random Page search. This is actually 3 sub searches, to find no of sites, no of pages in random site, and details of random page.
 # 5. Site specific API. This is only returned for site where api_enabled, but will return all content in the site (it is down to users to filter).
 
-# Main search query
+# 1. Main search query
 # Notes:
-# 1. defType:edismax is to use the edismax query parser, required for the relevancy tuning defined in solrconfig.xml. edismax
+# a. defType:edismax is to use the edismax query parser, required for the relevancy tuning defined in solrconfig.xml. edismax
 #    (or dismax) is required because the relevancy tuning uses qf and pf which aren't available in the default lucene query parser.
-# 2. mm:2 is must match two words, applicable when the query contains more than two words, so e.g. "book about antarctica" 
+# b. mm:2 is must match two words, applicable when the query contains more than two words, so e.g. "book about antarctica" 
 #    (without the double quotes) will require book and antarctica but not just book.
-# 3. fq is to ensure the public search only contains results marked for the public search and filters out "non web friendly"
+# c. fq is to ensure the public search only contains results marked for the public search and filters out "non web friendly"
 #    results like XML and binary files.
-# 4. group:True is set to False if the query contains domain:<domain>, i.e. someone is searching for content on a specific domain.
+# d. group:True is set to False if the query contains domain:<domain>, i.e. someone is searching for content on a specific domain.
 #    The other group params will be irrelevant when group:False.
 query_params_search = {
     "q": "*:*",
@@ -61,10 +65,10 @@ query_facets_search = {
     "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 12, "sort": "count" }
 }
 
-# Browse query
+# 2. Browse query
 # Notes:
-# 1. Don't need to specify the query parser because browse just has simple ordering with no custom config, e.g. relevancy tuning, required.
-# 2. The fq is the base filter query that must always be present on browse - it may be supplemented by values selected in the filters.
+# a. Don't need to specify the query parser because browse just has simple ordering with no custom config, e.g. relevancy tuning, required.
+# b. The fq is the base filter query that must always be present on browse - it may be supplemented by values selected in the filters.
 query_params_browse = {
     "q": "*:*",
     "start": 0,
@@ -82,9 +86,9 @@ query_facets_browse = {
     "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 8, "sort": "count" }
 }
 
-# Newest pages query
+# 3. Newest pages query
 # Notes:
-# 1. The fq is as per the main search, but also ensures there is a published_date and excludes pages with adverts from this feed
+# a. The fq is as per the main search, but also ensures there is a published_date and excludes pages with adverts from this feed
 query_params_newest = {
     "q": "*:*",
     "defType": "edismax",
@@ -105,7 +109,7 @@ query_params_newest = {
 }
 query_facets_newest = query_facets_search
 
-# Random result queries
+# 4. Random result queries
 query_filter_public = '&fq=public%3Atrue'
 query_filter_content_type = '&fq=!content_type%3A*xml&fq=!content_type%3Aapplication*&fq=!content_type%3Abinary*'
 query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngroups=true'
@@ -113,5 +117,14 @@ random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_p
 random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_filter_public + query_groupbydomain.format('1')
 random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
 
-# API query
+# 5. API query
 solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
+
+
+# Solr update queries
+# -------------------
+
+# Delete queries, used in adminutils
+solr_delete_query = "update?commit=true"
+solr_delete_headers = {'Content-Type': 'text/xml'}
+solr_delete_data = "<delete><query>domain:{}</query></delete>"
