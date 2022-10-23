@@ -188,7 +188,7 @@ and can change the LOG_LEVEL to DEBUG in src/indexing/indexer/settings.py.
 
 The dev Solr docker container copies in the config on build, so a `docker-compose build` is required for each config change.
 
-There also appears to be an issue whereby the `solr-precreate content /opt/solr/server/solr/configsets/content` doesn't actually load the new config after a `docker-compose build`, so the following steps are required to apply Solr config changes:
+Note that the `solr-precreate content /opt/solr/server/solr/configsets/content` doesn't actually load the new config after a `docker-compose build`, so the following steps are required to apply Solr config changes:
 ```
 docker-compose build
 docker-compose up -d
