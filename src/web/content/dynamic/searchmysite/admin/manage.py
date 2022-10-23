@@ -12,30 +12,10 @@ import config
 from searchmysite.admin.auth import login_required, set_login_session, get_login_session
 from searchmysite.db import get_db
 from searchmysite.adminutils import delete_domain, insert_subscription
+import searchmysite.sql
+
 
 bp = Blueprint('manage', __name__)
-
-
-# SQL
-
-sql_select_domains = "SELECT * FROM tblDomains WHERE domain = (%s);"
-sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
-sql_select_subscriptions = "SELECT t.tier_name, s.subscribed, s.subscription_start, s.subscription_end, s.payment FROM tblSubscriptions s INNER JOIN tblTiers t on s.tier = t.tier WHERE DOMAIN = (%s) ORDER BY s.subscription_start ASC;"
-sql_update_value = "UPDATE tblDomains SET %s = (%s) WHERE domain = (%s);"
-sql_insert_filter = "INSERT INTO tblIndexingFilters VALUES ((%s), 'exclude', (%s), (%s));"
-sql_delete_filter = "DELETE FROM tblIndexingFilters WHERE domain = (%s) AND action = 'exclude' AND type = (%s) AND VALUE = (%s);"
-sql_update_indexing_status = "UPDATE tblDomains SET indexing_status = 'PENDING', indexing_status_changed = now() WHERE domain = (%s); "\
-    "INSERT INTO tblIndexingLog VALUES ((%s), 'PENDING', now());"
-sql_select_tier = "SELECT l.status, l.tier, t.tier_name, l.listing_end FROM tblListingStatus l INNER JOIN tblTiers t ON t.tier = l.tier WHERE l.domain = (%s) AND l.status = 'ACTIVE' ORDER BY tier DESC LIMIT 1;"
-sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = 2; "\
-    "INSERT INTO tblListingStatus (domain, tier, status, status_changed, listing_start, listing_end) "\
-    "VALUES ((%s), 3, 'ACTIVE', NOW(), NOW(), NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = 3)) "\
-    "  ON CONFLICT (domain, tier) "\
-    "  DO UPDATE SET "\
-    "    status = EXCLUDED.status, "\
-    "    status_changed = EXCLUDED.status_changed, "\
-    "    listing_start = EXCLUDED.listing_start, "\
-    "    listing_end = EXCLUDED.listing_end;"
 
 
 # These are the forms on Manage Site
@@ -90,7 +70,7 @@ def sitedetails():
             if any(row['label'] == edited_field_name for row in manage_details_form): # Make sure a label with that value exists
                 edited_field_value = request.form.get(edited_field_name)
                 current_app.logger.debug('edited field name: {}, value: {}'.format(edited_field_name, edited_field_value))
-                cursor.execute(sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
+                cursor.execute(searchmysite.sql.sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
                 conn.commit()
         manage_details_data = get_manage_data(domain, manage_details_form)
         return render_template('admin/manage-sitedetails.html', manage_details_form=manage_details_form, manage_details_data=manage_details_data)
@@ -116,29 +96,29 @@ def indexing():
                 else:
                     edited_field_value = request.form.get(edited_field_name)
                 current_app.logger.debug('edited field name: {}, value: {}'.format(edited_field_name, edited_field_value))
-                cursor.execute(sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
+                cursor.execute(searchmysite.sql.sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
                 conn.commit()
         # If they've clicked Delete Path or Save Path in Exclude Path section
         if request.form.get('delete_exclude_path'):
             delete_exclude_path = request.form.get('delete_exclude_path')
             #current_app.logger.debug('delete_exclude_path: {}'.format(delete_exclude_path))
-            cursor.execute(sql_delete_filter, (domain, "path", delete_exclude_path, ))
+            cursor.execute(searchmysite.sql.sql_delete_filter, (domain, "path", delete_exclude_path, ))
             conn.commit()
         if request.form.get('save_exclude_path'):
             save_exclude_path = request.form.get('save_exclude_path')
             #current_app.logger.debug('save_exclude_path: {}'.format(save_exclude_path))
-            cursor.execute(sql_insert_filter, (domain, "path", save_exclude_path, ))
+            cursor.execute(searchmysite.sql.sql_insert_filter, (domain, "path", save_exclude_path, ))
             conn.commit()
         # If they've clicked Type Path or Save Type in Exclude Type section
         if request.form.get('delete_exclude_type'):
             delete_exclude_type = request.form.get('delete_exclude_type')
             #current_app.logger.debug('delete_exclude_type: {}'.format(delete_exclude_type))
-            cursor.execute(sql_delete_filter, (domain, "type", delete_exclude_type, ))
+            cursor.execute(searchmysite.sql.sql_delete_filter, (domain, "type", delete_exclude_type, ))
             conn.commit()
         if request.form.get('save_exclude_type'):
             save_exclude_type = request.form.get('save_exclude_type')
             #current_app.logger.debug('save_exclude_type: {}'.format(save_exclude_type))
-            cursor.execute(sql_insert_filter, (domain, "type", save_exclude_type, ))
+            cursor.execute(searchmysite.sql.sql_insert_filter, (domain, "type", save_exclude_type, ))
             conn.commit()
         manage_indexing_data = get_manage_data(domain, manage_indexing_form)
         return render_template('admin/manage-indexing.html', manage_indexing_form=manage_indexing_form, manage_indexing_data=manage_indexing_data)
@@ -172,7 +152,7 @@ def reindex():
     (domain, method, is_admin) = get_login_session()
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_update_indexing_status, (domain, domain, ))
+    cursor.execute(searchmysite.sql.sql_update_indexing_status, (domain, domain, ))
     conn.commit()
     message = 'The site has been queued for reindexing. You can check on progress by refreshing this page.'
     flash(message)
@@ -186,12 +166,12 @@ def renew_subscription_success():
     (domain, method, is_admin) = get_login_session()
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_tier, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_tier, (domain,))
     result = cursor.fetchone()
     if result:
         if result['tier'] == 2:
             current_app.logger.info('Current tier for {} is tier 2, and user has pressed Purchase, so need to upgrade to tier 3'.format(domain))
-            cursor.execute(sql_upgrade_tier2_to_tier3, (domain, domain,))
+            cursor.execute(searchmysite.sql.sql_upgrade_tier2_to_tier3, (domain, domain,))
             conn.commit()
     tier = 3 # Hardcoding to tier 3 for now given it is the only paid for option at the moment (if they're currently tier 2 we don't want them paying to renew tier 2)
     current_app.logger.info('Purchasing subscription for domain {}, tier {}'.format(domain, tier))
@@ -208,7 +188,7 @@ def get_manage_data(domain, manage_form):
     manage_data = {}
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_domains, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_domains, (domain,))
     result = cursor.fetchone()
     # Get data matching all the fields on the form spec, with exceptions for next_reindex web_feed
     for form_item in manage_form:
@@ -246,7 +226,7 @@ def get_manage_data(domain, manage_form):
         manage_data['on_demand_reindexing'] = result['on_demand_reindexing']
     exclude_paths = []
     exclude_types = []
-    cursor.execute(sql_select_filters, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_filters, (domain,))
     filter_results = cursor.fetchall()
     if filter_results:
         for filter in filter_results:
@@ -261,7 +241,7 @@ def get_tier_data(domain):
     tier = {}
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_tier, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_tier, (domain,))
     results = cursor.fetchall()
     if results:
         for result in results:
@@ -278,7 +258,7 @@ def get_subscription_data(domain):
     subscriptions = []
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_subscriptions, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_subscriptions, (domain,))
     results = cursor.fetchall()
     if results:
         for result in results:

@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 import stripe
 from searchmysite.db import get_db
 import searchmysite.solr
+import searchmysite.sql
 import config
 
 smtp_server = environ.get('SMTP_SERVER')
@@ -22,33 +23,6 @@ smtp_port = environ.get('SMTP_PORT')
 smtp_from_email = environ.get('SMTP_FROM_EMAIL')
 smtp_from_password = environ.get('SMTP_FROM_PASSWORD')
 smtp_to_email = environ.get('SMTP_TO_EMAIL')
-
-
-# SQL
-
-sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
-
-# Delete tables with foreign keys before finally deleting from tblDomains
-# Note there may still be references to the domain in tblSubscriptions and tblIndexingLog, but we want to keep those and they don't have a foreign key
-sql_delete_domain = "DELETE FROM tblValidations WHERE domain = (%s); DELETE FROM tblPermissions WHERE domain = (%s); DELETE FROM tblListingStatus WHERE domain = (%s); DELETE FROM tblIndexingFilters WHERE domain = (%s); DELETE FROM tblDomains WHERE domain = (%s);"
-
-# The SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()
-# returns the latest subscription end date, if the subscription end date is in the future, or NOW() if none is set, so that subscriptions can be "stacked"
-sql_insert_full_subscription = "INSERT INTO tblSubscriptions (domain, tier, subscribed, subscription_start, subscription_end, payment, payment_id) "\
-    "VALUES ((%s), (%s), NOW(), "\
-        "(SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()), "\
-        "(SELECT coalesce(MAX(subscription_end),NOW()) AS subscription_end FROM tblSubscriptions WHERE domain = (%s) AND subscription_end > NOW()) + (SELECT listing_duration FROM tblTiers WHERE tier = (%s)), "\
-        "(SELECT cost_amount FROM tblTiers WHERE tier = (%s)), (%s));"
-
-sql_update_full_listing_startandend = "UPDATE tblListingStatus "\
-    "SET listing_start = NOW(), "\
-        "listing_end = (SELECT MAX(subscription_end) FROM tblSubscriptions WHERE domain = (%s)) "\
-    "WHERE domain = (%s) AND tier = (%s);"
-
-sql_update_free_listing_startandend = "UPDATE tblListingStatus "\
-    "SET listing_start = NOW(), "\
-        "listing_end = NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = (%s)) "\
-    "WHERE domain = (%s) AND tier = (%s);"
 
 
 # This returns a domain when given a URL, e.g. returns michael-lewis.com for https://www.michael-lewis.com/about/
@@ -67,7 +41,7 @@ def extract_domain(url):
     domains_allowing_subdomains = []
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_domains_allowing_subdomains)
+    cursor.execute(searchmysite.sql.sql_select_domains_allowing_subdomains)
     results = cursor.fetchall()
     for result in results:
         domains_allowing_subdomains.append(result['setting_value'])
@@ -109,7 +83,7 @@ def delete_domain(domain):
     # Delete from database
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_delete_domain, (domain, domain, domain, domain, domain,))
+    cursor.execute(searchmysite.sql.sql_delete_domain, (domain, domain, domain, domain, domain,))
     conn.commit()
 
 # reply_to_email and to_email optional.
@@ -159,8 +133,8 @@ def insert_subscription(domain, tier):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     if tier == 2:
-        cursor.execute(sql_update_free_listing_startandend, (tier, domain, tier))
+        cursor.execute(searchmysite.sql.sql_update_free_listing_startandend, (tier, domain, tier))
     if tier == 3:
-        cursor.execute(sql_insert_full_subscription, (domain, tier, domain, domain, tier, tier, payment_intent))
-        cursor.execute(sql_update_full_listing_startandend, (domain, domain, tier))
+        cursor.execute(searchmysite.sql.sql_insert_full_subscription, (domain, tier, domain, domain, tier, tier, payment_intent))
+        cursor.execute(searchmysite.sql.sql_update_full_listing_startandend, (domain, domain, tier))
     conn.commit()

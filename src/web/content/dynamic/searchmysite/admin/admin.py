@@ -7,43 +7,10 @@ from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
 from searchmysite.adminutils import delete_domain
 import config
+import searchmysite.solr
+
 
 bp = Blueprint('admin', __name__)
-
-# SQL 
-
-sql_select = 'SELECT home_page FROM tblDomains WHERE domain = (%s);'
-
-sql_select_basic_pending = "SELECT d.domain, d.home_page, d.category, d.domain_first_submitted FROM tblDomains d "\
-    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
-    "WHERE l.status = 'PENDING' AND l.tier = 1 AND l.pending_state = 'MODERATOR_REVIEW' "\
-    "ORDER BY l.listing_end DESC, l.tier ASC;"
-
-sql_update_basic_approved = "UPDATE tblListingStatus "\
-    "SET status = 'ACTIVE', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW(), listing_start = NOW(), listing_end = NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = 1) "\
-    "WHERE domain = (%s) AND status = 'PENDING' AND tier = 1 AND pending_state = 'MODERATOR_REVIEW'; "\
-    "UPDATE tblDomains SET "\
-    "moderator_approved = TRUE, "\
-    "moderator = (%s), "\
-    "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
-    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
-    "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
-    "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
-    "api_enabled = tblTiers.default_api_enabled, "\
-    "indexing_enabled = TRUE, "\
-    "indexing_status = 'PENDING', "\
-    "indexing_status_changed = NOW() "\
-    "FROM tblTiers WHERE tblTiers.tier = 1 and tblDomains.domain = (%s);"
-
-sql_update_basic_reject = "UPDATE tblListingStatus "\
-    "SET status = 'DISABLED', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = 1; "\
-    "UPDATE tblDomains SET "\
-    "moderator_approved = FALSE, "\
-    "moderator = (%s), "\
-    "moderator_action_reason = (%s), "\
-    "moderator_action_changed = NOW() "\
-    "WHERE domain = (%s);"
 
 
 actions_list = [
@@ -67,7 +34,7 @@ actions_list = [
 def review():
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_basic_pending)
+    cursor.execute(searchmysite.solr.sql_select_basic_pending)
     results = cursor.fetchall()
     if request.method == 'GET':
         review_form = [] # Form will be constructed from a list of dicts, where the dict will have domain, home, category, date and actions values, and actions will be a list
@@ -97,7 +64,7 @@ def review():
                     message += '<li>domain: {}, action: {}</li>'.format(domain, action)                    
                     if action == "approve":
                         moderator = session['logged_in_domain']
-                        cursor.execute(sql_update_basic_approved, (domain, moderator, domain, ))
+                        cursor.execute(searchmysite.solr.sql_update_basic_approved, (domain, moderator, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
                         if action == "reject-notpersonal":
@@ -115,7 +82,7 @@ def review():
                         else:
                             reason = "Reason not listed"
                         moderator = session['logged_in_domain']
-                        cursor.execute(sql_update_basic_reject, (domain, moderator, reason, domain))
+                        cursor.execute(searchmysite.solr.sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)
@@ -133,7 +100,7 @@ def remove():
         # Check if domain exists first
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql_select, (domain, ))
+        cursor.execute(searchmysite.solr.sql_select_home_page, (domain, ))
         results = cursor.fetchone()
         if results:
             delete_domain(domain)

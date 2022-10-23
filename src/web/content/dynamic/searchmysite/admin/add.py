@@ -5,72 +5,13 @@ from werkzeug.security import generate_password_hash
 import psycopg2.extras
 from os import environ
 from searchmysite.db import get_db
+import searchmysite.sql
 from searchmysite.adminutils import extract_domain, generate_validation_key, check_for_validation_key, get_host, insert_subscription
 import requests
 import subprocess
 
+
 bp = Blueprint('add', __name__)
-
-
-# SQL
-
-sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
-    "FROM tblTiers;"
-
-# Selects the status of the highest listed tier (whether active or not)
-sql_select_status = "SELECT l.status, l.tier, l.pending_state, d.moderator_approved, d.moderator_action_reason, d.indexing_enabled, d.indexing_disabled_reason, d.home_page, d.login_type, d.category FROM tblDomains d "\
-    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
-    "WHERE d.domain = (%s) "\
-    "ORDER BY l.tier DESC;"
-
-sql_insert_domain = "INSERT INTO tblDomains "\
-    "(domain, home_page, domain_first_submitted, category, include_in_public_search, indexing_type) "\
-    "VALUES ((%s), (%s), NOW(), (%s), TRUE, 'spider/default');"
-
-sql_insert_basic_listing = "INSERT INTO tblListingStatus (domain, tier, status, status_changed, pending_state, pending_state_changed) "\
-    "VALUES ((%s), (%s), 'PENDING', NOW(), 'MODERATOR_REVIEW', NOW());"
-
-sql_insert_freefull_listing = "INSERT INTO tblListingStatus (domain, tier, status, status_changed, pending_state, pending_state_changed) "\
-    "VALUES ((%s), (%s), 'PENDING', NOW(), 'LOGIN_AND_VALIDATION_METHOD', NOW());"
-
-sql_update_freefull_step1 = "UPDATE tblDomains "\
-    "SET include_in_public_search = (%s), login_type = (%s) WHERE domain = (%s);"\
-    "UPDATE tblListingStatus "\
-    "SET pending_state = (%s), pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = (%s);"
-
-sql_update_freefull_step2 = "UPDATE tblDomains "\
-    "SET email = (%s), password = (%s) WHERE domain = (%s);"\
-    "UPDATE tblListingStatus "\
-    "SET pending_state = (%s), pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = (%s);"\
-    "INSERT INTO tblValidations "\
-    "(domain, validation_method, validation_key) "\
-    "VALUES ((%s), (%s), (%s));"
-
-sql_update_freefull_step3 = "UPDATE tblListingStatus "\
-    "SET pending_state = 'PAYMENT', pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = (%s);"
-
-sql_update_freefull_validated = "UPDATE tblValidations "\
-    "SET validation_success = TRUE, validation_date = NOW() "\
-    "WHERE domain = (%s);"
-
-sql_update_freefull_approved = "UPDATE tblListingStatus "\
-    "SET status = 'ACTIVE', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW() "\
-    "WHERE domain = (%s) AND tier = (%s); "\
-    "UPDATE tblDomains SET "\
-    "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
-    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
-    "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
-    "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
-    "api_enabled = tblTiers.default_api_enabled, "\
-    "indexing_enabled = TRUE, "\
-    "indexing_status = 'PENDING', "\
-    "indexing_status_changed = NOW() "\
-    "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
-
-sql_select_validation_key = "SELECT validation_key FROM tblValidations WHERE domain = (%s);"
 
 
 # User message strings
@@ -99,7 +40,7 @@ def add():
         # Check if home page has been submitted already and if so what its status is
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql_select_status, (domain,))
+        cursor.execute(searchmysite.sql.sql_select_status, (domain,))
         result = cursor.fetchone()
         # Route to the next stage of the Add Site workflow
         if not home_page or not site_category or not tier: # There is client-side validation so this shouldn't be possible
@@ -107,10 +48,10 @@ def add():
             flash(message)
             return render_template('admin/add.html', tiers=tiers)
         elif not result: # Domain hasn't previously been submitted
-            cursor.execute(sql_insert_domain, (domain, home_page, site_category))
+            cursor.execute(searchmysite.sql.sql_insert_domain, (domain, home_page, site_category))
             conn.commit()
             if tier == 1:
-                cursor.execute(sql_insert_basic_listing, (domain, tier))
+                cursor.execute(searchmysite.sql.sql_insert_basic_listing, (domain, tier))
                 conn.commit()
                 return render_template('admin/add-success.html', tier=tier)
             elif tier == 2 or tier == 3:
@@ -176,7 +117,7 @@ def step1():
             else: pending_state = 'EMAIL' # i.e. login_type == 'INDIEAUTH'
             conn = get_db()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            cursor.execute(sql_update_freefull_step1, (include_public, login_type, domain, pending_state, domain, tier))
+            cursor.execute(searchmysite.sql.sql_update_freefull_step1, (include_public, login_type, domain, pending_state, domain, tier))
             conn.commit()
             return redirect(url_for('add.step2'))
 
@@ -209,7 +150,7 @@ def step2():
             else:
                 conn = get_db()
                 cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                cursor.execute(sql_update_freefull_step2, (email, password, domain, pending_state, domain, tier, domain, validation_method, validation_key))
+                cursor.execute(searchmysite.sql.sql_update_freefull_step2, (email, password, domain, pending_state, domain, tier, domain, validation_method, validation_key))
                 conn.commit()
                 return redirect(url_for('add.step3'))
 
@@ -222,7 +163,7 @@ def step3():
         if login_type == 'PASSWORD':
             conn = get_db()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            cursor.execute(sql_select_validation_key, (domain,))
+            cursor.execute(searchmysite.sql.sql_select_validation_key, (domain,))
             result = cursor.fetchone()
             validation_key = result['validation_key']
             if request.method == 'GET':
@@ -233,10 +174,10 @@ def step3():
                 if validation_method == 'DCV': # i.e. if the ownership verification has succeeded
                     indexable = check_a_site_can_be_indexed(domain, home_page)
                     if indexable: # i.e. if the site is indexable
-                        cursor.execute(sql_update_freefull_validated, (domain,))
+                        cursor.execute(searchmysite.sql.sql_update_freefull_validated, (domain,))
                         conn.commit()
                         if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
-                            cursor.execute(sql_update_freefull_step3, (domain, tier))
+                            cursor.execute(searchmysite.sql.sql_update_freefull_step3, (domain, tier))
                             conn.commit()
                             return redirect(url_for('add.step4'))
                         else:
@@ -282,10 +223,10 @@ def step3():
                         if indexable: # i.e. if the site is indexable
                             conn = get_db()
                             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                            cursor.execute(sql_update_freefull_validated, (domain,))
+                            cursor.execute(searchmysite.sql.sql_update_freefull_validated, (domain,))
                             conn.commit()
                             if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
-                                cursor.execute(sql_update_freefull_step3, (domain, tier))
+                                cursor.execute(searchmysite.sql.sql_update_freefull_step3, (domain, tier))
                                 conn.commit()
                                 return redirect(url_for('add.step4'))
                             else:
@@ -315,7 +256,7 @@ def success():
         current_app.logger.info('Finishing listing for domain {}, tier {}'.format(domain, tier))
         if tier == 2 or tier == 3:
             insert_subscription(domain, tier)
-            cursor.execute(sql_update_freefull_approved, (domain, tier, tier, domain))
+            cursor.execute(searchmysite.sql.sql_update_freefull_approved, (domain, tier, tier, domain))
             current_app.logger.info('Successfully finished listing for domain {}'.format(domain))
         conn.commit()
     return render_template('admin/add-success.html', tier=tier, login_type=login_type)
@@ -331,7 +272,7 @@ def get_tier_data():
     tiers = []
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_tiers)
+    cursor.execute(searchmysite.sql.sql_select_tiers)
     results = cursor.fetchall()
     if results:
         for result in results:
@@ -387,7 +328,7 @@ def get_session_data():
     domain = extract_domain(home_page)
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_status, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_status, (domain,))
     result = cursor.fetchone()
     if result:
         tier = result['tier']
@@ -403,7 +344,7 @@ def get_session_data():
 def start_freefull_approval_session(domain, home_page, tier):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_insert_freefull_listing, (domain, tier))
+    cursor.execute(searchmysite.sql.sql_insert_freefull_listing, (domain, tier))
     conn.commit()
     session.clear()
     session['home_page'] = home_page

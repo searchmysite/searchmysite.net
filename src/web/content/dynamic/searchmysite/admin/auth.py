@@ -5,19 +5,11 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+import requests
 from searchmysite.db import get_db
 from searchmysite.adminutils import generate_validation_key, extract_domain, send_email, get_host
-import requests
+import searchmysite.sql
 
-sql_select = "SELECT l.status, l.tier, d.email, d.password, d.login_type FROM tblDomains d "\
-    "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
-    "WHERE d.domain = (%s) "\
-    "ORDER BY l.tier ASC;"
-sql_select_admin = "SELECT * from tblPermissions WHERE role = 'admin' AND domain = (%s);"
-sql_last_login_time = "UPDATE tblDomains SET last_login = now() WHERE domain = (%s);"
-sql_change_password = "UPDATE tblDomains SET password = (%s) WHERE domain = (%s);"
-sql_forgotten_password = "UPDATE tblDomains SET forgotten_password_key = (%s), forgotten_password_key_expiry = now() + '30 minutes' WHERE domain = (%s);"
-sql_forgotten_password_login = "SELECT * FROM tblDomains WHERE forgotten_password_key = (%s) AND forgotten_password_key_expiry < now() + '30 minutes';"
 
 bp = Blueprint('auth', __name__)
 
@@ -36,7 +28,7 @@ def login():
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         error = None
-        cursor.execute(sql_select, (domain,))
+        cursor.execute(searchmysite.sql.sql_select_login_details, (domain,))
         results = cursor.fetchone()
         if results is None:
             error = 'Incorrect domain. Are you registered?'
@@ -104,7 +96,7 @@ def changepassword():
         if new_password != repeat_password:
             error = 'New passwords do not match.'
         if method != 'changepasswordlink': # Check current password
-            cursor.execute(sql_select, (domain,))
+            cursor.execute(searchmysite.sql.sql_select_login_details, (domain,))
             results = cursor.fetchone()
             if results is None:
                 error = 'Incorrect domain. Are you registered?'
@@ -116,7 +108,7 @@ def changepassword():
             flash(error)
             return render_template('admin/changepassword.html')
         else:
-            cursor.execute(sql_change_password, (generate_password_hash(new_password), domain, ))
+            cursor.execute(searchmysite.sql.sql_change_password, (generate_password_hash(new_password), domain, ))
             conn.commit()
             return render_template('admin/success.html', title="Change password success", message="<p>You have successfully changed your password.</p>")
 
@@ -126,7 +118,7 @@ def forgottenpassword_get():
     if key:
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql_forgotten_password_login, (key,))
+        cursor.execute(searchmysite.sql.sql_forgotten_password_login, (key,))
         results = cursor.fetchone()
         if results: # i.e. if there is a valid key that hasn't expired
             domain = results['domain']
@@ -157,13 +149,13 @@ def forgottenpassword_post():
     else:
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql_select, (domain,))
+        cursor.execute(searchmysite.sql.sql_select_login_details, (domain,))
         results = cursor.fetchone()
         if results: # i.e. if the domain exists
             if results['email']: # and there's a valid email
                 if email == results['email']:
                     forgotten_password_key = generate_validation_key(32)
-                    cursor.execute(sql_forgotten_password, (forgotten_password_key, domain,))
+                    cursor.execute(searchmysite.sql.sql_forgotten_password, (forgotten_password_key, domain,))
                     conn.commit()
                     subject = "Email from searchmysite.net"
                     forgotten_password_link = get_host(request.base_url, request.headers)
@@ -185,12 +177,12 @@ def set_login_session(domain, method):
     is_admin = False
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_admin, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_admin, (domain,))
     admin = cursor.fetchone()
     if admin:
         is_admin = True
     # Update last_login time
-    cursor.execute(sql_last_login_time, (domain,))
+    cursor.execute(searchmysite.sql.sql_last_login_time, (domain,))
     conn.commit()
     # Set session variables
     session['logged_in_domain'] = domain
@@ -292,14 +284,14 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                 session['home_page'] = home_page
                 conn = get_db()
                 cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                cursor.execute(sql_select, (domain,))
+                cursor.execute(searchmysite.sql.sql_select_login_details, (domain,))
                 indexed_result = cursor.fetchone()
                 if addsite_workflow == True:
                     # 3 routes through the add site workflow:
                     # 1. Domain submitted and fully validated, i.e. email entered
                     # 2. Domain submitted but not fully validated, i.e. email not entered
                     # 3. Domain not submitted at all)
-                    cursor.execute(sql_select, (domain,))
+                    cursor.execute(searchmysite.sql.sql_select_login_details, (domain,))
                     pending_result = cursor.fetchone()
                     if indexed_result is not None and indexed_result['owner_verified'] == True: # i.e. fully validated and owner_verified (existing but non owner_verified should pass through to next step)
                         current_app.logger.info('Add site: domain already submitted and fully validated')

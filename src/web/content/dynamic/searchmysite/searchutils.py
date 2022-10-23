@@ -6,10 +6,8 @@ from datetime import datetime
 import psycopg2.extras
 import config
 import searchmysite.solr
+import searchmysite.sql
 from searchmysite.db import get_db
-
-
-sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
 
 # Utils to get params and data required to perform search
@@ -362,7 +360,7 @@ def get_highlight(highlighting, url, description):
 def check_if_api_enabled_for_domain(domain):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_check_api_enabled, (domain,))
+    cursor.execute(searchmysite.sql.sql_check_api_enabled, (domain,))
     result = cursor.fetchone()
     if not result:
         api_enabled_for_domain = None
