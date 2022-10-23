@@ -3,8 +3,13 @@ from urllib.request import urlopen, Request
 import json
 import math
 from datetime import datetime
+import psycopg2.extras
 import config
 import searchmysite.solr
+from searchmysite.db import get_db
+
+
+sql_check_api_enabled = "SELECT api_enabled FROM tblDomains WHERE domain = (%s);"
 
 
 # Utils to get params and data required to perform search
@@ -75,6 +80,13 @@ def get_search_params(request):
             if values != []:
                 filter_queries[key] = values
     search_params['filter_queries'] = filter_queries
+    # resultsperpage, only used by the API
+    resultsperpage = request.args.get('resultsperpage', searchmysite.solr.default_results_per_page_api)
+    try:
+        resultsperpage = int(resultsperpage)
+    except:
+        resultsperpage = searchmysite.solr.default_results_per_page_api
+    search_params['resultsperpage'] = resultsperpage
     #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
 
@@ -339,3 +351,25 @@ def get_highlight(highlighting, url, description):
             highlight = description
     if highlight: highlight = highlight.split(searchmysite.solr.split_text) # Turn it into a list where highlight[1] is the highlighted term, so we wrap term in a <b> tag but HTML escape everything else 
     return highlight
+
+
+# Utils used by API
+# -----------------
+
+# Checks if the API is enabled or not for a domain
+# Returns True or False, or None is the domain isn't found
+# Requires a database lookup for every API request, which isn't ideal
+def check_if_api_enabled_for_domain(domain):
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(sql_check_api_enabled, (domain,))
+    result = cursor.fetchone()
+    if not result:
+        api_enabled_for_domain = None
+    elif result['api_enabled'] == True:
+        api_enabled_for_domain = True
+    elif result['api_enabled'] == False:
+        api_enabled_for_domain = False
+    else:
+        api_enabled_for_domain = None
+    return api_enabled_for_domain
