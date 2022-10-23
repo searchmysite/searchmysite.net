@@ -7,7 +7,7 @@ from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
 from searchmysite.adminutils import delete_domain
 import config
-import searchmysite.solr
+import searchmysite.sql
 
 
 bp = Blueprint('admin', __name__)
@@ -34,7 +34,7 @@ actions_list = [
 def review():
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(searchmysite.solr.sql_select_basic_pending)
+    cursor.execute(searchmysite.sql.sql_select_basic_pending)
     results = cursor.fetchall()
     if request.method == 'GET':
         review_form = [] # Form will be constructed from a list of dicts, where the dict will have domain, home, category, date and actions values, and actions will be a list
@@ -64,7 +64,7 @@ def review():
                     message += '<li>domain: {}, action: {}</li>'.format(domain, action)                    
                     if action == "approve":
                         moderator = session['logged_in_domain']
-                        cursor.execute(searchmysite.solr.sql_update_basic_approved, (domain, moderator, domain, ))
+                        cursor.execute(searchmysite.sql.sql_update_basic_approved, (domain, moderator, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
                         if action == "reject-notpersonal":
@@ -82,7 +82,7 @@ def review():
                         else:
                             reason = "Reason not listed"
                         moderator = session['logged_in_domain']
-                        cursor.execute(searchmysite.solr.sql_update_basic_reject, (domain, moderator, reason, domain))
+                        cursor.execute(searchmysite.sql.sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)
@@ -100,7 +100,7 @@ def remove():
         # Check if domain exists first
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(searchmysite.solr.sql_select_home_page, (domain, ))
+        cursor.execute(searchmysite.sql.sql_select_home_page, (domain, ))
         results = cursor.fetchone()
         if results:
             delete_domain(domain)
