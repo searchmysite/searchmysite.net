@@ -33,7 +33,7 @@ def search(results = None):
     display_facets = get_display_facets(params['filter_queries'], search_results)
     display_results = get_display_results(search_results, groupbydomain, params, link)
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list', subtitle='Search Results')
 
 
 @bp.route('/browse/', methods=['GET', 'POST'])
@@ -56,7 +56,7 @@ def browse(results = None):
     display_facets = get_display_facets(params['filter_queries'], search_results)
     display_results = get_display_results(search_results, groupbydomain, params, link)
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_browse, results=display_results, no_of_domains=no_of_domains, pagination=display_pagination,  display_type='table')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_browse, results=display_results, no_of_domains=no_of_domains, pagination=display_pagination,  display_type='table', subtitle='Browse Sites')
 
 
 @bp.route('/new/', methods=['GET', 'POST'])
@@ -81,7 +81,7 @@ def newest(results = None):
 
     current_app.logger.info('params: {}, sort_options_newest: {}'.format(params, searchmysite.solr.sort_options_newest))
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_newest, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_newest, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list', subtitle='Newest Pages')
 
 
 @bp.route('/random/')
