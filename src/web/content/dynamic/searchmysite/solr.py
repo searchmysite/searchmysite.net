@@ -3,6 +3,7 @@ max_pages_to_display = 10
 default_results_per_page_search = 10
 default_results_per_page_browse = 20
 default_results_per_page_newest = 12
+default_results_per_page_api = 10
 sort_options_search = {"score desc": "Score (highest first)", "published_date desc": "Published date (newest first)"}
 sort_options_browse = {"date_domain_added desc": "Date added (newest first)", "date_domain_added asc": "Date added (oldest first)", "domain asc": "Domain (A-Z)", "domain desc": "Domain (Z-A)", "indexed_inlink_domains_count desc": "Inlink domains (highest first)"}
 sort_options_newest = {"published_date desc": "Published date (newest first)", "published_date asc": "Published date (oldest first)"}
@@ -111,3 +112,6 @@ query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngrou
 random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_public + query_groupbydomain.format('1')
 random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_filter_public + query_groupbydomain.format('1')
 random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
+
+# API query
+solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
