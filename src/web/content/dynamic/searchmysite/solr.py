@@ -1,0 +1,113 @@
+# Variables
+max_pages_to_display = 10
+default_results_per_page_search = 10
+default_results_per_page_browse = 20
+default_results_per_page_newest = 12
+sort_options_search = {"score desc": "Score (highest first)", "published_date desc": "Published date (newest first)"}
+sort_options_browse = {"date_domain_added desc": "Date added (newest first)", "date_domain_added asc": "Date added (oldest first)", "domain asc": "Domain (A-Z)", "domain desc": "Domain (Z-A)", "indexed_inlink_domains_count desc": "Inlink domains (highest first)"}
+sort_options_newest = {"published_date desc": "Published date (newest first)", "published_date asc": "Published date (oldest first)"}
+default_sort_search = "score desc"
+default_sort_browse = "date_domain_added desc"
+default_sort_newest = "published_date desc"
+mandatory_filter_queries_search = ["public:true", "!content_type:*xml", "!content_type:application*", "!content_type:binary*"]
+mandatory_filter_queries_browse = ["public:true", "is_home:true"]
+mandatory_filter_queries_newest = mandatory_filter_queries_search + ["contains_adverts:false", "published_date:*"]
+split_text = '--split-here--'
+solr_request_handler = "select" # The custom config in solrconfig.xml, especially the relevancy tuning, is only set for the select request handler 
+solr_request_headers = {'Content-Type': 'text/json'}
+
+
+# Search queries
+# There are 5 search queries. The main differences are the mandatory filter queries:
+# 1. Main search, i.e. queries from the search box. This has to show only public content, and filters out non-web friendly results.
+# 2. Browse Sites search. This has to show only public content, and only home pages.
+# 3. Newest Pages search. This is as per the main search, but also filters out pages that might not be posts and sorts by date.
+# 4. Random Page search. This is actually 3 sub searches, to find no of sites, no of pages in random site, and details of random page.
+# 5. Site specific API. This is only returned for site where api_enabled, but will return all content in the site (it is down to users to filter).
+
+# Main search query
+# Notes:
+# 1. defType:edismax is to use the edismax query parser, required for the relevancy tuning defined in solrconfig.xml. edismax
+#    (or dismax) is required because the relevancy tuning uses qf and pf which aren't available in the default lucene query parser.
+# 2. mm:2 is must match two words, applicable when the query contains more than two words, so e.g. "book about antarctica" 
+#    (without the double quotes) will require book and antarctica but not just book.
+# 3. fq is to ensure the public search only contains results marked for the public search and filters out "non web friendly"
+#    results like XML and binary files.
+# 4. group:True is set to False if the query contains domain:<domain>, i.e. someone is searching for content on a specific domain.
+#    The other group params will be irrelevant when group:False.
+query_params_search = {
+    "q": "*:*",
+    "defType": "edismax",
+    "mm": 2,
+    "start": 0,
+    "rows": default_results_per_page_search,
+    "sort": default_sort_search,
+    "fl": ["url","title","description","contains_adverts","published_date"],
+    "q.op": "AND",
+    "fq": mandatory_filter_queries_search,
+    "hl": "on",
+    "hl.fl": ["content","description"],
+    "hl.simple.pre": split_text,
+    "hl.simple.post": split_text,
+    "group": True,
+    "group.field": "domain",
+    "group.limit": 3,
+    "group.ngroups": True
+}
+query_facets_search = {
+    "site_category":                { "field": "site_category",                "type": "terms", "limit":  2, "sort": "count" },
+    "in_web_feed":                  { "field": "in_web_feed",                  "type": "terms", "limit":  2, "sort": "count" },
+    "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 12, "sort": "count" }
+}
+
+# Browse query
+# Notes:
+# 1. Don't need to specify the query parser because browse just has simple ordering with no custom config, e.g. relevancy tuning, required.
+# 2. The fq is the base filter query that must always be present on browse - it may be supplemented by values selected in the filters.
+query_params_browse = {
+    "q": "*:*",
+    "start": 0,
+    "rows": default_results_per_page_browse,
+    "sort": default_sort_browse,
+    "fl": ["url","title","domain","date_domain_added","tags","web_feed"],
+    "fq": mandatory_filter_queries_browse
+}
+query_facets_browse = {
+    "site_category":                { "field": "site_category",                "type": "terms", "limit": 2, "sort": "count" },
+    "tags":                         { "field": "tags",                         "type": "terms", "limit": 8, "sort": "count" },
+    "owner_verified":               { "field": "owner_verified",               "type": "terms", "limit": 2, "sort": "count" },
+    "contains_adverts":             { "field": "contains_adverts",             "type": "terms", "limit": 2, "sort": "count" },
+    "indexed_inlink_domains_count": { "field": "indexed_inlink_domains_count", "type": "terms", "limit": 4, "sort": "index desc" },
+    "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 8, "sort": "count" }
+}
+
+# Newest pages query
+# Notes:
+# 1. The fq is as per the main search, but also ensures there is a published_date and excludes pages with adverts from this feed
+query_params_newest = {
+    "q": "*:*",
+    "defType": "edismax",
+    "mm": 2,
+    "start": 0,
+    "rows": default_results_per_page_newest,
+    "sort": default_sort_newest,
+    "fl": ["url","title","description","published_date","tags"],
+    "fq": mandatory_filter_queries_newest,
+    "hl": "on",
+    "hl.fl": ["content","description"],
+    "hl.simple.pre": split_text,
+    "hl.simple.post": split_text,
+    "group": True,
+    "group.field": "domain",
+    "group.limit": 1,
+    "group.ngroups": True
+}
+query_facets_newest = query_facets_search
+
+# Random result queries
+query_filter_public = '&fq=public%3Atrue'
+query_filter_content_type = '&fq=!content_type%3A*xml&fq=!content_type%3Aapplication*&fq=!content_type%3Abinary*'
+query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngroups=true'
+random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_public + query_groupbydomain.format('1')
+random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_filter_public + query_groupbydomain.format('1')
+random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
