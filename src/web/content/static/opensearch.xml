@@ -1,7 +1,7 @@
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"
                        xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>searchmysite.net</ShortName>
-  <Description>searchmysite.net: Simple search for personal websites</Description>
+  <Description>searchmysite.net is an open source search engine and search as a service.</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Image width="32" height="32" type="image/x-icon">/favicon.ico</Image>
   <Url method="get" type="text/html" template="https://searchmysite.net/search/?q={searchTerms}" />
