@@ -20,11 +20,14 @@
 						Filters
 						</a>
 					</div>
-					<div class="col-sm-2 col-md-4 text-center align-bottom">
+					<div class="col-sm-2 col-md-4 text-center">
 						{% if no_of_results %}
-						<p>{{ no_of_results }} results<!-- for <em>query = {{ params['q'] }}</em>--></p>
+						{{ no_of_results }} results
 						{% elif no_of_domains %}
-						<p class="text-secondary">{{ no_of_domains }} sites</p>
+						{{ no_of_domains }} sites
+						{% endif %}
+						{% if links and 'full_feed_link' in links %}
+						<a class="btn align-baseline" href="{{ links['full_feed_link'] }}"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 						{% endif %}
 					</div>
 					<div class="col-sm-8 col-md-4">
