@@ -8,32 +8,29 @@ import config
 import searchmysite.solr
 import searchmysite.sql
 from searchmysite.db import get_db
+from searchmysite.adminutils import get_host
 
 
 # Utils to get params and data required to perform search
 # -------------------------------------------------------
 
-# Get all the search params, irrespective of whether a GET or a POST, setting sensible defaults
+# Get all the search params, irrespective of whether a GET or a POST, setting sensible defaults (using search_type)
 # Current list is: q, p, sort
 # plus the facets in the possible_facets list below which are returned in the filter_query dict
-def get_search_params(request):
+def get_search_params(request, search_type):
     # Set defaults
-    # If running flask locally for dev request.path will be e.g. /search/new/ and there won't be a request.root_path
-    # but if running flask in the Apache container request.path will be e.g. /new/ and request.root_path will be /search
-    if hasattr(request, 'root_path'):
-        root_path = request.root_path
-    else:
-        root_path = ""
-    path = root_path + request.path
-    #current_app.logger.debug('path: {}'.format(path))
-    if path == url_for('search.search'):
+    if search_type == 'search':
         sort = searchmysite.solr.default_sort_search
-    elif path == url_for('search.browse'):
+        default_results_per_page = searchmysite.solr.default_results_per_page_search
+    elif search_type == 'browse':
         sort = searchmysite.solr.default_sort_browse
-    elif path == url_for('search.newest'):
+        default_results_per_page = searchmysite.solr.default_results_per_page_browse
+    elif search_type == 'newest':
         sort = searchmysite.solr.default_sort_newest
+        default_results_per_page = searchmysite.solr.default_results_per_page_newest
     else:
         sort = searchmysite.solr.default_sort_search
+        default_results_per_page = searchmysite.solr.default_results_per_page_search
     search_params = {}
     # q, i.e. search query
     # Note that with edismax, for the links that just have fq, i.e. do not have q specified, we need to have q as * to get results.
@@ -78,19 +75,19 @@ def get_search_params(request):
             if values != []:
                 filter_queries[key] = values
     search_params['filter_queries'] = filter_queries
-    # resultsperpage, only used by the API
-    resultsperpage = request.args.get('resultsperpage', searchmysite.solr.default_results_per_page_api)
+    # resultsperpage
+    resultsperpage = request.args.get('resultsperpage', default_results_per_page)
     try:
         resultsperpage = int(resultsperpage)
     except:
-        resultsperpage = searchmysite.solr.default_results_per_page_api
+        resultsperpage = default_results_per_page
     search_params['resultsperpage'] = resultsperpage
     #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
 
 # Get start parameter for Solr query
-def get_start(current_page, results_per_page):
-    start = (current_page * results_per_page) - results_per_page # p1 is start 0, p2 is start 10, p3 is start 20 etc. if results_per_page = 10
+def get_start(params):
+    start = (params['page'] * params['resultsperpage']) - params['resultsperpage'] # p1 is start 0, p2 is start 10, p3 is start 20 etc. if results_per_page = 10
     return start
 
 # Construct the fq (filter query) list, used to generate the fq string for Solr from the facets in the filters list.
@@ -146,18 +143,21 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
 # -------------------------------------------------
 
 # Return the number of results
-# If groupbydomain there will be a different number of results for pagination and display
-# given the total number of results (for display) is likely to contain domains with more than one result
-# but for pagination you need the number of domains with results. 
+# If groupbydomain there is likely to be a different number of total results vs total domains.
+# The latter is required in two cases:
+# 1. On the normal search results page, in the normal (non groupbydomain) mode which shows additional 
+#    sub-results for each domain, you want to show the total number of results at the top, but use the 
+#    total domains (i.e. groups of results) for calculating the pagination.
+# 2. On the Newest Pages, a groupbydomain query is used to ensure only one result per domain, so you
+#    want to show the total number of domains at the top rather than the total number of results. 
 def get_no_of_results(search_results, groupbydomain):
     if groupbydomain:
-        no_of_results_for_pagination = search_results['grouped']['domain']['ngroups'] 
-        no_of_results_for_display = search_results['grouped']['domain']['matches']
+        total_results = search_results['grouped']['domain']['matches']
+        total_domains = search_results['grouped']['domain']['ngroups'] 
     else:
-        no_of_results_for_pagination = search_results['response']['numFound']
-        no_of_results_for_display = no_of_results_for_pagination
-    #current_app.logger.debug('no_of_results_for_pagination: {}, no_of_results_for_display: {}'.format(no_of_results_for_pagination, no_of_results_for_display))
-    return (no_of_results_for_pagination, no_of_results_for_display)
+        total_results = search_results['response']['numFound']
+        total_domains = total_results # There isn't a separate value in this case so just use total_results
+    return (total_results, total_domains)
 
 # Return the range of pages that will be shown on the results
 def get_page_range(current_page, no_of_results, results_per_page, max_pages_to_display):
@@ -167,19 +167,73 @@ def get_page_range(current_page, no_of_results, results_per_page, max_pages_to_d
     range_end = min(max(current_page + max_pages_to_display // 2, max_pages_to_display), last_results_page) + 1
     return range(range_start, range_end)
 
-# Get a link to the query, with filters and sort applied if necessary.
-# The filter queries are separate parameters, as they would be if selected via the Filters.
-# This isn't standarad Solr query syntax, where they would be in the q or fq, but they will be translated to fq.
-# Excludes pagination.
-def get_link(query, filter_queries, sort, default_sort):
-    link = 'q=' + query
+# Get link to the query, with filters and sort applied if necessary.
+# The filter queries are separate parameters, as they would be if selected via the Filters - note that 
+# this isn't standard Solr query syntax, where they would be in the q or fq, but they will be translated to fq.
+# query_string is the string after the ?, and excludes pagination. It is used to generate subresults_link where subresults are present.
+# full_link is the full link to a results page, including pagination
+# full_feed_link is the full link to the feed, also including pagination
+# opensearchdescription is a full link to /opensearch.xml
+def get_links(request, params, search_type):
+    query = params['q']
+    filter_queries = params['filter_queries']
+    sort = params['sort']
+    if search_type == 'search':
+        default_sort = searchmysite.solr.default_sort_search
+        full_link_url_for = url_for('search.search')
+        full_feed_link_url_for = url_for('searchapi.feed_search', format='feed')
+        query_string = 'q=' + query
+    elif search_type == 'browse':
+        default_sort = searchmysite.solr.default_sort_browse
+        full_link_url_for = url_for('search.browse')
+        full_feed_link_url_for = url_for('searchapi.feed_browse', format='feed')
+        query_string = '' # /search/browse/ and /search/new/ don't have query strings
+    elif search_type == 'newest':
+        default_sort = searchmysite.solr.default_sort_newest
+        full_link_url_for = url_for('search.newest')
+        full_feed_link_url_for = url_for('searchapi.feed_newest', format='feed')
+        query_string = '' # /search/browse/ and /search/new/ don't have query strings
+    else:
+        default_sort = searchmysite.solr.default_sort_search
+        full_link_url_for = url_for('search.search')
+        full_feed_link_url_for = url_for('searchapi.feed_search', format='feed')
+        query_string = 'q=' + query
+    if full_feed_link_url_for.startswith('/search/v1/'): full_feed_link_url_for = full_feed_link_url_for.replace('/search/v1/', '/api/v1/', 1) # This shouldn't be necessary, and there should be a better solution
+    if params['page'] != 1: # Default is 1, so only show page link if not the default
+        page = '&page=' + str(params['page'])
+    else:
+        page = ''
+    links = {}
+    host_url = get_host(request.host_url, request.headers)
+    if host_url.endswith('/'): host_url = host_url[:-1] 
+    #current_app.logger.debug('host_url: {}, full_link_url_for: {}, full_feed_link_url_for: {}'.format(host_url, full_link_url_for, full_feed_link_url_for))
+    # query_string
     for filter_query in filter_queries:
         filter_values = filter_queries[filter_query]
         for filter_value in filter_values:
-            link = link + '&' + filter_query + '=' + filter_value
+            if query_string == '':
+                query_string = query_string + filter_query + '=' + filter_value
+            else:
+                query_string = query_string + '&' + filter_query + '=' + filter_value
     if sort != default_sort:
-        link = link + '&sort=' + sort
-    return link
+        query_string = query_string + '&sort=' + sort
+    links['query_string'] = query_string
+    # full_link
+    if query_string == '' and page == '':
+        full_link = host_url + full_link_url_for
+    else:
+        full_link = host_url + full_link_url_for + '?' + query_string + page
+    links['full_link'] = full_link
+    # full_feed_link
+    if query_string == '' and page == '':
+        full_feed_link = host_url + full_feed_link_url_for
+    else:
+        full_feed_link = host_url + full_feed_link_url_for + '?' + query_string + page
+    links['full_feed_link'] = full_feed_link
+    # opensearchdescription
+    links['opensearchdescription'] = host_url + '/opensearch.xml'
+    #current_app.logger.debug('query_string: {}, full_link: {}, full_feed_link: {}, opensearchdescription: {}'.format(query_string, full_link, full_feed_link, links['opensearchdescription'] ))
+    return links
 
 # Construct the pagination data for rendering on the page.
 # Output is of the format:
@@ -252,37 +306,20 @@ def get_display_facets(filter_queries, results):
 # Construct the results
 # Output is a list of dicts.
 # If groupbydomain, the result dict will have a subresults list of dicts.
-# The groupbydomain section is only used by the main search (but not when the query restricts to one domain), so
-# Browse and Newest (and the main search when query doesn't restrict to one domain) use the else section.
-# See the fl in the query params to see which fields are available on which search, 
-# e.g. date_domain_added, tags, web_feed etc. are only used on the Browse display.
+# The groupbydomain section is only used by the main search (but not when the query restricts to one domain), 
+# and Newest (to ensure only one post per domain), so Browse and Newest (and the main search when query 
+# doesn't restrict to one domain) use the else section.
 def get_display_results(search_results, groupbydomain, params, link):
     results = []
     if groupbydomain:
         for domain_results in search_results['grouped']['domain']['groups']:
-            # The first result per domain should be represented in exactly the same format as if not groupbydomain
             first_result_from_domain = domain_results['doclist']['docs'][0]
-            result = {}
-            result['url'] = first_result_from_domain['url']
-            (full_title, short_title) = get_title(first_result_from_domain.get('title'), first_result_from_domain['url']) # title could be None, url is always set
-            result['full_title'] = full_title
-            result['short_title'] = short_title
-            highlight = get_highlight(search_results['highlighting'], first_result_from_domain['url'], first_result_from_domain.get('description'))
-            if highlight: result['highlight'] = highlight
-            if 'published_date' in first_result_from_domain:
-                published_date_string = first_result_from_domain['published_date']
-                published_date_datetime = datetime.strptime(published_date_string, "%Y-%m-%dT%H:%M:%SZ") # e.g. 2020-07-18T06:11:22Z
-                result['published_date'] = published_date_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
-            if 'contains_adverts' in first_result_from_domain: result['contains_adverts'] = first_result_from_domain['contains_adverts']
+            result = extract_data_from_result(first_result_from_domain, search_results, False)
             # If there is more than one result for a domain, these will be respresented as a list of dicts, with some extra values for the display
             if len(domain_results['doclist']['docs']) > 1:
                 subresults = []
                 for doc in domain_results['doclist']['docs'][1:]: # Not getting the first item in the list because we have that already
-                    subresult = {}
-                    subresult['url'] = doc['url']
-                    (subresult_full_title, subresult_short_title) = get_title(doc.get('title'), doc['url'])
-                    subresult['full_title'] = subresult_full_title
-                    subresult['short_title'] = subresult_short_title
+                    subresult = extract_data_from_result(first_result_from_domain, search_results, True)
                     subresults.append(subresult)
                 result['subresults'] = subresults
                 subresults_domain  = domain_results['groupValue']
@@ -293,62 +330,10 @@ def get_display_results(search_results, groupbydomain, params, link):
             results.append(result)
     else:
         for search_result in search_results['response']['docs']:
-            #current_app.logger.debug('search_results: {}'.format(search_results))
-            result = {}
-            result['url'] = search_result['url']
-            (full_title, short_title) = get_title(search_result.get('title'), search_result['url']) # title could be None, url is always set
-            result['full_title'] = full_title
-            result['short_title'] = short_title
-            if 'domain' in search_result: result['domain'] = search_result['domain']
-            if 'date_domain_added' in search_result:
-                domain_added_string = search_result['date_domain_added']
-                domain_added_datetime = datetime.strptime(domain_added_string, "%Y-%m-%dT%H:%M:%SZ") # e.g. 2020-07-18T06:11:22Z
-                result['date_domain_added'] = domain_added_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
-            if 'tags' in search_result:
-                tags_list = search_result['tags']
-                tags_truncation_point = 10 # Just so the display doesn't get taken over by a site that does keyword stuffing
-                if len(tags_list) > tags_truncation_point:
-                    result['tags'] = tags_list[:tags_truncation_point]
-                    result['tags_truncated'] = True
-                else:
-                    result['tags'] = tags_list
-                    result['tags_truncated'] = False
-            if 'highlighting' in search_results:
-                highlight = get_highlight(search_results['highlighting'], search_result['url'], search_result.get('description'))
-                if highlight: result['highlight'] = highlight
-            if 'web_feed' in search_result: result['web_feed'] = search_result['web_feed']
-            if 'contains_adverts' in search_result: result['contains_adverts'] = search_result['contains_adverts']
+            result = extract_data_from_result(search_result, search_results, False)
             results.append(result)
+    #current_app.logger.debug('results: {}'.format(results))
     return results
-
-
-# Utils used by get_display_results
-# ---------------------------------
-
-def get_title(title, url):
-    if title:
-        full_title = title
-    else:
-        full_title = url
-    if len(full_title) > 100:
-        short_title = full_title[0:100] + "..."
-    else:
-        short_title = full_title
-    return (full_title, short_title)
-
-def get_highlight(highlighting, url, description):
-    highlight = None
-    if 'content' in highlighting[url]:
-        highlight = "... " + highlighting[url]['content'][0] + " ..."
-    elif 'description' in highlighting[url]:
-        highlight = "... " + highlighting[url]['description'][0] + " ..."
-    elif description:
-        if len(description) > 500:
-            highlight = description[0:500] + '...'
-        else:
-            highlight = description
-    if highlight: highlight = highlight.split(searchmysite.solr.split_text) # Turn it into a list where highlight[1] is the highlighted term, so we wrap term in a <b> tag but HTML escape everything else 
-    return highlight
 
 
 # Utils used by API
@@ -371,3 +356,105 @@ def check_if_api_enabled_for_domain(domain):
     else:
         api_enabled_for_domain = None
     return api_enabled_for_domain
+
+
+# Utils used by other utils
+# -------------------------
+
+# Used by get_params 
+# Figure out if the request is of type api or search, and subtype search, browse or newest (which e.g. have different defaults for sort)
+#def get_type_and_subtype(request):
+#    type = 'search' # 'search' = /search*, 'api' = /api*
+#    subtype = 'search' # 'search' = */search/, 'browse' = */search/browse/, 'newest' = */search/newest/
+#    # If running flask locally for dev request.path will be e.g. /search/new/ and there won't be a request.root_path
+#    # but if running flask in the Apache container request.path will be e.g. /new/ and request.root_path will be /search
+#    if hasattr(request, 'root_path'):
+#        root_path = request.root_path
+#    else:
+#        root_path = ""
+#    path = root_path + request.path
+#    if path == url_for('search.search') or path == url_for('search.browse') or path == url_for('search.newest'):
+#        type = 'search'
+#    elif path == url_for('api.feed', format='feed'):
+#        type = 'api'
+#    if path == url_for('search.search') or path == url_for('api.feed', format='feed'):
+#        subtype = 'search'
+#    elif path == url_for('search.browse'):
+#        subtype = 'browse'
+#    elif path == url_for('search.newest'):
+#        subtype = 'newest'
+#    #current_app.logger.debug('path: {}, type: {}, subtype: {}'.format(path, type, subtype))
+#    return (type, subtype)
+
+# Used by get_display_results
+# To extract the fields from the results, and format for display if necessary.
+# Not all queries will return all fields, e.g. domain, date_domain_added, tags and web_feed 
+# are just used by Browse.
+# See the fl in the query params to see which fields are available on which search.
+# All results including subresults will have id, url and some form of title, but other fields are only set 
+# for non-subresults.
+def extract_data_from_result(result, results, subresult):
+    data = {}
+    data['id'] = result['id']
+    data['url'] = result['url']
+    (full_title, short_title) = get_title(result.get('title'), result['url']) # title could be None, url is always set
+    data['full_title'] = full_title
+    data['short_title'] = short_title
+    if subresult == False:
+        if 'highlighting' in results:
+            highlight = get_highlight(results['highlighting'], result['url'], result.get('description'))
+            if highlight: data['highlight'] = highlight
+        if 'published_date' in result:
+            published_date_string = result['published_date']
+            published_date_datetime = datetime.strptime(published_date_string, "%Y-%m-%dT%H:%M:%SZ") # e.g. 2020-07-18T06:11:22Z
+            data['published_date'] = published_date_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
+            data['published_datetime'] = published_date_string
+        if 'contains_adverts' in result: data['contains_adverts'] = result['contains_adverts']
+        if 'domain' in result: data['domain'] = result['domain']
+        if 'date_domain_added' in result:
+            domain_added_string = result['date_domain_added']
+            domain_added_datetime = datetime.strptime(domain_added_string, "%Y-%m-%dT%H:%M:%SZ") # e.g. 2020-07-18T06:11:22Z
+            data['date_domain_added'] = domain_added_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
+        if 'tags' in result:
+            tags_list = result['tags']
+            tags_truncation_point = 10 # Just so the display doesn't get taken over by a site that does keyword stuffing
+            if len(tags_list) > tags_truncation_point:
+                data['tags'] = tags_list[:tags_truncation_point]
+                data['tags_truncated'] = True
+            else:
+                data['tags'] = tags_list
+                data['tags_truncated'] = False
+        if 'web_feed' in result: data['web_feed'] = result['web_feed']
+    return data
+
+# Used by get_display_results
+# To get the full title, and if it is long a shorter title 
+def get_title(title, url):
+    if title:
+        full_title = title
+    else:
+        full_title = url
+    if len(full_title) > 100:
+        short_title = full_title[0:100] + "..."
+    else:
+        short_title = full_title
+    return (full_title, short_title)
+
+# Used by get_display_results
+# To get the highlighted text, returned as a list where the highlighted terms is highlight[1], highlight[3]
+# Which makes it easier to highlight without knowing if it needs to be HTML escaped
+def get_highlight(highlighting, url, description):
+    #current_app.logger.debug('highlighting: {}, url: {}, description: {}'.format(highlighting, url, description))
+    highlight = None
+    if 'content' in highlighting[url]:
+        highlight = "... " + highlighting[url]['content'][0] + " ..."
+    elif 'description' in highlighting[url]:
+        highlight = "... " + highlighting[url]['description'][0] + " ..."
+    elif description:
+        if len(description) > 500:
+            highlight = description[0:500] + '...'
+        else:
+            highlight = description
+    if highlight: highlight = highlight.split(searchmysite.solr.split_text)
+    #current_app.logger.debug('highlight: {}'.format(highlight))
+    return highlight
