@@ -6,9 +6,9 @@ default_results_per_page_search = 10
 default_results_per_page_browse = 20
 default_results_per_page_newest = 12
 default_results_per_page_api = 10
-sort_options_search = {"score desc": "Score (highest first)", "published_date desc": "Published date (newest first)"}
+sort_options_search = {"score desc": "Score (highest first)", "published_date desc": "Published date (newest first)", "page_last_modified desc": "Last modified date (most recent first)"}
 sort_options_browse = {"date_domain_added desc": "Date added (newest first)", "date_domain_added asc": "Date added (oldest first)", "domain asc": "Domain (A-Z)", "domain desc": "Domain (Z-A)", "indexed_inlink_domains_count desc": "Inlink domains (highest first)"}
-sort_options_newest = {"published_date desc": "Published date (newest first)", "published_date asc": "Published date (oldest first)"}
+sort_options_newest = {"published_date desc": "Published date (newest first)", "published_date asc": "Published date (oldest first)", "page_last_modified desc": "Last modified date (most recent first)"}
 default_sort_search = "score desc"
 default_sort_browse = "date_domain_added desc"
 default_sort_newest = "published_date desc"
@@ -47,11 +47,11 @@ query_params_search = {
     "start": 0,
     "rows": default_results_per_page_search,
     "sort": default_sort_search,
-    "fl": ["url","title","description","contains_adverts","published_date"],
+    "fl": ["id", "url", "title", "description", "contains_adverts", "published_date"],
     "q.op": "AND",
     "fq": mandatory_filter_queries_search,
     "hl": "on",
-    "hl.fl": ["content","description"],
+    "hl.fl": ["content", "description"],
     "hl.simple.pre": split_text,
     "hl.simple.post": split_text,
     "group": True,
@@ -62,7 +62,7 @@ query_params_search = {
 query_facets_search = {
     "site_category":                { "field": "site_category",                "type": "terms", "limit":  2, "sort": "count" },
     "in_web_feed":                  { "field": "in_web_feed",                  "type": "terms", "limit":  2, "sort": "count" },
-    "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 12, "sort": "count" }
+    "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 20, "sort": "count" }
 }
 
 # 2. Browse query
@@ -74,7 +74,7 @@ query_params_browse = {
     "start": 0,
     "rows": default_results_per_page_browse,
     "sort": default_sort_browse,
-    "fl": ["url","title","domain","date_domain_added","tags","web_feed"],
+    "fl": ["id", "url", "title", "domain", "date_domain_added", "tags", "web_feed"],
     "fq": mandatory_filter_queries_browse
 }
 query_facets_browse = {
@@ -89,6 +89,7 @@ query_facets_browse = {
 # 3. Newest pages query
 # Notes:
 # a. The fq is as per the main search, but also ensures there is a published_date and excludes pages with adverts from this feed
+# b. The group is to ensure only one result per domain (to prevent any one domain from dominating the feed)
 query_params_newest = {
     "q": "*:*",
     "defType": "edismax",
@@ -96,10 +97,10 @@ query_params_newest = {
     "start": 0,
     "rows": default_results_per_page_newest,
     "sort": default_sort_newest,
-    "fl": ["url","title","description","published_date","tags"],
+    "fl": ["id", "url", "title", "description", "published_date", "tags"],
     "fq": mandatory_filter_queries_newest,
     "hl": "on",
-    "hl.fl": ["content","description"],
+    "hl.fl": ["content", "description"],
     "hl.simple.pre": split_text,
     "hl.simple.post": split_text,
     "group": True,
