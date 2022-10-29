@@ -8,80 +8,78 @@ from random import randrange
 from datetime import datetime, date
 import config
 import searchmysite.solr
-from searchmysite.searchutils import get_search_params, get_start, get_filter_queries, do_search, get_no_of_results, get_page_range, get_link, get_display_pagination, get_display_facets, get_display_results
+from searchmysite.searchutils import get_search_params, get_start, get_filter_queries, do_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
 
 bp = Blueprint('search', __name__)
 
 
 @bp.route('/', methods=['GET', 'POST'])
-def search(results = None):
+def search(search_type='search'):
 
     # Get params and data required to perform search
-    params = get_search_params(request)
+    params = get_search_params(request, search_type)
     groupbydomain = False if "domain:" in params['q'] else True
-    start = get_start(params['page'], searchmysite.solr.default_results_per_page_search)
+    start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 
     # Perform the actual search
     search_results = do_search(searchmysite.solr.query_params_search, searchmysite.solr.query_facets_search, params, start, searchmysite.solr.mandatory_filter_queries_search, filter_queries, groupbydomain)
 
     # Get data required to display the results
-    (no_of_results_for_pagination, no_of_results_for_display) = get_no_of_results(search_results, groupbydomain)
-    page_range = get_page_range(params['page'], no_of_results_for_pagination, searchmysite.solr.default_results_per_page_search, searchmysite.solr.max_pages_to_display)
-    link = get_link(params['q'], params['filter_queries'], params['sort'], searchmysite.solr.default_sort_search)
+    (total_results, total_domains) = get_no_of_results(search_results, groupbydomain)
+    page_range = get_page_range(params['page'], total_domains, searchmysite.solr.default_results_per_page_search, searchmysite.solr.max_pages_to_display)
+    links = get_links(request, params, search_type)
     display_pagination = get_display_pagination(params['page'], page_range)
     display_facets = get_display_facets(params['filter_queries'], search_results)
-    display_results = get_display_results(search_results, groupbydomain, params, link)
+    display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list', subtitle='Search Results')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=total_results, pagination=display_pagination, links=links, display_type='list', subtitle='Search Results')
 
 
 @bp.route('/browse/', methods=['GET', 'POST'])
-def browse(results = None):
+def browse(search_type='browse'):
 
     # Get params and data required to perform search
-    params = get_search_params(request)
+    params = get_search_params(request, search_type)
     groupbydomain = False # Browse only returns home pages, so will only have one result per domain
-    start = get_start(params['page'], searchmysite.solr.default_results_per_page_browse)
+    start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 
     # Perform the actual search
     search_results = do_search(searchmysite.solr.query_params_browse, searchmysite.solr.query_facets_browse, params, start, searchmysite.solr.mandatory_filter_queries_browse, filter_queries, groupbydomain)
 
     # Get data required to display the results
-    (no_of_domains, _) = get_no_of_results(search_results, groupbydomain) # groupbydomain False so both values will be the same, i.e. second response ignored
-    page_range = get_page_range(params['page'], no_of_domains, searchmysite.solr.default_results_per_page_browse, searchmysite.solr.max_pages_to_display)
-    link = get_link(params['q'], params['filter_queries'], params['sort'], searchmysite.solr.default_sort_search)
+    (total_results, _) = get_no_of_results(search_results, groupbydomain) # groupbydomain False so both values will be the same
+    page_range = get_page_range(params['page'], total_results, searchmysite.solr.default_results_per_page_browse, searchmysite.solr.max_pages_to_display)
+    links = get_links(request, params, search_type)
     display_pagination = get_display_pagination(params['page'], page_range)
     display_facets = get_display_facets(params['filter_queries'], search_results)
-    display_results = get_display_results(search_results, groupbydomain, params, link)
+    display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_browse, results=display_results, no_of_domains=no_of_domains, pagination=display_pagination,  display_type='table', subtitle='Browse Sites')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_browse, results=display_results, no_of_domains=total_results, pagination=display_pagination, links=links, display_type='table', subtitle='Browse Sites')
 
 
 @bp.route('/new/', methods=['GET', 'POST'])
-def newest(results = None):
+def newest(search_type='newest'):
 
     # Get params and data required to perform search
-    params = get_search_params(request)
-    groupbydomain = True # Although only 1 results is returned for each domain
-    start = get_start(params['page'], searchmysite.solr.default_results_per_page_newest)
+    params = get_search_params(request, search_type)
+    groupbydomain = True # There is a group by domain in the query, even though only 1 result is returned for each domain - this is to ensure only one result per domain in the feed
+    start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 
     # Perform the actual search
     search_results = do_search(searchmysite.solr.query_params_newest, searchmysite.solr.query_facets_newest, params, start, searchmysite.solr.mandatory_filter_queries_newest, filter_queries, groupbydomain)
 
     # Get data required to display the results
-    (no_of_results_for_pagination, no_of_results_for_display) = get_no_of_results(search_results, groupbydomain)
-    page_range = get_page_range(params['page'], no_of_results_for_pagination, searchmysite.solr.default_results_per_page_newest, searchmysite.solr.max_pages_to_display)
-    link = get_link(params['q'], params['filter_queries'], params['sort'], searchmysite.solr.default_sort_newest)
+    (_, total_domains) = get_no_of_results(search_results, groupbydomain) # Need to use the total_domains, given 1 result per domain
+    page_range = get_page_range(params['page'], total_domains, searchmysite.solr.default_results_per_page_newest, searchmysite.solr.max_pages_to_display)
+    links = get_links(request, params, search_type)
     display_pagination = get_display_pagination(params['page'], page_range)
     display_facets = get_display_facets(params['filter_queries'], search_results)
-    display_results = get_display_results(search_results, groupbydomain, params, link)
+    display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
 
-    current_app.logger.info('params: {}, sort_options_newest: {}'.format(params, searchmysite.solr.sort_options_newest))
-
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_newest, results=display_results, no_of_results=no_of_results_for_display, pagination=display_pagination, display_type='list', subtitle='Newest Pages')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_newest, results=display_results, no_of_results=total_domains, pagination=display_pagination, links=links, display_type='list', subtitle='Newest Pages')
 
 
 @bp.route('/random/')
