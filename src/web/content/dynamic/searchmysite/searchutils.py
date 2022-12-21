@@ -271,7 +271,7 @@ def get_display_facets(filter_queries, results):
             elif facet_field == "tags":
                 facet['label_name'] = "Tags"
             elif facet_field == "owner_verified":
-                facet['label_name'] = "Owner verified"
+                facet['label_name'] = "Full listing"
             elif facet_field == "contains_adverts":
                 facet['label_name'] = "Contains adverts"
             elif facet_field == "indexed_inlink_domains_count":
