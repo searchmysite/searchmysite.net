@@ -319,7 +319,7 @@ def get_display_results(search_results, groupbydomain, params, link):
             if len(domain_results['doclist']['docs']) > 1:
                 subresults = []
                 for doc in domain_results['doclist']['docs'][1:]: # Not getting the first item in the list because we have that already
-                    subresult = extract_data_from_result(first_result_from_domain, search_results, True)
+                    subresult = extract_data_from_result(doc, search_results, True)
                     subresults.append(subresult)
                 result['subresults'] = subresults
                 subresults_domain  = domain_results['groupValue']
