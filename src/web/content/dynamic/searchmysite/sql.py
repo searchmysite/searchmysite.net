@@ -144,7 +144,15 @@ sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', st
     "    status = EXCLUDED.status, "\
     "    status_changed = EXCLUDED.status_changed, "\
     "    listing_start = EXCLUDED.listing_start, "\
-    "    listing_end = EXCLUDED.listing_end;"
+    "    listing_end = EXCLUDED.listing_end; "\
+    "UPDATE tblDomains SET "\
+    "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
+    "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
+    "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
+    "indexing_status = 'PENDING', "\
+    "indexing_status_changed = NOW() "\
+    "FROM tblTiers WHERE tblTiers.tier = 3 and tblDomains.domain = (%s);"
 
 
 # SQL for adminutils.py

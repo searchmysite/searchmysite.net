@@ -171,7 +171,7 @@ def renew_subscription_success():
     if result:
         if result['tier'] == 2:
             current_app.logger.info('Current tier for {} is tier 2, and user has pressed Purchase, so need to upgrade to tier 3'.format(domain))
-            cursor.execute(searchmysite.sql.sql_upgrade_tier2_to_tier3, (domain, domain,))
+            cursor.execute(searchmysite.sql.sql_upgrade_tier2_to_tier3, (domain, domain, domain,))
             conn.commit()
     tier = 3 # Hardcoding to tier 3 for now given it is the only paid for option at the moment (if they're currently tier 2 we don't want them paying to renew tier 2)
     current_app.logger.info('Purchasing subscription for domain {}, tier {}'.format(domain, tier))
