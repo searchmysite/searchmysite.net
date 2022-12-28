@@ -61,6 +61,8 @@ DOWNLOAD_WARNSIZE = 1048576 # 1Mb
 # If the spider remains open for more than that number of seconds, it will be automatically closed with the reason closespider_timeout
 CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
 
+REQUEST_FINGERPRINTER_IMPLEMENTATION = '2.7'
+
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
