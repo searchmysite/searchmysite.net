@@ -18,7 +18,6 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="author" type="string" indexed="true" stored="true" />
 #    <field name="description" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
-#    <field name="body" type="text_general" indexed="true" stored="true" multiValued="false" /> <!-- no longer in use -->
 #    <field name="content" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="content_type" type="string" indexed="true" stored="true" />
 #    <field name="page_type" type="string" indexed="true" stored="true" />
@@ -33,7 +32,6 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="api_enabled" type="boolean" indexed="true" stored="true" /> <!-- only present on pages where is_home=true -->
 #    <field name="public" type="boolean" indexed="true" stored="true" /> <!-- same value for every page (false only an option where owner_verified=true) -->
 #    <field name="in_web_feed" type="boolean" indexed="true" stored="true" />
-#    <field name="rss_feed" type="string" indexed="true" stored="true" /> <!-- no longer in use -->
 #    <field name="web_feed" type="string" indexed="true" stored="true" />
 #    <field name="language" type="string" indexed="true" stored="true" />
 #    <field name="language_primary" type="string" indexed="true" stored="true" />
