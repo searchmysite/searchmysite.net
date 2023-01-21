@@ -50,8 +50,10 @@ query_params_search = {
     "fl": ["id", "url", "title", "description", "contains_adverts", "published_date"],
     "q.op": "AND",
     "fq": mandatory_filter_queries_search,
-    "hl": "on",
+    "hl": True,
     "hl.fl": ["content", "description"],
+    "hl.method": "original", # default is "original" in Sol 8 but "unified" in Solr 9. Unfortunately "unified" in Solr 9.0 seems to ignore hl.fragsize
+    "hl.fragsize": 100,
     "hl.simple.pre": split_text,
     "hl.simple.post": split_text,
     "group": True,
@@ -59,6 +61,7 @@ query_params_search = {
     "group.limit": 3,
     "group.ngroups": True
 }
+
 query_facets_search = {
     "site_category":                { "field": "site_category",                "type": "terms", "limit":  2, "sort": "count" },
     "in_web_feed":                  { "field": "in_web_feed",                  "type": "terms", "limit":  2, "sort": "count" },
