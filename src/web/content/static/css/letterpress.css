@@ -34,14 +34,26 @@
     --highlight: #7E2269;
     --link-underline: #DBA0C7;
     --light-gray:#CECECE;
-    --large-font-size:24px;
-    --mid-font-size:20px;
+    --large-font-size: 1.5rem;
+    --mid-font-size: 1.25rem;
+    font-size:calc(1vw);
+}
+
+@media screen and (min-width: 1200px) {
+    :root {
+        font-size:16px;
+    }
 }
 
 body.sms-body {
     font-family: 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
     background-color: #f1f1f1;
     font-display: swap;
+}
+
+.sms-search-conatiner {
+    max-height: 92vh;
+    overflow: hidden;
 }
 
 a, a:link, a:visited, a:hover {
@@ -73,9 +85,9 @@ em a:hover {
 }
 
 .search-header {
-    padding-left: 70px;
-    padding-right: 70px;
-    padding-top: 60px;
+    padding-left: 4.375rem;
+    padding-right: 4.375rem;
+    padding-top: 3.75rem;
 }
 
 .sms-medium-font {
@@ -88,37 +100,37 @@ em a:hover {
 
 a.sms-medium-font, a.sms-medium-font:link,
 a.sms-medium-font:visited {
-    border-bottom: 2px solid transparent;
+    border-bottom: 0.125rem solid transparent;
 }
 
 a.sms-medium-font:hover {
-    border-bottom: 2px solid var(--link-underline);
+    border-bottom: 0.125rem solid var(--link-underline);
 } 
 
 a.sms-large-font, a.sms-large-font:link,
 a.sms-large-font:visited {
-    border-bottom: 4px solid transparent;
+    border-bottom: 0.25rem solid transparent;
 }
 
 a.sms-large-font:hover {
-    border-bottom: 4px solid var(--link-underline);
+    border-bottom: 0.25rem solid var(--link-underline);
 }
 
 .sms-search-input {
-    padding: 15px 15px 15px 28px;
+    padding: 0.9375rem 0.9375rem 0.9375rem 1.75rem;
     border-radius: 1rem;
     border-color: var(--highlight);
-    border-width: .5px;
+    border-width: 0.03125rem;
 }
 
 .sms-search-btn {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
     border-radius: 1rem;
     color: white;
     background-color: var(--highlight);
     border-color: var(--highlight);
-    border-width: .5px;
+    border-width: 0.03125rem;
 }
 
 .sms-under-search-btns {
@@ -131,18 +143,49 @@ a.sms-large-font:hover {
 }
 
 .sms-home-intro-txt {
-    margin-top:var(--mid-font-size);
-    padding-top:24px;
-    border-top: 1px solid var(--light-gray);
-    border-bottom: 1px solid var(--light-gray);
-    padding-bottom: 16px;
+    margin-top: 5.875rem;
+    padding-top: 1.875rem;
+    border-top: 0.0625rem solid var(--light-gray);
+    border-bottom: 0.0625rem solid var(--light-gray);
+    padding-bottom: 1rem;
 }
 
 .sms-home-intro-txt p {
-    line-height: 32px;
+    line-height: 2rem;
     font-size: var(--mid-font-size);
 }
 
 .sms-search-form {
     margin-top: 20vh;
+
+}
+
+.row.sms-bottom-line {
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
+
+.row.sms-bottom-line img {
+    height: 2.2rem;
+    margin-bottom: 1rem;
+}
+
+.sms-h-line {
+    border-bottom: .2rem dotted var(--light-gray);
+}
+
+.sms-v-stripes {
+    background-image: url("../images/stripes.png");
+    background-repeat: repeat;
+    height:100%;
+    width: 80%;
+}
+
+.sms-about-text {
+    padding-top: 5rem;
+}
+
+.sms-r-stripe {
+    margin-left: 20%;
 }
