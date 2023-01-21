@@ -8,26 +8,30 @@
 	<title>Search My Site - Open source search engine and search as a service for personal and independent websites</title>
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.5.2.2.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/static/css/custom.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css"/>
 	<script defer src="/static/js/bootstrap.5.2.2.min.js"></script>
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 sms-body">
 
-	<header>
-		<nav class="navbar navbar-expand-sm navbar-light bg-light" aria-label="searchmysite.net navbar">
+	<header class="search-header">
+		<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
 			<div class="container-fluid">
-				<a class="nav-link navbar-brand disabled" href="/">Search My Site</a>
+				<div class="sms-logo">
+					<!-- <a class="nav-link navbar-brand disabled" href="/">Search My Site</a> -->
+					<img src="images/searchmysite-logo.svg">
+				</div>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 			  	</button>
 			  	<div class="collapse navbar-collapse flex-grow-0" id="topnav">
 					<ul class="navbar-nav align-items-end">
 				  		<li class="nav-item">
-							<a class="nav-link" href="/admin/add/">Add Site</a>
+							<a class="nav-link sms-medium-font" href="/admin/add/">Add Site</a>
 				  		</li>
 				  		<li class="nav-item">
-							<a class="nav-link" href="/admin/manage/">Manage Site</a>
+							<a class="nav-link sms-medium-font" href="/admin/manage/">Manage Site</a>
 				  		</li>
 					</ul>
 			  	</div>
@@ -35,16 +39,16 @@
 		</nav>
 	</header>
 
-	<main class="flex-grow-1">
-		<div class="container-fluid h-100">
+	<main>
+		<div class="container-fluid sms-home-main-container">
 
-			<form action="/search/">
+			<form action="/search/" class="sms-search-form">
 			<div class="row">
-				<div class="col-md-4 offset-md-4 mt-5 pt-3">
+				<div class="col-md-6 offset-md-3">
 					<div class="input-group">
-						<input type="search" class="form-control" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
-						<button class="input-group-text" type="submit">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+						<input type="search" class="form-control sms-search-input sms-large-font" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
+						<button class="input-group-text sms-search-btn" type="submit">
+							<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
 								<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
 							</svg>
 						</button>
@@ -55,20 +59,22 @@
 
 			<div class="row">
 				<div class="col-lg-12 text-center mt-1">
-					<nav class="navbar navbar-expand-sm justify-content-center">
+					<nav class="navbar navbar-expand-sm justify-content-center sms-under-search-btns mt-5">
 						<ul class="nav">
 							<li class="nav-item">
-								<a class="nav-link" href="/search/browse/"><span class="d-none d-sm-block">Browse Sites</span><span class="d-block d-sm-none">Browse</span></a>
+								<a class="nav-link sms-large-font" href="/search/browse/"><span>Browse</span></a>
 							</li>
 						</ul>
-						<ul class="nav">
-							<li class="nav-item">
-								<a class="nav-link" href="/search/new/"><span class="d-none d-sm-block">Newest Pages</span><span class="d-block d-sm-none">Newest</span></a>
+						<ul class="nav ps-5">
+							<li class="nav-item ps-5">
+								<a class="nav-link sms-large-font" href="/search/new/"><span class="pl">Newest</span></a>
 							</li>
 						</ul>
-						<ul class="nav">
-							<li class="nav-item">
-								<a class="nav-link" href="/search/random/" target="_blank" rel="noopener noreferrer"><span class="d-none d-sm-block">Random Page</span><span class="d-block d-sm-none">Random</span></a>
+						<ul class="nav ps-5">
+							<li class="nav-item ps-5">
+								<a class="nav-link sms-large-font" href="/search/random/" target="_blank" rel="noopener noreferrer">
+									<span class="sms-large-font">Random</span>
+								</a>
 							</li>
 						</ul>
 					</nav>
@@ -76,10 +82,10 @@
 			</div>
 
 			<div class="row">
-				<div class="col-md-4 offset-md-4 mt-5 text-center">
-					<h1 class="normal">searchmysite.net is an open source search engine and search as a service.</h1>
-					<p>The <a href="/pages/about/#search-engine">search engine</a> is to search real content by real people from the indieweb / small web / digital gardens.</p>
-					<p>The <a href="/pages/about/#search-as-a-service">search as a service</a> is easy to setup, low cost and self-hostable.</p>
+				<div class="col-md-4 offset-md-4 text-center sms-home-intro-txt">
+					<p><em>searchmysite.net is an open source search engine and search as a service.<br>
+					The <a href="/pages/about/#search-engine">search engine</a> is to search real content by real people from the indieweb / small web / digital gardens.<br>
+					The <a href="/pages/about/#search-as-a-service">search as a service</a> is easy to setup, low cost and self-hostable.</em></p>
 				</div>
 			</div>
 

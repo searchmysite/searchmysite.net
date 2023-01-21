@@ -1,0 +1,148 @@
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-Regular.woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-Italic.woff2');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-SemiBold.woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-SemiBoldItalic.woff2');
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* :root {
+    --source-serif: 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
+} */
+
+:root {
+    --highlight: #7E2269;
+    --link-underline: #DBA0C7;
+    --light-gray:#CECECE;
+    --large-font-size:24px;
+    --mid-font-size:20px;
+}
+
+body.sms-body {
+    font-family: 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
+    background-color: #f1f1f1;
+    font-display: swap;
+}
+
+a, a:link, a:visited, a:hover {
+    color: black;
+    padding: 0;
+}
+
+a, a:link, a:visited {
+    font-weight: normal;
+}
+
+a:hover {
+    font-weight: bold;
+    color: black !important;
+}
+
+em a, em a:link, em a:visited, em a:hover {
+    color: var(--highlight) !important;
+    font-weight: bold;
+}
+
+em a:hover {
+    text-decoration: underline;
+}
+
+
+.sms-logo img {
+    width: 21rem;
+}
+
+.search-header {
+    padding-left: 70px;
+    padding-right: 70px;
+    padding-top: 60px;
+}
+
+.sms-medium-font {
+    font-size: var(--mid-font-size);
+}
+
+.sms-large-font {
+    font-size: var(--large-font-size);
+}
+
+a.sms-medium-font, a.sms-medium-font:link,
+a.sms-medium-font:visited {
+    border-bottom: 2px solid transparent;
+}
+
+a.sms-medium-font:hover {
+    border-bottom: 2px solid var(--link-underline);
+} 
+
+a.sms-large-font, a.sms-large-font:link,
+a.sms-large-font:visited {
+    border-bottom: 4px solid transparent;
+}
+
+a.sms-large-font:hover {
+    border-bottom: 4px solid var(--link-underline);
+}
+
+.sms-search-input {
+    padding: 15px 15px 15px 28px;
+    border-radius: 1rem;
+    border-color: var(--highlight);
+    border-width: .5px;
+}
+
+.sms-search-btn {
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 1rem;
+    color: white;
+    background-color: var(--highlight);
+    border-color: var(--highlight);
+    border-width: .5px;
+}
+
+.sms-under-search-btns {
+    /* margin-top: 57px; */
+}
+
+/* Home */
+.sms-home-main-container {
+    height: 80vh;
+}
+
+.sms-home-intro-txt {
+    margin-top:var(--mid-font-size);
+    padding-top:24px;
+    border-top: 1px solid var(--light-gray);
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 16px;
+}
+
+.sms-home-intro-txt p {
+    line-height: 32px;
+    font-size: var(--mid-font-size);
+}
+
+.sms-search-form {
+    margin-top: 20vh;
+}
