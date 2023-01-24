@@ -186,8 +186,22 @@ a.sms-large-font:hover {
     border-width: 0.03125rem;
 }
 
-.sms-under-search-btns {
-    /* margin-top: 57px; */
+.sms-user-nav  ul li.nav-item{
+    padding: 0;
+    /* margin-left: 1.5rem; */
+    width: 7rem;
+    text-align: right;
+}
+
+.sms-under-search-btns ul li.nav-item{
+    width: 7rem;
+}
+.sms-under-search-btns ul li a.nav-link,
+.sms-user-nav ul li a.nav-link{
+    width: fit-content;
+}
+.sms-user-nav ul li a.nav-link {
+    padding: 0 !important;
 }
 
 /* Home */
