@@ -1,0 +1,280 @@
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-Regular.woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-Italic.woff2');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-SemiBold.woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('../fonts/SourceSerifPro-SemiBoldItalic.woff2');
+    font-weight: bold;
+    font-style: italic;
+}
+
+:root {
+    --highlight: #7E2269;
+    --link-underline: #DBA0C7;
+    --light-gray:#CECECE;
+    --large-font-size: 1.5rem;
+    --large-line-height: 2.5rem;
+    --med-font-size: 1.25rem;
+    --med-line-height: 1.7rem;
+    --dark-gray: #333333;
+    font-size:calc(1vw);
+}
+
+@media screen and (min-width: 1200px) {
+    :root {
+        font-size:16px;
+    }
+}
+
+@media screen and (max-width: 1199px) {
+    :root {
+        font-size:12px;
+    }
+}
+
+body.sms-body {
+    font-family: 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
+    background-color: #f1f1f1;
+    font-display: swap;
+}
+
+.sms-search-conatiner {
+    max-height: 92vh;
+    overflow: hidden;
+}
+
+a, a:link, a:visited {
+    color: var(--dark-gray);
+    padding: 0;
+    font-weight: normal;
+}
+
+a:hover {
+    font-weight: bold;
+    color: black !important;
+}
+
+em a, em a:link, em a:visited, em a:hover {
+    color: var(--highlight) !important;
+    font-weight: bold;
+}
+
+em a:hover {
+    text-decoration: underline;
+}
+
+
+.sms-logo img {
+    width: 21rem;
+}
+
+.search-header {
+    padding-left: 4.375rem;
+    padding-right: 4.375rem;
+    padding-top: 3.75rem;
+}
+
+p.sms-p1, ul.sms-list-1 li {
+    font-size: var(--large-font-size);
+    line-height: var(--large-line-height);
+    margin-bottom: 1.5rem;
+}
+
+ul.sms-list-1.sms-special-bullet li {
+    list-style: none;
+    padding: 0 0 0 2rem;    
+}
+
+
+ul.sms-list-1.sms-special-bullet li:before
+{
+    content: '\2749';
+    margin-right: 1rem;
+    margin-left: -2rem;
+}
+
+p.sms-p2, ul.sms-list-2 li {
+    font-size: var(--med-font-size);
+    line-height: var(--med-line-height);
+    margin-bottom: 1rem;
+}
+
+h1.sms-h1 {
+    color: var(--highlight);
+}
+
+h4.sms-h4 {
+    margin-bottom: 2rem;
+}
+
+blockquote.sms-quote-1 {
+    font-size:1.875rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-top: 0.0625rem solid var(--light-gray);
+    border-bottom: 0.0625rem solid var(--light-gray);
+    font-style: italic;
+    /* padding-left: 1.5rem; */
+}
+
+blockquote::before {
+    content: "\275D";
+    /* margin-left: -1.5rem; */
+}
+
+blockquote::after {
+    content: "\275E";
+}
+
+
+.sms-medium-font {
+    font-size: var(--med-font-size);
+}
+
+.sms-large-font {
+    font-size: var(--large-font-size);
+}
+
+a.sms-medium-font, a.sms-medium-font:link,
+a.sms-medium-font:visited {
+    border-bottom: 0.125rem solid transparent;
+}
+
+a.sms-medium-font:hover {
+    border-bottom: 0.125rem solid var(--link-underline);
+} 
+
+a.sms-large-font, a.sms-large-font:link,
+a.sms-large-font:visited {
+    border-bottom: 0.25rem solid transparent;
+}
+
+a.sms-large-font:hover {
+    border-bottom: 0.25rem solid var(--link-underline);
+}
+
+.sms-search-input {
+    padding: 0.9375rem 0.9375rem 0.9375rem 1.75rem;
+    border-radius: 1rem;
+    border-color: var(--highlight);
+    border-width: 0.03125rem;
+}
+
+.sms-search-btn {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    border-radius: 1rem;
+    color: white;
+    background-color: var(--highlight);
+    border-color: var(--highlight);
+    border-width: 0.03125rem;
+}
+
+.sms-user-nav  ul li.nav-item{
+    padding: 0;
+    /* margin-left: 1.5rem; */
+    width: 7rem;
+    text-align: right;
+}
+
+.sms-under-search-btns ul li.nav-item{
+    width: 7rem;
+}
+.sms-under-search-btns ul li a.nav-link,
+.sms-user-nav ul li a.nav-link{
+    width: fit-content;
+}
+.sms-user-nav ul li a.nav-link {
+    padding: 0 !important;
+}
+
+/* Home */
+.sms-home-main-container {
+    height: 80vh;
+}
+
+.sms-home-intro-txt {
+    margin-top: 5.875rem;
+    padding-top: 1.875rem;
+    border-top: 0.0625rem solid var(--light-gray);
+    border-bottom: 0.0625rem solid var(--light-gray);
+    padding-bottom: 1rem;
+}
+
+.sms-home-intro-txt p {
+    line-height: 2rem;
+    font-size: var(--med-font-size);
+}
+
+.sms-search-form {
+    margin-top: 20vh;
+
+}
+
+.row.sms-bottom-line {
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
+
+.row.sms-bottom-line img {
+    height: 2.2rem;
+    margin-bottom: 1rem;
+}
+
+.sms-h-line {
+    border-bottom: .2rem dotted var(--light-gray);
+}
+
+.sms-v-stripes {
+    background-image: url("../images/stripes.png");
+    background-repeat: repeat;
+    height:100%;
+    width: 80%;
+}
+.sms-about-section{
+    padding-bottom: 5rem;
+}
+.sms-about-text {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+.sms-about-text h1 {
+    margin-bottom:2.5rem;
+}
+
+.sms-r-stripe {
+    margin-left: 20%;
+}
+
+.sms-body footer {
+    background-color: var(--dark-gray);
+    color: white;
+    padding-top:4rem;
+    padding-bottom:4rem;
+}
+.sms-body footer a,
+.sms-body footer a:link,
+.sms-body footer a:visited,
+.sms-body footer a:hover{
+    color: white;
+}
