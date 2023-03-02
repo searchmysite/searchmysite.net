@@ -196,6 +196,7 @@ a.sms-large-font:hover {
 }
 
 .sms-under-search-btns ul li.nav-item{
+    margin-top: 3rem;
     width: 7rem;
 }
 .sms-under-search-btns ul li a.nav-link,
@@ -204,6 +205,10 @@ a.sms-large-font:hover {
 }
 .sms-user-nav ul li a.nav-link {
     padding: 0 !important;
+}
+
+.sms-under-search-btns .nav .nav-link {
+    font-size: var(--large-font-size);
 }
 
 /* Home */
@@ -278,3 +283,5 @@ a.sms-large-font:hover {
 .sms-body footer a:hover{
     color: white;
 }
+
+/* SEARCH RESULTS ************************** */
