@@ -6,7 +6,7 @@
 
 {% block content %}
 
-			<form method="POST">
+			<form method="POST" class="sms-results-form">
 
 				<script>
 					function refreshPage(formName) {
@@ -17,12 +17,12 @@
 				{% if (no_of_results and no_of_results > 0) or (no_of_domains and no_of_domains > 0) %}
 
 				<div class="row mt-2">
-					<div class="col-sm-2 col-md-4">
+					<!-- <div class="col-sm-2 col-md-4 sms-filters">
 						<a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
 						Filters
 						</a>
-					</div>
-					<div class="col-sm-2 col-md-4 text-center">
+					</div> -->
+					<div class="col-sm-2 col-md-4 text-center sms-feed">
 						{% if no_of_results %}
 						{{ no_of_results }} results
 						{% elif no_of_domains %}
@@ -126,7 +126,7 @@
 				</div>
 				{% endif %}
 
-				<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+				<!-- <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
 					<div class="offcanvas-header">
 						<h5 class="offcanvas-title" id="offcanvasLabel">Filters</h5>
 						<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -144,7 +144,7 @@
 							{% endif %}
 						{% endfor %}
 					</div>
-				</div>
+				</div> -->
 
 				<nav aria-label="Page navigation">
 					<ul class="pagination pg-blue justify-content-center">

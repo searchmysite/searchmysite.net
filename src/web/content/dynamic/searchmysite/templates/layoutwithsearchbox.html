@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block searchbox %}
-			<form action="/search/" class="sms-search-form">
+			<form action="/search/" class="sms-search-form-layout">
 				<div class="row mt-1">
 					<div class="col-md-12 pt-3">
 						<div class="input-group">
@@ -16,9 +16,9 @@
 				</div>
 			</form>
 
-			<div class="row">
+			<div class="row sms-search-layout">
 				<div class="col-lg-12 text-center mt-1">
-					<nav class="navbar navbar-expand-sm justify-content-center sms-under-search-btns">
+					<nav class="navbar navbar-expand-sm sms-under-search-btns">
 						<ul class="nav">
 							<li class="nav-item">
 								<a class="nav-link sms-large-font" href="/search/browse/">Browse</a>
@@ -36,7 +36,36 @@
 								</a>
 							</li>
 						</ul>
+						<ul class="nav ps-5 sms-filters">
+							<li class="nav-item ms-5">
+								<a class="sms-large-font sms-filters-icon sms-btn" data-bs-toggle="offcanvas" href="#offcanvas" aria-controls="offcanvas">
+									Filters
+								</a>
+							</li>
+						</ul>	
 					</nav>
+				</div>
+			</div>
+
+			<div class="sms-dotted-line"></div>
+
+			<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+				<div class="offcanvas-header">
+					<h5 class="offcanvas-title" id="offcanvasLabel">Filters</h5>
+					<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+				</div>
+				<div class="offcanvas-body">
+					{% for facet in facets %}
+						{% if facet['inputs'] %}
+							{{ facet['label_name'] }}<br>
+							{% for input in facet['inputs'] %}
+							<div class="form-check">
+								<input class="form-check-input" type="{{ input['type'] }}" name="{{ input['name'] }}" value="{{ input['value'] }}" id="{{ input['id'] }}" onchange="refreshPage(this.form);" {{ input['state'] }}>
+								<label class="form-check-label" for="{{ input['id'] }}">{{ input['label'] }}</label>
+							</div>
+							{% endfor %}
+						{% endif %}
+					{% endfor %}
 				</div>
 			</div>
 

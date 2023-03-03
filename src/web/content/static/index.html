@@ -16,83 +16,83 @@
 <body class="d-flex flex-column min-vh-100 sms-body">
 
 	<div class="sms-search-conatiner">
-	<header class="search-header">
-		<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
-			<div class="container-fluid">
-				<div class="sms-logo">
-					<!-- <a class="nav-link navbar-brand disabled" href="/">Search My Site</a> -->
-					<img src="images/searchmysite-logo.svg">
-				</div>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-			  	</button>
-			  	<div class="collapse navbar-collapse flex-grow-0 sms-user-nav" id="topnav">
-					<ul class="navbar-nav align-items-end">
-				  		<li class="nav-item">
-							<a class="nav-link sms-medium-font" href="/admin/add/">Add Site</a>
-				  		</li>
-				  		<li class="nav-item">
-							<a class="nav-link sms-medium-font" href="/admin/manage/">Manage Site</a>
-				  		</li>
-					</ul>
-			  	</div>
-			</div>
-		</nav>
-	</header>
-
-	<main>
-		<div class="container-fluid sms-home-main-container">
-
-			<form action="/search/" class="sms-search-form">
-			<div class="row">
-				<div class="col-md-6 offset-md-3">
-					<div class="input-group">
-						<input type="search" class="form-control sms-search-input sms-large-font" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
-						<button class="input-group-text sms-search-btn" type="submit">
-							<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-								<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-							</svg>
-						</button>
+		<header class="search-header">
+			<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
+				<div class="container-fluid">
+					<div class="sms-logo">
+						<!-- <a class="nav-link navbar-brand disabled" href="/">Search My Site</a> -->
+						<img src="images/searchmysite-logo.svg" alt="Search My Site Logo">
+					</div>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse flex-grow-0 sms-user-nav" id="topnav">
+						<ul class="navbar-nav align-items-end">
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="/admin/add/">Add Site</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="/admin/manage/">Manage Site</a>
+							</li>
+						</ul>
 					</div>
 				</div>
-			</div>
-			</form>
+			</nav>
+		</header>
 
-			<div class="row">
-				<div class="col-lg-12 text-center mt-1">
-					<nav class="navbar navbar-expand-sm justify-content-center sms-under-search-btns">
-						<ul class="nav">
-							<li class="nav-item">
-								<a class="nav-link sms-large-font" href="/search/browse/">Browse</a>
-							</li>
-						</ul>
-						<ul class="nav ps-5">
-							<li class="nav-item ms-5">
-								<a class="nav-link sms-large-font" href="/search/new/">Newest</a>
-							</li>
-						</ul>
-						<ul class="nav ps-5">
-							<li class="nav-item ms-5">
-								<a class="nav-link sms-large-font" href="/search/random/" target="_blank" rel="noopener noreferrer">
-									Random
-								</a>
-							</li>
-						</ul>
-					</nav>
-				</div>
-			</div>
+		<main>
+			<div class="container-fluid sms-home-main-container">
 
-			<div class="row sms-intro-txt-row">
-				<div class="col-md-4 offset-md-4 text-center sms-home-intro-txt">
-					<p>
-						<em>Search the <a href="">indieweb</a>, <a href="">small web</a> and <a href="">digital gardens</a>.
-						We prioritize real content by real people. Sites are
-						ranked higher when they have no ads and no tracking.</em>
-					</p>
+				<form action="/search/" class="sms-search-form">
+				<div class="row">
+					<div class="col-md-6 offset-md-3">
+						<div class="input-group">
+							<input type="search" class="form-control sms-search-input sms-large-font" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
+							<button class="input-group-text sms-search-btn" type="submit">
+								<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+									<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+								</svg>
+							</button>
+						</div>
+					</div>
 				</div>
-			</div>			
-		</div>
-	</main>
+				</form>
+
+				<div class="row">
+					<div class="col-lg-12 text-center mt-1">
+						<nav class="navbar navbar-expand-sm justify-content-center sms-under-search-btns">
+							<ul class="nav">
+								<li class="nav-item">
+									<a class="nav-link sms-large-font" href="/search/browse/">Browse</a>
+								</li>
+							</ul>
+							<ul class="nav ps-5">
+								<li class="nav-item ms-5">
+									<a class="nav-link sms-large-font" href="/search/new/">Newest</a>
+								</li>
+							</ul>
+							<ul class="nav ps-5">
+								<li class="nav-item ms-5">
+									<a class="nav-link sms-large-font" href="/search/random/" target="_blank" rel="noopener noreferrer">
+										Random
+									</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+
+				<div class="row sms-intro-txt-row">
+					<div class="col-md-4 offset-md-4 text-center sms-home-intro-txt">
+						<p>
+							<em>Search the <a href="">indieweb</a>, <a href="">small web</a> and <a href="">digital gardens</a>.
+							We prioritize real content by real people. Sites are
+							ranked higher when they have no ads and no tracking.</em>
+						</p>
+					</div>
+				</div>			
+			</div>
+		</main>
 
 	</div>
 				
