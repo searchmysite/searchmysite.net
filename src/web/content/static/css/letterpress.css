@@ -55,12 +55,13 @@
     font-size:calc(1vw);
 }
 
+/* DESKTOP LARGE REM SCALE */
 @media screen and (min-width: 1200px) {
     :root {
         font-size:16px;
     }
 }
-
+/* TABLET - SMALL LAPTOP AND SMALLER REM SCALE*/
 @media screen and (max-width: 1199px) {
     :root {
         font-size:12px;
@@ -199,12 +200,10 @@ blockquote.sms-quote-1 {
     border-top: 0.0625rem solid var(--light-gray);
     border-bottom: 0.0625rem solid var(--light-gray);
     font-style: italic;
-    /* padding-left: 1.5rem; */
 }
 
 blockquote::before {
     content: "\275D";
-    /* margin-left: -1.5rem; */
 }
 
 blockquote::after {
@@ -257,7 +256,6 @@ a.sms-large-font:hover {
 
 .sms-user-nav  ul li.nav-item{
     padding: 0;
-    /* margin-left: 1.5rem; */
     width: 7rem;
     text-align: right;
 }
@@ -312,7 +310,6 @@ a.sms-large-font:hover {
 
 .row.sms-bottom-line {
     position: relative;
-    width: 100%;
     text-align: center;
 }
 
@@ -563,4 +560,23 @@ a.sms-large-font:hover {
     display: block;
     float: left;
     margin-top: -0.9rem;
+}
+
+
+/* DESKTOP ***********/
+/* @media screen and (min-width: 768px) {
+   
+} */
+
+/* MOBILE ***********/
+@media screen and (max-width: 767px) {
+    .search-header {
+        padding-left: 0;
+        padding-right: 0;
+        padding-top: 2rem;
+    }
+    .sms-home-intro-txt, .sms-bottom-line {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
 }
