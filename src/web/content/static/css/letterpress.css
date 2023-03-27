@@ -185,6 +185,11 @@ h1.sms-h1 {
 }
 
 h2.sms-h2 {
+    font-size: var(--xlarge-font-size);
+    font-weight: bold;
+}
+
+h2.sms-h3 {
     font-size:var(--large-font-size);
     font-weight: bold;
 }
@@ -479,13 +484,12 @@ a.sms-large-font:hover {
 }
 
 .sms-results-list h2.sms-h2 {
-    font-size: var(--xlarge-font-size);
     margin-left: -2.5rem;
 }
 
-.sms-results-list h2.sms-h2 a,
-.sms-results-list h2.sms-h2 a:link,
-.sms-results-list h2.sms-h2 a:visited
+h2.sms-h2 a,
+h2.sms-h2 a:link,
+h2.sms-h2 a:visited
 {
     font-weight: bold;
 }
