@@ -427,6 +427,9 @@ a.sms-large-font:hover {
 }
 
 
+.sms-pr-0 {
+    padding-right: 0 !important;
+}
 
 /* SEARCH RESULTS ************************** */
 
@@ -446,10 +449,11 @@ a.sms-large-font:hover {
     padding-right:2rem;
 }
 
+
 .sms-results-form {
     margin-top: 2rem;
     padding-left:2rem;
-    padding-right:2rem;
+    /* padding-right:2rem; */
 }
 
 .sms-feed::before, .sms-feed::after {
@@ -461,6 +465,8 @@ a.sms-large-font:hover {
     background-color: transparent;
     display: inline;
     padding: 0;
+    border-bottom: 0.25rem solid var(--link-underline);
+    border-radius: 0;
 }
 
 .sms-sort-label {
