@@ -13,10 +13,10 @@
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 </head>
-<body class="d-flex flex-column min-vh-100 sms-body">
+<body class="d-flex flex-column min-vh-100 sms-body sms-home">
 
 	<div class="sms-search-conatiner">
-		<header class="search-header">
+		<header class="search-header sms-home-header">
 			<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
 				<div class="container-fluid">
 					<div class="sms-logo">
@@ -40,24 +40,27 @@
 			</nav>
 		</header>
 
-		<main>
-			<div class="container-fluid sms-home-main-container">
+		<main class="container-fluid">
 
+			<div class="sms-home-main-container"> <!-- Start Main Container -->
+
+				<!-- SEARCH BAR -->
 				<form action="/search/" class="sms-search-form">
-				<div class="row">
-					<div class="col-md-6 offset-md-3">
-						<div class="input-group">
-							<input type="search" class="form-control sms-search-input sms-large-font" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
-							<button class="input-group-text sms-search-btn" type="submit">
-								<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-									<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-								</svg>
-							</button>
+					<div class="row">
+						<div class="col-md-6 offset-md-3">
+							<div class="input-group">
+								<input type="search" class="form-control sms-search-input sms-large-font" placeholder="Search..." name="q" id="query" aria-label="Search query" autofocus>
+								<button class="input-group-text sms-search-btn" type="submit">
+									<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+										<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+									</svg>
+								</button>
+							</div>
 						</div>
 					</div>
-				</div>
 				</form>
 
+				<!-- BUTTONS -->
 				<div class="row">
 					<div class="col-lg-12 text-center mt-1">
 						<nav class="navbar navbar-expand-sm justify-content-center sms-under-search-btns">
@@ -82,8 +85,8 @@
 					</div>
 				</div>
 
-				<div class="row sms-intro-txt-row">
-					<div class="col-md-4 offset-md-4 col-12 text-center sms-home-intro-txt">
+				<div class="row ps-3 pe-3">
+					<div class="col-md-4 offset-md-4 col-12 text-center sms-home-intro-txt sms-intro-txt-row">
 						<p>
 							<em>Search the <a href="">indieweb</a>, <a href="">small web</a> and <a href="">digital gardens</a>.
 							We prioritize real content by real people. Sites are
@@ -91,46 +94,45 @@
 						</p>
 					</div>
 				</div>			
+							
+				<div class="row sms-bottom-line-container">
+					<div class="col-md-6 offset-md-3 col-12 sms-bottom-line">
+						<img src="images/arrow-home.svg">
+						<div class="sms-h-line"></div>
+					</div>
+				</div>
+
+			</div> <!-- End Main Container -->
+
+			<div class="row">
+				<div class="col-md-3 ps-0"><div class="sms-v-stripes"></div></div>
+				<div class="col-md-6 sms-about-text">
+					<h1 class="sms-h1">About searchmysite.net</h1>
+					<p class="sms-p1">
+						What is the search engine and why should I use it?
+					</p>
+					<p class="sms-p1">
+					<blockquote class="sms-quote-1">
+						The searchmysite.net search engine is a niche search, focussing on the "indieweb" or "small web" or "digital gardens", i.e. non-commercial content, primarily personal and independent websites.
+					</blockquote>
+					<p class="sms-p1">
+						If you want to research people's personal experiences of or deep-dives into certain topics, hobbies or interests, then you may find the searchmysite.net public search useful to avoid having to wade through all the marketing websites and blog spam that fill the big search engines. It differs from the commercial search engines because it:
+					</p class="sms-p1">
+
+					<ul class="sms-list-1 sms-special-bullet">
+						<li>Indexes only user-submitted and moderated sites, rather than indexing the entire internet with all of its spam, "search engine optimisation" and "click-bait" content.</li>
+						<li>Does not show adverts and promotes advert-free results pages, to remove the incentives for spam and surveillance capitalism.</li>
+						<li>Aims to have a sustainable and user-aligned operating model, planning to pay running costs via the "search as a service" features, rather than relying on advertising which could put it in conflict with user needs.</li>
+						<li>Offers an unusually high level of privacy for a search engine, thanks to the operating model which is not based on advertising or collecting personal information for sale to advertisers (see the Privacy Policy for full details).</li>
+						<li>Is fully open source, for even greater transparency of the searching, ranking and indexing processes, and for greater community involvement in improving the service.</li>
+					</ul>
+
+				</div>
+				<div class="col-md-3 pe-0"><div class="sms-v-stripes sms-r-stripe"></div></div>
 			</div>
+
 		</main>
-
 	</div>
-				
-				
-	<div class="row sms-bottom-line">
-		<div class="col-md-6 offset-md-3 col-12">
-			<img src="images/arrow-home.svg">
-			<div class="sms-h-line"></div>
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-3"><div class="sms-v-stripes"></div></div>
-		<div class="col-md-6 sms-about-text">
-			<h1 class="sms-h1">About searchmysite.net</h1>
-			<p class="sms-p1">
-				What is the search engine and why should I use it?
-			</p>
-			<p class="sms-p1">
-			<blockquote class="sms-quote-1">
-				The searchmysite.net search engine is a niche search, focussing on the "indieweb" or "small web" or "digital gardens", i.e. non-commercial content, primarily personal and independent websites.
-			</blockquote>
-			<p class="sms-p1">
-				If you want to research people's personal experiences of or deep-dives into certain topics, hobbies or interests, then you may find the searchmysite.net public search useful to avoid having to wade through all the marketing websites and blog spam that fill the big search engines. It differs from the commercial search engines because it:
-			</p class="sms-p1">
-
-			<ul class="sms-list-1 sms-special-bullet">
-				<li>Indexes only user-submitted and moderated sites, rather than indexing the entire internet with all of its spam, "search engine optimisation" and "click-bait" content.</li>
-				<li>Does not show adverts and promotes advert-free results pages, to remove the incentives for spam and surveillance capitalism.</li>
-				<li>Aims to have a sustainable and user-aligned operating model, planning to pay running costs via the "search as a service" features, rather than relying on advertising which could put it in conflict with user needs.</li>
-				<li>Offers an unusually high level of privacy for a search engine, thanks to the operating model which is not based on advertising or collecting personal information for sale to advertisers (see the Privacy Policy for full details).</li>
-				<li>Is fully open source, for even greater transparency of the searching, ranking and indexing processes, and for greater community involvement in improving the service.</li>
-			</ul>
-
-		</div>
-		<div class="col-md-3"><div class="sms-v-stripes sms-r-stripe"></div></div>
-	</div>
-
 
 	<footer class="footer">
 		<div class="navbar justify-content-sm-around justify-content-md-evenly align-items-start">

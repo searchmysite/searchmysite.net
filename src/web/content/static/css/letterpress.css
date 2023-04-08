@@ -96,11 +96,6 @@ div.sms-icons, span.sms-icons {
 }
 /* GENERAL */
 
-.sms-search-conatiner {
-    max-height: 92vh;
-    overflow: hidden;
-}
-
 a:hover {
     border-bottom: 0.125rem solid var(--link-underline);
 }
@@ -282,9 +277,14 @@ a.sms-large-font:hover {
     font-size: var(--large-font-size);
 }
 
-/* Home */
+/* Home ******************* */
 .sms-home-main-container {
     height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+.sms-home-header {
+    height: 20vh;
 }
 
 .sms-home-intro-txt {
@@ -313,16 +313,22 @@ a.sms-large-font:hover {
     background-color: var(--medium-light-gray);
 }
 
-.row.sms-bottom-line {
+.row.sms-bottom-line-container {
     position: relative;
     text-align: center;
+    flex-grow: 1;
+}
+
+.sms-home .sms-bottom-line {
+    margin-top: auto;
+    padding-bottom: 1rem;
 }
 
 .sms-dotted-line {
     border-bottom: .1rem dotted var(--medium-dark-gray);
 }
 
-.row.sms-bottom-line img {
+.row.sms-bottom-line-container img {
     height: 2.2rem;
     margin-bottom: 1rem;
 }
@@ -453,7 +459,6 @@ a.sms-large-font:hover {
 .sms-results-form {
     margin-top: 2rem;
     padding-left:2rem;
-    /* padding-right:2rem; */
 }
 
 .sms-feed::before, .sms-feed::after {
@@ -537,16 +542,10 @@ h2.sms-h2 a:visited
     display: flex;
 }
 
-/* .result-title- {
-    flex-direction: row;
-    display: flex;
-} */
-
 .page-item.active {
     border: 2px solid var(--dark-gray);
     border-radius: 50%;
     background-color: transparent;
-    /*! clip-path: circle(50px); */
     display: inline-block;
     width: 2.5rem;
     height: 2.5rem;
@@ -594,8 +593,15 @@ h2.sms-h2 a:visited
         padding-right: 0;
         padding-top: 2rem;
     }
-    .sms-home-intro-txt, .sms-bottom-line {
-        margin-left: 1rem;
-        margin-right: 1rem;
-    }
-}
+} 
+
+
+
+/**
+ sms-bottom-line-container remove row for mobile? Row ads padding
+ Solve the problem with internal padding, make sure that doesn't expand box.
+ Lets set a rigid 100% widht or a specific viewport width.
+
+
+
+*/
