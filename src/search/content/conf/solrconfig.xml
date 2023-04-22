@@ -753,6 +753,12 @@
       <str name="indent">true</str>
     </lst>
   </requestHandler>
+  
+  <!-- start searchmysite change -->
+  <requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
+    <str name="mlt.fl">title,description,author,tags,url,content</str>
+  </requestHandler>
+  <!-- end searchmysite change -->
 
   <!-- Shared parameters for multiple Request Handlers -->
   <initParams path="/update/**,/query,/select,/spell">
