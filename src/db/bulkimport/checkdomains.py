@@ -8,6 +8,26 @@ import psycopg2
 import psycopg2.extras
 import os
 
+# Instructions:
+#
+# Step 1: create the input file. It must be a text file with a list of domains (e.g. michael-lewis.com) 
+# or home page links (e.g. https://michael-lewis.com/) each on a new line, and saved in the data folder 
+# with a .txt extension, e.g. data/inputfile.txt.
+#
+# # Step 2: run `python checkdomains.py \<inputfile\>` (i.e. the file created above without data/ at the 
+# start and .txt at the end). Make sure your local dev is up and running, and that you have your python 
+# env set up. There are a couple of variables to be aware of: (i) database_host should point to your 
+# local dev (e.g. "db"), rather than the prod IP, (ii) input_reviewed should be True, otherwise the sites 
+# you load will require moderator review (which in turn needs an admin account set up). checkdomains.py 
+# will do a bunch of checks, e.g. to make sure the site is responding, that it isn't already in the 
+# database, and so on. The output will be a file at data/\<inputfile\>.json which has all the info that 
+# step 3 needs.
+#
+# Step 3: run `python insertdomains.py \<inputfile\>` where inputfile is the same value as above, i.e. 
+# no data/ and .txt. This will look for the previously created json file, and insert the relevant domains 
+# into the database with the relevant settings. Note that the category and moderator (and tier) are hardcoded.
+
+
 if len(sys.argv) > 1:
     inp = sys.argv[1]
 else:
@@ -38,8 +58,8 @@ input_file = "data/" + inp + ".txt"
 input_reviewed = True
 
 # Which database to read to check if the domains already exist in the database
-#database_host = "db" # Dev database
-database_host = "142.132.178.149" # Prod database
+database_host = "db" # Dev database
+#database_host = "142.132.178.149" # Prod database
 
 # SQL
 sql_select_indexed = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = TRUE AND indexing_enabled = TRUE;'
@@ -168,8 +188,11 @@ def check_domains():
 
     f.close()
 
-# This is copied from ../../web/content/dynamic/searchmysite/util.py - if that is updated this should be too
-# Only conn line is changed
+
+# This is copied from ../../web/content/dynamic/searchmysite/sql.py - if that is updated this should be too
+sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
+# This is copied from ../../web/content/dynamic/searchmysite/adminutils.py - if that is updated this should be too
+# The conn line and cursor.execute line should be updated after copying
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 def extract_domain(url):
     # Get the domain from the URL
@@ -179,10 +202,11 @@ def extract_domain(url):
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Look up list of domains which allow subdomains from database
     domains_allowing_subdomains = []
-#    conn = get_db()
+    #conn = get_db()
     conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(domains_allowing_subdomains_sql)
+    #cursor.execute(searchmysite.sql.sql_select_domains_allowing_subdomains)
+    cursor.execute(sql_select_domains_allowing_subdomains)
     results = cursor.fetchall()
     for result in results:
         domains_allowing_subdomains.append(result['setting_value'])
@@ -194,9 +218,9 @@ def extract_domain(url):
 
 domains = []
 
-#check_domains()
+check_domains()
 
-#json = json.dumps(domains, sort_keys=True, indent=4)
-#f = open(output_file,"w")
-#f.write(json)
-#f.close()
+json = json.dumps(domains, sort_keys=True, indent=4)
+f = open(output_file,"w")
+f.write(json)
+f.close()

@@ -6,7 +6,7 @@ import psycopg2
 import psycopg2.extras
 import logging
 from os import environ
-from urllib.request import urlopen, Request
+import requests
 import smtplib, ssl
 from email import encoders
 from email.mime.base import MIMEBase
@@ -74,17 +74,25 @@ def check_for_validation_key(domain, prefix, validation_key):
 
 def delete_domain(domain):
     # Delete from Solr
+    delete_domain_from_solr(domain)
+    # Delete from database
+    delete_domain_from_database(domain)
+
+def delete_domain_from_solr(domain):
+    # Delete from Solr
     solrurl = config.SOLR_URL
     solrquery = solrurl + searchmysite.solr.solr_delete_query
     data = searchmysite.solr.solr_delete_data.format(domain)
-    req = Request(solrquery, data.encode("utf8"), searchmysite.solr.solr_delete_headers)
-    response = urlopen(req)
-    results = response.read()
+    requests.post(url=solrquery, data=data.encode("utf8"), headers=searchmysite.solr.solr_delete_headers)
+    return
+
+def delete_domain_from_database(domain):
     # Delete from database
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(searchmysite.sql.sql_delete_domain, (domain, domain, domain, domain, domain,))
     conn.commit()
+    return
 
 # reply_to_email and to_email optional.
 # If reply_to_email None no Reply-To header set, and if to_email None then smtp_to_email env variable is used

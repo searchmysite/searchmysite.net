@@ -24,8 +24,9 @@ The project directory structure is as follows:
     │   ├── sqldata             # Mounted to /var/lib/postgresql/data in Postgres Docker
     ├── src                     # Source files
     │   ├── db                  # Database scripts
+    │   │   ├── bulkimport      # Scripts to load sites into the database for the indexer to index
     │   ├── indexing            # Indexing code
-    │   │   ├── bulkimport      # Bulk import scripts
+    │   │   ├── bulkimport      # Scripts to load content directly into the search engine
     │   │   ├── common          # Indexing code shared between bulk import and spider
     │   │   ├── indexer         # Spidering code
     │   ├── search              # Search engine configuration
@@ -47,7 +48,7 @@ There are 3 docker-compose files, which are largely identical except:
 
 ### Prerequisites
 
-Ensure [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed.
+Ensure [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed, or [Docker Desktop](https://docs.docker.com/desktop/) which includes both. Note that there are currently [known issues](https://github.com/searchmysite/searchmysite.net/issues/86) running some of the containers on Mac OS with "Apple silicon".
 
 Get the source code with e.g.
 ```
@@ -103,6 +104,8 @@ INSERT INTO tblPermissions (domain, role)
 You can use Add Site to add a site or sites as a Basic listing via the web interface. You will need to login as an Admin user, click Review, and select Approve for them to be queued for indexing.
 
 There are also bulk import scripts in src/db/bulkimport. checkdomains.py takes a list of domains or home pages as input, checks that they are valid sites, and that they aren't already in the list or the database, and generates a file for insertdomains.py to insert.
+
+See also the discussion at [https://github.com/searchmysite/searchmysite.net/discussions/91](https://github.com/searchmysite/searchmysite.net/discussions/91).
 
 
 ### Additional environment variables 

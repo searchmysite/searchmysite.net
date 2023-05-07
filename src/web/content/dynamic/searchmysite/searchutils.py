@@ -1,5 +1,5 @@
 from flask import url_for, current_app
-from urllib.request import urlopen, Request
+import requests
 import json
 import math
 from datetime import datetime
@@ -132,10 +132,9 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
     solr_search['params'] = query_params
     solr_search['facet'] = query_facets
     solr_search_json = json.dumps(solr_search)
-    # current_app.logger.debug('solr_search_json: {}'.format(solr_search_json))
-    req = Request(solrquery, solr_search_json.encode("utf8"), searchmysite.solr.solr_request_headers)
-    response = urlopen(req)
-    search_results = json.load(response)
+    #current_app.logger.debug('solr_search_json: {}'.format(solr_search_json))
+    response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
+    search_results = response.json()
     return search_results
 
 

@@ -93,7 +93,8 @@ sql_update_basic_reject = "UPDATE tblListingStatus "\
     "moderator_approved = FALSE, "\
     "moderator = (%s), "\
     "moderator_action_reason = (%s), "\
-    "moderator_action_changed = NOW() "\
+    "moderator_action_changed = NOW(), "\
+    "indexing_enabled = FALSE "\
     "WHERE domain = (%s);"
 
 

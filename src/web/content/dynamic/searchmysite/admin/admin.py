@@ -5,7 +5,7 @@ from os import environ
 import psycopg2.extras
 from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
-from searchmysite.adminutils import delete_domain
+from searchmysite.adminutils import delete_domain, delete_domain_from_solr
 import config
 import searchmysite.sql
 
@@ -84,6 +84,8 @@ def review():
                         moderator = session['logged_in_domain']
                         cursor.execute(searchmysite.sql.sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()
+                        # Also need to delete any documents from Solr, in case the domain had been previously indexed, to prevent stale documents in the index
+                        delete_domain_from_solr(domain)
             message += '</ul></p>' 
             return render_template('admin/success.html', title="Submission Review Success", message=message)
         else:
