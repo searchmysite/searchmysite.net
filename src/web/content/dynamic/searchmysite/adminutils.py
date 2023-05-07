@@ -73,6 +73,7 @@ def check_for_validation_key(domain, prefix, validation_key):
     return validation_method
 
 def delete_domain(domain):
+    current_app.logger.info('delete: {}'.format(domain))
     # Delete from Solr
     delete_domain_from_solr(domain)
     # Delete from database
