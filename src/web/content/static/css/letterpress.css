@@ -177,7 +177,7 @@ p.sms-p4{
     margin-bottom: 0.3rem;
 }
 
-code {
+pre {
     font-size: var(--reg-font-size);
     line-height: var(--reg-line-height);
     margin-bottom: 0.3rem;
@@ -424,7 +424,7 @@ a.sms-large-font:hover {
 .sms-body footer a:link,
 .sms-body footer a:visited,
 .sms-body footer a:hover{
-    color: white;
+    color: white !important;
 }
 
 /* SPACERS ************************** */
