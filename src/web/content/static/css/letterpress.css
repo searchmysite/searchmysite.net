@@ -42,8 +42,8 @@
     --xlarge-font-size: 2rem;
     --large-line-height: 2.5rem;
     --med-font-size: 1.25rem;
-    --med-line-height: 1.7rem;
-    --reg-font-size: 1.1rem;
+    --med-line-height: 2.2rem;
+    --reg-font-size: 1rem;
     --reg-line-height: 1.5rem;
     --small-font-size: .75rem;
     --small-line-height: 1.1rem;
@@ -146,6 +146,13 @@ a.sms-large-font.sms-btn:hover  {
     padding-top: 3.75rem;
 }
 
+.sms-standard p a,
+.sms-standard p a:link,
+.sms-standard p a:visited
+{
+    /* font-weight: bold; */
+    border-bottom: 0.125rem solid var(--link-underline);
+}
 p.sms-p1, ul.sms-list-1 li {
     font-size: var(--large-font-size);
     line-height: var(--large-line-height);
@@ -167,6 +174,12 @@ p.sms-p3{
 p.sms-p4{
     font-size: var(--small-font-size);
     line-height: var(--small-line-height);
+    margin-bottom: 0.3rem;
+}
+
+code {
+    font-size: var(--reg-font-size);
+    line-height: var(--reg-line-height);
     margin-bottom: 0.3rem;
 }
 
@@ -200,6 +213,40 @@ h3.sms-h3 {
 h4.sms-h4 {
     margin-bottom: 2rem;
 }
+
+.sms-standard .sms-h1 {
+    margin-bottom: 2rem;
+    margin-top: 3rem;
+}
+
+.sms-standard .sms-h2 {
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+}
+
+.sms-standard .sms-h3 {
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+/** Tables **/
+.sms-table td {
+    padding: 1rem 1rem 1rem 0;
+}
+
+.sms-table td, .sms-table th {
+    font-size: var(--med-font-size);
+}
+
+.sms-table.sms-definition-table td:nth-child(1) {  
+    font-weight: bold;
+  }
+
+.sms-table th {
+    padding: 1rem 0 1rem 0;
+    border-bottom:.2rem solid var(--medium-dark-gray);
+}
+
 
 blockquote.sms-quote-1 {
     font-size:1.875rem;
