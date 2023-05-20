@@ -13,28 +13,28 @@
 				</div>
 			</div>
 
-			<div class="row mt-4">
-				<div class="col-md-6 offset-md-3">
+			<div class="row mt-4 sms-standard">
+				<div class="col-md-10 offset-md-1">
 
 					<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
 						<div class="form-group">
-							<label for="home_page" class="col-form-label">Home page</label>
+							<label for="home_page" class="col-form-label sms-p2">Home page</label>
 							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
 							<small id="homepage-help" class="form-text text-muted">
 								Enter the home page of the site you would like to add (see <a href="/pages/documentation/" target="_blank">Documentation</a> for further guidance).
 							</small>
 						</div>
 						<div class="form-group">
-							<label for="site_category" class="col-form-label">Category</label>
+							<label for="site_category" class="col-form-label sms-p2">Category</label>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="site_category" id="site_category-personal-website" value="personal-website" required>
-								<label class="form-check-label" for="site_category-personal-website">
+								<label class="form-check-label  sms-p2" for="site_category-personal-website">
 									Personal website
 								</label>
 							</div>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="site_category" id="site_category-independent-website" value="independent-website" required>
-								<label class="form-check-label" for="site_category-independent-website">
+								<label class="form-check-label sms-p2" for="site_category-independent-website">
 									Independent website
 								</label>
 							</div>
@@ -43,22 +43,22 @@
 							</small>
 						</div>
 						<div class="form-group">
-							<label for="tier" class="col-form-label">Listing tier</label>
+							<label for="tier" class="col-form-label sms-p2">Listing tier</label>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="tier" id="tier-basic" value="1" required>
-								<label class="form-check-label" for="tier-basic">
+								<label class="form-check-label sms-p2" for="tier-basic">
 									Basic
 								</label>
 							</div>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="tier" id="tier-free" value="2" required>
-								<label class="form-check-label" for="tier-free">
+								<label class="form-check-label sms-p2" for="tier-free">
 									Free Trial
 								</label>
 							</div>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="tier" id="tier-full" value="3" required>
-								<label class="form-check-label" for="tier-full">
+								<label class="form-check-label sms-p2" for="tier-full">
 									Full
 								</label>
 							</div>
@@ -67,7 +67,7 @@
 								Note that listings revert to lower tier on expiry if no further action taken.
 							</small>
 						</div>
-					<table class="table">
+					<table class="table sms-table">
 						<thead>
 							<tr>
 								<th scope="col"></th>

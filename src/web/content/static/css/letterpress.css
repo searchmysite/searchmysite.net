@@ -213,6 +213,9 @@ h3.sms-h3 {
 h4.sms-h4 {
     margin-bottom: 2rem;
 }
+.sms-standard ul.sms-list-2 li {
+    margin-bottom: .5rem;
+}
 
 .sms-standard .sms-h1 {
     margin-bottom: 2rem;
