@@ -132,6 +132,14 @@ a.sms-large-font.sms-btn:hover  {
     width: 21rem;
 }
 
+.sms-logo a,
+.sms-logo a:hover,
+.sms-logo a:link,
+.sms-logo a:visited {
+    text-decoration: none;
+    border: none;
+}
+
 .search-header {
     padding-left: 4.375rem;
     padding-right: 4.375rem;
@@ -184,7 +192,7 @@ h2.sms-h2 {
     font-weight: bold;
 }
 
-h2.sms-h3 {
+h3.sms-h3 {
     font-size:var(--large-font-size);
     font-weight: bold;
 }
