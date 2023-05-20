@@ -241,6 +241,11 @@ h4.sms-h4 {
     font-size: var(--med-font-size);
 }
 
+
+.sms-table-sml td, .sms-table-sml th {
+    font-size: var(--reg-font-size);
+}
+
 .sms-table.sms-definition-table td:nth-child(1) {  
     font-weight: bold;
   }
@@ -683,6 +688,15 @@ h2.sms-h2 a:visited
 } 
 
 
+/**
+Forms
+**/
+.sms-body form label,
+.sms-body form input,
+.sms-body form button
+{
+    margin-bottom: 1rem;
+}
 
 /**
  sms-bottom-line-container remove row for mobile? Row ads padding

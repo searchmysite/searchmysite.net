@@ -67,7 +67,7 @@
 								Note that listings revert to lower tier on expiry if no further action taken.
 							</small>
 						</div>
-					<table class="table sms-table">
+					<table class="table sms-table sms-table-sml sms-definition-table">
 						<thead>
 							<tr>
 								<th scope="col"></th>
@@ -78,55 +78,55 @@
 						</thead>
 						<tbody>
 							<tr>
-								<th scope="row">Full indexing frequency</th>
+								<td>Full indexing frequency</td>
 								<td><span style="white-space: nowrap;">{{ tiers[0]['full_reindex_frequency'] }}</span></td>
 								<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
 								<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">Incremental indexing frequency</th>
+								<td>Incremental indexing frequency</td>
 								<td><span style="white-space: nowrap;">{{ tiers[0]['incremental_reindex_frequency'] }}</span></td>
 								<td>{{ tiers[1]['incremental_reindex_frequency'] }}</td>
 								<td>{{ tiers[2]['incremental_reindex_frequency'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">Indexing page limit</th>
+								<td>Indexing page limit</td>
 								<td><span style="white-space: nowrap;">{{ tiers[0]['indexing_page_limit'] }}</span></td>
 								<td>{{ tiers[1]['indexing_page_limit'] }}</td>
 								<td>{{ tiers[2]['indexing_page_limit'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">On-demand reindexing</th>
+								<td>On-demand reindexing</td>
 								<td>{{ tiers[0]['on_demand_reindexing'] }}</td>
 								<td>{{ tiers[1]['on_demand_reindexing'] }}</td>
 								<td>{{ tiers[2]['on_demand_reindexing'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">API enabled</th>
+								<td>API enabled</td>
 								<td>{{ tiers[0]['api_enabled'] }}</td>
 								<td>{{ tiers[1]['api_enabled'] }}</td>
 								<td>{{ tiers[2]['api_enabled'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">Access Manage Site to configure indexing</th>
+								<td>Access Manage Site to configure indexing</td>
 								<td>{{ tiers[0]['access_to_manage'] }}</td>
 								<td>{{ tiers[1]['access_to_manage'] }}</td>
 								<td>{{ tiers[2]['access_to_manage'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">Cost</th>
+								<td>Cost</td>
 								<td>{{ tiers[0]['cost'] }}</td>
 								<td>{{ tiers[1]['cost'] }}</td>
 								<td>{{ tiers[2]['cost'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row">Listing duration</th>
+								<td>Listing duration</td>
 								<td>n/a</td>
 								<td>{{ tiers[1]['duration'] }}</td>
 								<td>{{ tiers[2]['duration'] }}</td>
 							</tr>
 							<tr>
-								<th scope="row"></th>
+								<td></td>
 								<td></td>
 								<td><small>Requires proof of domain ownership.</small></td>
 								<td><small>Requires proof of domain ownership and one-off credit card payment.</small></td>
