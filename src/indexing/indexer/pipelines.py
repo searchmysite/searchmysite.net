@@ -49,12 +49,12 @@ class SolrPipeline:
         return
 
     # close_spider is run for each site at the end of the spidering process
-    # Depending on the type of index (full or incremental) and and the outcome
+    # Depending on the type of index (full or incremental) and the outcome
     # - If it is a full reindex, but zero documents have been found, that suggests an error somewhere, e.g. site unavailable.
     #   If that happens twice in a row, that suggests a more permanent error, so indexing for the site is deactivated.
-    # - If it is a full reindex, but documents are found, get all the site specific data which is set on the hoem page,
-    #   and clear out the exiting index for that site.
-    # - If it is an incremental reindex, don't delete the existign docs, just add the new ones.
+    # - If it is a full reindex, but documents are found, get all the site specific data which is set on the home page,
+    #   and clean out the existing index for that site.
+    # - If it is an incremental reindex, don't delete the existing docs, just add the new ones.
     def close_spider(self, spider):
         no_of_docs = len(self.items)
         if spider.site_config['full_index'] == True and no_of_docs == 0:

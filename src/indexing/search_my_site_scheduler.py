@@ -22,7 +22,14 @@ configure_logging(settings) # Need to pass in settings to pick up LOG_LEVEL, oth
 logger = logging.getLogger()
 
 # Initialise variables
-
+# - sites_to_crawl and common_config are the two values passed into SearchMySiteSpider
+# - sites_to_crawl is a list of dicts, where each dict corresponds to a site which needs to be crawled,
+#   and the dict is all the information about the site which could be needed at index time, 
+#   e.g. site['site_category'], site['web_feed'] , site['exclusions'] (a list of dicts),
+#   site['indexed_inlinks'], and for incremental indexes site['already_indexed_links']
+# - common_config is a dict with settings which apply to all sites, e.g. 
+#   common_config['domains_for_indexed_links'] and common_config['domains_allowing_subdomains'].
+ 
 sites_to_crawl = []
 # Just lookup domains_for_indexed_links and domains_allowing_subdomains once
 domains_for_indexed_links = get_all_domains()
