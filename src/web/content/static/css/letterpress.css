@@ -165,7 +165,7 @@ p.sms-p2, ul.sms-list-2 li {
     margin-bottom: 1rem;
 }
 
-p.sms-p3{
+p, p.sms-p3{
     font-size: var(--reg-font-size);
     line-height: var(--reg-line-height);
     margin-bottom: 0.3rem;
