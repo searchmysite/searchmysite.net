@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta name="description" content="searchmysite.net - the open source search engine and search as a service for user-submitted personal and independent websites">
+	<meta name="keywords" content="search my site, independent search engine, search as a service, open source search, blog search engine">
+	<title>Search My Site - Open source search engine and search as a service for personal and independent websites</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.5.2.2.min.css"/>
+	<link rel="stylesheet" type="text/css" href="css/custom.css"/>
+	<link rel="stylesheet" type="text/css" href="css/letterpress.css"/>
+	<script defer src="/static/js/bootstrap.5.2.2.min.js"></script>
+</head>
+<body class="sms-body">
+    <div class="container">
+        <!-- <div class="offset"></div> -->
+        <br><br><br>
+
+        <h1 class="sms-b-48"><u>UI styles for Letterpress</u></h1>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Headlines</h1>
+            <h1 class="sms-h1 sms-b-20">This is a headline - H1</h1>
+            <h2 class="sms-h2 sms-b-20">This is a headline - H2</h2>
+            <h3 class="sms-h3 sms-b-20">This is a headline - H3</h3>
+            <h4 class="sms-h4 sms-b-20">This is a headline - H4. There's not much here, this one is used for semantics for now.</h4>
+        </div>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Basic text styling</h1>
+            <p class="sms-p1">
+                <strong>Italics:</strong> You can use <em>Italics</em> with the EM tag<br>
+            </p>
+            <p class="sms-p1"><strong>Bold:</strong> Here we have a <strong>Bold</strong> statement using STRONG.</p>
+            <p class="sms-p1"><strong>Links:</strong> <a hred="#">NEED MORE OBVIOUS VERSION This is a link for items that would be part of some sort of navigation.</a> It should be obvious that they can be clicked.</p>
+            <p class="sms-p1">NON OBVIOUS link <a hred="#">This is a link for items that would be part of some sort of navigation.</a></p>
+            <p class="sms-p1">FOOTER LINK</p>
+            <p class="sms-p1">ANOTHER LINK? CHECK MAIN PAGE</p>
+
+        </div>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Spacers</h1>
+            <p class="sms-p1">Spacers work like this: <code>sms-<em>[side]</em>-4</code>, where edge is top or bottom for now. Top would be <code>sms-t-20</code>. Bottom would be <code>sms-b-16</code>. We're using pixel values to have a reference designers and developers can easily understand, but the value is actually a REM value. It's just that REMS are not the most user friendly.
+            </p>
+            <p class="sms-p1">We don't have all the values with 4 pixel or 8 pixel increments, its mostly using an 8px increment rule, except for some lower numbers. We've added only what we've needed, so you won't find every single 8 pixel increment up to 80. Feel free to add new values as needed, but stick to the 8 pixel increment rule.</p>
+            
+        </div>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Paragraphs</h1>
+            <h3 class="sms-b-16">Paragraph 1 - sms-p1</h3>
+            <p class="sms-p1">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <h3 class="sms-b-16">Paragraph 2 - sms-p2</h3>
+            <p class="sms-p2">Suspendisse interdum consectetur libero id faucibus nisl tincidunt. Porttitor eget dolor morbi non arcu. At quis risus sed vulputate odio. Duis convallis convallis tellus id interdum velit. Quis vel eros donec ac odio tempor orci dapibus ultrices. Nisl nunc mi ipsum faucibus vitae aliquet. Viverra nibh cras pulvinar mattis nunc sed. Proin sagittis nisl rhoncus mattis rhoncus urna neque viverra. Enim lobortis scelerisque fermentum dui faucibus in ornare quam. Id leo in vitae turpis. Ut sem viverra aliquet eget sit amet tellus. Malesuada nunc vel risus commodo viverra maecenas accumsan lacus vel.</p>
+            <h3 class="sms-b-16">Paragraph 2 - sms-p3</h3>
+            <p class="sms-p3">Quis auctor elit sed vulputate mi. Morbi leo urna molestie at elementum eu. Odio aenean sed adipiscing diam donec adipiscing. Enim neque volutpat ac tincidunt vitae semper quis lectus nulla. Aliquam etiam erat velit scelerisque in. Neque ornare aenean euismod elementum nisi quis eleifend quam adipiscing. A iaculis at erat pellentesque adipiscing commodo elit at. Senectus et netus et malesuada fames. Quis viverra nibh cras pulvinar mattis nunc sed. Fermentum dui faucibus in ornare.</p>
+        </div>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Unordered list</h1>
+            <ul class="sms-list-1">
+                <li>List item #1</li>
+                <li>List item #2</li>
+                <li>List item #3</li>
+                <li>List item #4</li>
+            </ul>
+            <div>&nbsp;</div>
+            <ul class="sms-list-2">
+                <li>List item #1</li>
+                <li>List item #2</li>
+                <li>List item #3</li>
+                <li>List item #4</li>
+            </ul>
+        </div>
+
+        <div class="sms-b-48">
+            <h1 class="sms-b-20">Form items</h1>
+            <h2 class="sms-b-16">Dropdowns</h2>
+            RENAME SORT CLASS TO SOMETHING GENERIC????
+            <div class="input-group sms-sort-container">
+                <label class="sms-large-font sms-sort-label" for="sort">Sort by</label>
+                <select class="form-select sms-select sms-large-font" id="sort" name="sort" >
+                    <option value="option1" selected>Option 1</option>
+                    <option value="option2" >Option 2</option>
+                    <option value="option3" >Option 3</option>
+                    <option value="option4" >Option 4</option>
+                    <option value="option5" >Option 5</option>
+                </select>
+            </div>
+        </div>
+
+    </div>
+</body>

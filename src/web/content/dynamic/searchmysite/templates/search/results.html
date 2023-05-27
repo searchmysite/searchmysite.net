@@ -2,9 +2,11 @@
 
 {% block title %}Search My Site - {{ subtitle }}{% endblock %}
 
+{% block head %}<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css"/>{% endblock %}
+
 {% block content %}
 
-			<form method="POST">
+			<form method="POST" class="sms-results-form">
 
 				<script>
 					function refreshPage(formName) {
@@ -15,25 +17,26 @@
 				{% if (no_of_results and no_of_results > 0) or (no_of_domains and no_of_domains > 0) %}
 
 				<div class="row mt-2">
-					<div class="col-sm-2 col-md-4">
+					<!-- <div class="col-sm-2 col-md-4 sms-filters">
 						<a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
 						Filters
 						</a>
-					</div>
-					<div class="col-sm-2 col-md-4 text-center">
+					</div> -->
+					<div class="col-sm-2 col-md-4 sms-feed sms-large-font">
+						<em>
 						{% if no_of_results %}
 						{{ no_of_results }} results
 						{% elif no_of_domains %}
 						{{ no_of_domains }} sites
 						{% endif %}
 						{% if links and 'full_feed_link' in links %}
-						<a class="btn align-baseline" href="{{ links['full_feed_link'] }}"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 						{% endif %}
+						</em>
 					</div>
-					<div class="col-sm-8 col-md-4">
-						<div class="input-group">
-							<label class="input-group-text" for="sort">Sort by</label>
-							<select class="form-select" id="sort" name="sort" onchange="refreshPage(this.form);">
+					<div class="col-sm-8 col-md-8 sms-results-top-info">
+						<div class="input-group sms-sort-container">
+							<label class="sms-large-font sms-sort-label" for="sort">Sort by</label>
+							<select class="form-select sms-select sms-large-font" id="sort" name="sort" onchange="refreshPage(this.form);">
 								{% for value in sort_options.keys() %}
 								<option value="{{value}}"{% if value == params['sort'] %} selected{% endif %}>{{sort_options[value]}}</option>
 								{% endfor %}
@@ -43,37 +46,33 @@
 				</div>
 
 				{% if display_type == 'list' %}
-				<div class="row">
+				<div class="row sms-results-list sms-t-48">
 					<div class="col-lg-12">
 						{% for result in results %}
-						<div class="search-result">
-							<p>
-								<h5 class="fw-normal">
-									{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
-									{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
-									<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
-								</h5>
-							<a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a>
+						<div class="search-result sms-b-72">
+							<h2 class="sms-h2 sms-b-8">
+								{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
+								{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
+								<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
+							</h2>
+							<p class="sms-p3"><a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a></p>
 							{% if result['highlight'] %}
-								<span id="result-hightlight">
-									<br>{{ result['highlight'][0] }}
-									{% if result['highlight'][2] %}
-									<b>{{ result['highlight'][1] }}</b>{{ result['highlight'][2] }}
-									{% endif %}
-									{% if result['highlight'][4] %}
-									<b>{{ result['highlight'][3] }}</b>{{ result['highlight'][4] }}
-									{% endif %}
-								</span>
+							<p id="result-hightlight" class="sms-p1">
+								{{ result['highlight'][0] }}
+								{% if result['highlight'][2] %}
+								<b>{{ result['highlight'][1] }}</b>{{ result['highlight'][2] }}
+								{% endif %}
+								{% if result['highlight'][4] %}
+								<b>{{ result['highlight'][3] }}</b>{{ result['highlight'][4] }}
+								{% endif %}
+							</p>
 							{% endif %}
 							{% if result['subresults'] %}
-								<small>
-									{% for subresult in result['subresults'] %}
-									<br><a href="{{ subresult['url'] }}" class="result-title">{{ subresult['short_title'] }}</a>
-									{% endfor %}
-									<br><a href="?{{ result['subresults_link'] }}" class="result-title">{{ result['subresults_link_text'] }}</a>
-								</small>
+								{% for subresult in result['subresults'] %}
+								<p class="sms-p3 sms-subresult"><a href="{{ subresult['url'] }}" class="result-title-other">{{ subresult['short_title'] }}</a></p>
+								{% endfor %}
+								<p class="sms-p3 sms-subresult"><a href="?{{ result['subresults_link'] }}" class="result-title-other">{{ result['subresults_link_text'] }}</a></p>
 							{% endif %}
-							</p>
 						</div>
 						{% endfor %}
 					</div>
@@ -98,9 +97,9 @@
 									<a href="{{ result['url'] }}" class="result-title" title="{{ result['full_title'] }}">{{ result['short_title'] }}</a>
 									<span class="d-block d-sm-none"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
 									{% if result['web_feed'] %}
-									<span class="float-end"><a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a></span>
+									<!-- <span class="float-end"><a href="{{ result['web_feed'] }}" class="result-link"><span class="sms-icons ">&#E803</span></a></span>
 									{% endif %}
-									</span>
+									</span> -->
 								</td>
 								<td class="d-none d-sm-table-cell"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a></td>
 								<td class="d-none d-sm-table-cell">
@@ -111,11 +110,11 @@
 										...
 									{% endif %}
 								</td>
-								<td class="d-none d-sm-table-cell">
+								<!-- <td class="d-none d-sm-table-cell">
 									{% if result['web_feed'] %}
-										<a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
+										<a href="{{ result['web_feed'] }}" class="result-link"><span class="sms-icons ">&#E803</span></a>
 									{% endif %}
-								</td>
+								</td> -->
 							</tr>
 							{% endfor %}
 							</tbody>
@@ -124,7 +123,7 @@
 				</div>
 				{% endif %}
 
-				<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+				<!-- <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
 					<div class="offcanvas-header">
 						<h5 class="offcanvas-title" id="offcanvasLabel">Filters</h5>
 						<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -142,18 +141,28 @@
 							{% endif %}
 						{% endfor %}
 					</div>
-				</div>
+				</div> -->
+
+				<div class="sms-dotted-line sms-b-20"></div>
 
 				<nav aria-label="Page navigation">
-					<ul class="pagination pg-blue justify-content-center">
-					{% for page in pagination %}
-						{% if pagination[page] %}
-							<button type="submit" name="page" value="{{ page }}" class="page-item page-link">{{ page }}</button>
-						{% else %}
-							<li class="page-item active"><a class="page-link">{{ page }}</a></li>
-						{% endif %}
-					{% endfor %}
-					</ul>
+					
+					<div class="row">
+						<div class="col-lg-2">
+							<a class="btn align-baseline sms-feed-link" href="{{ links['full_feed_link'] }}"><span class="sms-feed-label sms-medium-font">Feed</span></a>
+						</div>
+						<div class="col-lg-10">
+							<ul class="pagination pg-blue justify-content-end">
+							{% for page in pagination %}
+								{% if pagination[page] %}
+									<button type="submit" name="page" value="{{ page }}" class="page-item page-link">{{ page }}</button>
+								{% else %}
+									<li class="page-item active"><a class="page-link">{{ page }}</a></li>
+								{% endif %}
+							{% endfor %}
+							</ul>
+						</div>
+					</div>
 				</nav>
 
 				{% else %}
