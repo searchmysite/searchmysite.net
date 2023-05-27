@@ -698,6 +698,16 @@ Forms
     margin-bottom: 1rem;
 }
 
+.sms-body form.sms-results-form label,
+.sms-body form.sms-results-form input,
+.sms-body form.sms-results-form button,
+.sms-body form.sms-search-layout button,
+.sms-body form.sms-search-layout input,
+.sms-body form.sms-search-layout label
+{
+    margin-bottom:0;
+}
+
 /**
  sms-bottom-line-container remove row for mobile? Row ads padding
  Solve the problem with internal padding, make sure that doesn't expand box.
