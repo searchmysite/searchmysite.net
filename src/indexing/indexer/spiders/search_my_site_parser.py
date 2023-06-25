@@ -19,6 +19,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="description" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
 #    <field name="content" type="text_general" indexed="true" stored="true" multiValued="false" />
+#    <field name="content_last_modified" type="pdate" indexed="true" stored="true" multiValued="false" />
 #    <field name="content_type" type="string" indexed="true" stored="true" />
 #    <field name="page_type" type="string" indexed="true" stored="true" />
 #    <field name="page_last_modified" type="pdate" indexed="true" stored="true" />
@@ -199,6 +200,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['tags'] = tag_list
 
         # content
+        # Note that if the logic to generate content_text changes in any way, even just in the way white space is treated,
+        # then that will trigger new values for content_last_modified, even if the actual content hasn't actually changed
         only_body = SoupStrainer('body')
         body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
         for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
@@ -212,6 +215,50 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         else:
             content_text = get_text(body_html)
         item['content'] = content_text
+
+        # content_last_modified
+        # Get values already parsed from the current page
+        new_content = content_text # from whole page, with nav, header etc. removed, and the remainder converted to plain text
+        page_last_modified = last_modified_date # from Last-Modified HTTP header
+        # Get values from the previously indexed version of this page
+        previous_content = None
+        previous_content_last_modified = None
+        previous_contents = site_config['contents']
+        if response.url in previous_contents: # If there was something at this URL last time (not necessarily with content and/or content_last_modified set)
+            previous_page = previous_contents[response.url]
+            if 'content' in previous_page:
+                previous_content = previous_page['content']
+            if 'content_last_modified' in previous_page:
+                previous_content_last_modified = previous_page['content_last_modified']
+        # Scenarios:
+        # 1. Page content changed: use indexed_date
+        # 2. Page content unchanged: use previous_content_last_modified or page_last_modified or indexed_date
+        # 3. New page: use page_last_modified or indexed_date
+        # 4. No page content (or something else): no value
+        # Note that page_last_modified is not necessarily when the content was last changed, but is more likely to nearer than indexed_date, 
+        # plus it saves a lot of content_last_modified values being set to the time this functionality is first run
+        if previous_content and new_content and previous_content != new_content:
+            content_last_modified = indexed_date
+            message = 'Updated page content: changing content_last_modified to {}'.format(content_last_modified)
+        elif previous_content and new_content and previous_content == new_content:
+            if previous_content_last_modified: # This will normally be set, but won't the first time this code is run against existing content
+                content_last_modified = previous_content_last_modified
+            elif page_last_modified:
+                content_last_modified = page_last_modified
+            else:
+                content_last_modified = indexed_date
+            message = 'Unchanged page content: using content_last_modified {}'.format(content_last_modified)
+        elif new_content and not previous_content and not previous_content_last_modified:
+            if page_last_modified:
+                content_last_modified = page_last_modified
+            else:
+                content_last_modified = indexed_date
+            message = 'New page: setting content_last_modified to {}'.format(content_last_modified)
+        else:
+            content_last_modified = None
+            message = 'No page content: content_last_modified not being set'
+        logger.debug(message)
+        item['content_last_modified'] = content_last_modified
 
         # published_date
         published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
