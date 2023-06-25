@@ -38,6 +38,7 @@
 :root {
     --highlight: #7E2269;
     --link-underline: #DBA0C7;
+    --destroy-colour: #b70303;
     --large-font-size: 1.5rem;
     --xlarge-font-size: 2rem;
     --large-line-height: 2.5rem;
@@ -96,19 +97,22 @@ div.sms-icons, span.sms-icons {
 }
 /* GENERAL */
 
-a:hover {
-    border-bottom: 0.125rem solid var(--link-underline);
-}
-
 a, a:link, a:visited {
     color: var(--dark-gray);
     padding: 0;
     font-weight: normal;
+    border-bottom: 0.125rem solid transparent;
+}
+
+a.nav-link, a:link.nav-link, a:visited.nav-link
+ {
+    padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
 }
 
 a:hover {
     font-weight: bold;
     color: black !important;
+    border-bottom: 0.125rem solid var(--link-underline);
 }
 
 em a, em a:link, em a:visited, em a:hover {
@@ -126,6 +130,20 @@ a.sms-large-font.sms-btn:hover  {
     font-weight: normal;
     border: none;
 }
+
+.sms-browse .sms-underline-link a:hover
+{
+    border: none;
+    text-decoration: underline;
+    font-weight: normal;
+}
+
+table.sms-browse td.sms-first-column-cell {
+    height: 2.5rem;
+    width: 50%;
+}
+
+
 
 
 .sms-logo img {
@@ -318,8 +336,8 @@ a.sms-large-font:hover {
 }
 
 .sms-user-nav  ul li.nav-item{
-    padding: 0;
-    width: 7rem;
+    padding: 0rem 2rem 0 0;
+    /* width: 7rem; */
     text-align: right;
 }
 
@@ -706,6 +724,42 @@ Forms
 .sms-body form.sms-search-layout label
 {
     margin-bottom:0;
+}
+
+/** Link Buttons **/
+.sms-min-width-btn {
+    width: 13rem;
+}
+
+a:link.sms-btn-link,
+a:visited.sms-btn-link,
+a:hover.sms-btn-link,
+a.sms-btn-link {
+    color: white !important;
+    padding: .375rem .9rem .375rem .9rem;
+    font-weight: normal;
+    border: none !important;
+}
+
+.sms-btn-link-destroy {
+    background-color: var(--destroy-colour);
+}
+
+/**
+Badges
+**/
+
+.badge.bg-primary,
+a.badge.bg-primary,
+a:hover.badge.bg-primary,
+a:link.badge.bg-primary,
+a:visited.badge.bg-primary
+ {
+    padding: .3rem .5rem .2rem .5rem;
+    color: white !important;
+    border: none;
+    font-weight: normal;
+    font-family: sans-serif;
 }
 
 /**
