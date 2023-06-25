@@ -98,15 +98,8 @@
 									<span class="d-block d-sm-none">
 										<a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
 									{% if result['web_feed'] %}
-										<span class="float-end">
-											<a href="{{ result['web_feed'] }}" class="result-link">
-												<span class="sms-icons ">&#E803</span>
-											</a>
-										</span>
+										<a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 									{% endif %}
-									<!-- <span class="float-end">
-										<a href="{{ result['web_feed'] }}" class="result-link sms-feed-link"><span class="sms-feed-label">asd</span></a>
-									</span> -->
 									</span>
 								</td>
 								<td class="d-none d-sm-table-cell">
@@ -120,6 +113,19 @@
 									{% endfor %}
 									{% if result['tags_truncated'] == True %}
 										...
+									{% endif %}
+
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+
+								</td>
+								<td class="d-none d-sm-table-cell">
+									{% if result['web_feed'] %}
+										<a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 									{% endif %}
 								</td>
 							</tr>
