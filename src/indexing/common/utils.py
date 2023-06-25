@@ -92,6 +92,7 @@ sql_update_auto_discovered = "UPDATE tblDomains SET web_feed_auto_discovered = (
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
 solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fl=url&rows=1000"
+solr_query_to_get_content = "select?q=domain%3A{}&fl=url,content,content_last_modified&rows=1000"
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
@@ -320,6 +321,28 @@ def get_already_indexed_links(domain):
             if url:
                 already_indexed_links.append(url)
     return already_indexed_links
+
+# Get all the content for a domain (used for identifying whether content has changed)
+# Format is a dict of dicts.
+# The first dict has 'url' as the key, and the second has (optional) 'content' and 'content_last_modified'
+# Use with e.g.:
+# content = contents['https://michael-lewis.com/']
+# if content and 'content' in content and content['content']: ...
+
+def get_contents(domain):
+    contents = {}
+    solrquery = solr_query_to_get_content.format(domain)
+    connection = urlopen(solr_url + solrquery)
+    results = json.load(connection)
+    if results['response']['docs']:
+        for doc in results['response']['docs']:
+            content = {}
+            if 'content' in doc and doc['content']:
+                content['content'] = doc['content']
+            if 'content_last_modified' in doc and doc['content_last_modified']:
+                content['content_last_modified'] = doc['content_last_modified']
+            contents[doc['url']] = content
+    return contents
 
 
 # Database and Solr utils
