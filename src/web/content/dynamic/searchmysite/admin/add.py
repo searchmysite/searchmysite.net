@@ -58,13 +58,17 @@ def add():
                 start_freefull_approval_session(domain, home_page, tier)
                 return redirect(url_for('add.step1'))
         elif result['status'] == 'ACTIVE': # Domain already has an active listing
-            if tier == result['tier']: # The user selected the same tier as the currently active tier
-                message = 'The domain {} already has an active listing at the tier you selected with a home page at {}. If you would like to upgrade the listing please resubmit with a higher tier.'.format(domain, result['home_page'])
-                flash(message)
-                return redirect(url_for('add.add'))
-            elif tier > result['tier']: # The user has selected to upgrade the tier 
+            current_tier = result['tier']
+            if current_tier: current_tier = int(current_tier)
+            if tier > current_tier: # The user has selected to upgrade the tier 
                 start_freefull_approval_session(domain, home_page, tier)
                 return redirect(url_for('add.step1'))
+            else: # If they're not upgrading, i.e. staying the same or resubmitting as a lower tier
+                message = 'The domain {} already has an active tier {} listing with a home page at {}.'.format(domain, current_tier, result['home_page'])
+                if tier == current_tier:
+                    message = message + ' If you would like to upgrade the listing please resubmit with a higher tier.'
+                flash(message)
+                return redirect(url_for('add.add'))
         elif result['moderator_approved'] == False or result['indexing_enabled'] == False: # Rejected or indexing disabled
             if result['moderator_approved'] == False:
                 message = 'Domain {} has previously been submitted but rejected for the following reason: {}. '.format(domain, result['moderator_action_reason'])

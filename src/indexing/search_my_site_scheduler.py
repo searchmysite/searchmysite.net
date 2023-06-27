@@ -7,7 +7,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 from indexer.spiders.search_my_site_spider import SearchMySiteSpider
-from common.utils import update_indexing_status, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, get_already_indexed_links, check_for_stuck_jobs, expire_listings
+from common.utils import update_indexing_status, get_all_domains, get_domains_allowing_subdomains, get_all_indexed_inlinks_for_domain, get_already_indexed_links, get_contents, check_for_stuck_jobs, expire_listings
 
 
 # As per https://docs.scrapy.org/en/latest/topics/practices.html
@@ -23,12 +23,17 @@ logger = logging.getLogger()
 
 # Initialise variables
 # - sites_to_crawl and common_config are the two values passed into SearchMySiteSpider
-# - sites_to_crawl is a list of dicts, where each dict corresponds to a site which needs to be crawled,
-#   and the dict is all the information about the site which could be needed at index time, 
-#   e.g. site['site_category'], site['web_feed'] , site['exclusions'] (a list of dicts),
-#   site['indexed_inlinks'], and for incremental indexes site['already_indexed_links']
-# - common_config is a dict with settings which apply to all sites, e.g. 
-#   common_config['domains_for_indexed_links'] and common_config['domains_allowing_subdomains'].
+# - sites_to_crawl is a list of dicts, where each dict in the list corresponds to a site which needs to be crawled,
+#   and the dict contains all the information about the site which could be needed at index time, e.g.
+#   - site['site_category']
+#   - site['web_feed']
+#   - site['exclusions'] (a list of dicts)
+#   - site['indexed_inlinks'] (from Solr)
+#   - site['content'] (from Solr)
+#   - site['already_indexed_links'] (from Solr, only set for incremental indexes)
+# - common_config is a dict with settings which apply to all sites, i.e.
+#   - common_config['domains_for_indexed_links']
+#   - common_config['domains_allowing_subdomains']
  
 sites_to_crawl = []
 # Just lookup domains_for_indexed_links and domains_allowing_subdomains once
@@ -137,13 +142,19 @@ except psycopg2.Error as e:
 finally:
     conn.close()
 
-# Read data from Solr (indexed_inlinks and if necessary already_indexed_links)
+# Read data from Solr (indexed_inlinks, content and if necessary already_indexed_links)
 
 for site_to_crawl in sites_to_crawl:
+    # indexed_inlinks, i.e. pages (from other domains within this search index) which link to this domain.
     indexed_inlinks = get_all_indexed_inlinks_for_domain(site_to_crawl['domain'])
     logger.debug('indexed_inlinks: {}'.format(indexed_inlinks))
     site_to_crawl['indexed_inlinks'] = indexed_inlinks
-    # Only get the list of already_indexed_links if it is needed, i.e. for an incremental index
+    # content, i.e. get_contents(domain)
+    contents = get_contents(site_to_crawl['domain'])
+    logger.debug('contents: {}'.format(contents.keys))
+    site_to_crawl['contents'] = contents
+    # already_indexed_links, i.e. pages on this domain which have already been indexed.
+    # This is only set if it is needed, i.e. for an incremental index.
     if site['full_index'] == False: 
         already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
         no_of_already_indexed_links = len(already_indexed_links)
