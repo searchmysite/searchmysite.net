@@ -79,7 +79,7 @@
 				{% if display_type == 'table' %}
 				<div class="row">
 					<div class="col-12">
-						<table class="table table-striped table-bordered table-sm">
+						<table class="table table-striped table-bordered table-sm sms-browse">
 							<thead>
 								<tr>
 									<th scope="col">Site</th>
@@ -91,15 +91,22 @@
 							<tbody>
 							{% for result in results %}
 							<tr class="search-result">
-								<td>
-									<a href="{{ result['url'] }}" class="result-title" title="{{ result['full_title'] }}">{{ result['short_title'] }}</a>
-									<span class="d-block d-sm-none"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
+								<td class="sms-first-column-cell">
+									<div class="result-title sms-underline-link">
+										<a href="{{ result['url'] }}" title="{{ result['full_title'] }}">{{ result['short_title'] }}</a>
+									</div>
+									<span class="d-block d-sm-none">
+										<a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
 									{% if result['web_feed'] %}
-									<!-- <span class="float-end"><a href="{{ result['web_feed'] }}" class="result-link"><span class="sms-icons ">&#E803</span></a></span>
+										<a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 									{% endif %}
-									</span> -->
+									</span>
 								</td>
-								<td class="d-none d-sm-table-cell"><a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a></td>
+								<td class="d-none d-sm-table-cell">
+									<div class="sms-underline-link">
+										<a href="/search/?q=domain:{{ result['domain'] }}" class="result-link">{{ result['domain'] }}</a>
+									</div>
+								</td>
 								<td class="d-none d-sm-table-cell">
 									{% for tag in result['tags'] %}
 										<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">{{ tag }}</a>
@@ -107,12 +114,20 @@
 									{% if result['tags_truncated'] == True %}
 										...
 									{% endif %}
+
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+									<a href="/search/?q=tags%3A%22{{ tag | urlencode }}%22" class="badge bg-primary">Some tag</a>
+
 								</td>
-								<!-- <td class="d-none d-sm-table-cell">
+								<td class="d-none d-sm-table-cell">
 									{% if result['web_feed'] %}
-										<a href="{{ result['web_feed'] }}" class="result-link"><span class="sms-icons ">&#E803</span></a>
+										<a href="{{ result['web_feed'] }}" class="result-link"><img src="/static/images/rss.svg" alt="Feed" width="18" height="18"></a>
 									{% endif %}
-								</td> -->
+								</td>
 							</tr>
 							{% endfor %}
 							</tbody>
@@ -120,26 +135,6 @@
 					</div>
 				</div>
 				{% endif %}
-
-				<!-- <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
-					<div class="offcanvas-header">
-						<h5 class="offcanvas-title" id="offcanvasLabel">Filters</h5>
-						<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-					</div>
-					<div class="offcanvas-body">
-						{% for facet in facets %}
-							{% if facet['inputs'] %}
-								{{ facet['label_name'] }}<br>
-								{% for input in facet['inputs'] %}
-								<div class="form-check">
-									<input class="form-check-input" type="{{ input['type'] }}" name="{{ input['name'] }}" value="{{ input['value'] }}" id="{{ input['id'] }}" onchange="refreshPage(this.form);" {{ input['state'] }}>
-									<label class="form-check-label" for="{{ input['id'] }}">{{ input['label'] }}</label>
-								</div>
-								{% endfor %}
-							{% endif %}
-						{% endfor %}
-					</div>
-				</div> -->
 
 				<div class="sms-dotted-line sms-b-20"></div>
 

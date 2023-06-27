@@ -40,14 +40,15 @@
 						<small id="{{ row['label'] }}_help" class="form-text text-muted">
 							{{ row['help'] }}
 						</small>
-					</div>
-					{% if row['label'] == 'login_type' %}
-						{% if session.get('log_in_method') == 'usernamepassword' or session.get('log_in_method') == 'changepasswordlink' %}
-					<div class="col-sm-3 col-md-2">
-						<a class="btn btn-primary" href="{{ url_for('auth.changepassword') }}" role="button">Change Password</a>
-					</div>
+						{% if row['label'] == 'login_type' %}
+							{% if session.get('log_in_method') == 'usernamepassword' or session.get('log_in_method') == 'changepasswordlink' %}
+								<div class="sms-t-16 sms-b-16">
+									<a class="btn btn-primary sms-btn-link sms-min-width-btn" href="{{ url_for('auth.changepassword') }}" role="button">Change Password</a>
+								</div>
+							{% endif %}
 						{% endif %}
-					{% endif %}
+
+					</div>
 					{% if row['editable'] == True %}
 					<div class="col-sm-3 col-md-2">
 						<button type="edit" class="btn btn-primary" id="{{ row['label'] }}-edit" onclick="return enableEdit('{{ row['label'] }}');">Edit</button>
@@ -77,7 +78,7 @@
 					<p></p>
 				</div>
 				<div class="col-sm-6">
-					<a class="btn btn-primary" href="{{ url_for('manage.delete') }}" role="button">Delete Site</a>
+					<a class="btn btn-primary sms-btn-link sms-min-width-btn sms-btn-link-destroy" href="{{ url_for('manage.delete') }}" role="button">Delete Site</a>
 				</div>
 			</div>
 
