@@ -105,7 +105,7 @@ a, a:link, a:visited {
 }
 
 a.nav-link, a:link.nav-link, a:visited.nav-link
- {
+{
     padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
 }
 
@@ -343,8 +343,15 @@ a.sms-large-font:hover {
 
 .sms-under-search-btns ul li.nav-item{
     margin-top: 3rem;
-    width: 7rem;
+    /* width: 7rem; */
 }
+
+.sms-under-search-btns ul{
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+}
+
 .sms-under-search-btns ul li a.nav-link,
 .sms-user-nav ul li a.nav-link{
     width: fit-content;
@@ -376,7 +383,7 @@ a.sms-large-font:hover {
     padding-bottom: 1rem;
 }
 
-.sms-home-intro-txt p {
+.sms-home-intro-txt h1 {
     line-height: 2rem;
     font-size: var(--med-font-size);
 }
@@ -529,11 +536,15 @@ a.sms-large-font:hover {
     text-align: right; 
 }
 
+.sms-search-layout .sms-under-search-btns ul {
+    width: 100%;
+}
+
 .sms-search-layout .sms-under-search-btns ul li.nav-item{
     margin-top: 2rem;
     margin-bottom: 1.2rem;
-    padding-left:2rem;
-    padding-right:2rem;
+    /* padding-left:2rem;
+    padding-right:2rem; */
 }
 
 
@@ -702,7 +713,18 @@ h2.sms-h2 a:visited
         padding-right: var(--bs-gutter-x,1.2rem);
         padding-left: var(--bs-gutter-x,1.2rem);
     }
+
+    .nav.sms-filters {
+        width:initial;
+    }
     
+    .sms-search-layout .sms-under-search-btns ul {
+        width:initial;
+    }
+
+    a.nav-link, a:link.nav-link, a:visited.nav-link {
+        padding: 0 .5rem 0 .5rem;
+    }
 } 
 
 
