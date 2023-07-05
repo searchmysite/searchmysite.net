@@ -572,7 +572,7 @@ a.sms-large-font:hover {
 
 .sms-sort-container {
     float: right;
-    width: 24rem;
+    width: 28rem;
 }
 
 .sms-results-top-info {
@@ -692,23 +692,6 @@ h2.sms-h2 a:visited
         margin-top: 19vh;
     }
 
-    #topnav {
-        border: 1px solid #c6c5c5;
-        border-radius: .5rem;
-        padding: 1rem;
-        margin-top: 1rem;
-        background-color: white;
-
-    }
-
-    #topnav ul li {
-        margin-bottom: 1rem;
-    }
-
-    #topnav ul li:first-of-type {
-        margin-top: 1rem;
-    }
-
     .container-fluid {
         padding-right: var(--bs-gutter-x,1.2rem);
         padding-left: var(--bs-gutter-x,1.2rem);
@@ -726,6 +709,27 @@ h2.sms-h2 a:visited
         padding: 0 .5rem 0 .5rem;
     }
 } 
+
+
+@media (max-width: 576px) {
+    #topnav {
+        border: 1px solid #c6c5c5;
+        border-radius: .5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color: white;
+
+    }
+
+    #topnav ul li {
+        margin-bottom: 1rem;
+    }
+
+    #topnav ul li:first-of-type {
+        margin-top: 1rem;
+    }
+
+}
 
 
 /**
