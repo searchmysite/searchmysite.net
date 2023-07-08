@@ -122,7 +122,9 @@ random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1
 random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
 
 # 5. API query
-solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
+# &fq=!relationship%3Achild added to ensure only parent pages are returned, i.e. not the content chunks used for embedding 
+# (can't use fq=relationship%3Aparent because not all pages will have a value for relationship initially)
+solrquery = 'select?fl=id,url,title,author,description,tags,page_type,page_last_modified,published_date,language,indexed_inlinks,indexed_outlinks&q={}&start={}&rows={}&wt=json&fq=domain%3A{}&fq=!relationship%3Achild&hl=on&hl.fl=content&hl.simple.pre={}&hl.simple.post={}'
 
 
 # Solr update queries
