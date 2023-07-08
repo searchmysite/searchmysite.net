@@ -25,6 +25,7 @@ CREATE TABLE tblDomains (
   full_reindex_frequency INTERVAL,
   incremental_reindex_frequency INTERVAL,
   indexing_page_limit SMALLINT,
+  content_chunks_limit SMALLINT,
   on_demand_reindexing BOOLEAN,
   api_enabled BOOLEAN,
   indexing_enabled BOOLEAN,
@@ -46,6 +47,7 @@ CREATE TABLE tblTiers (
   default_full_reindex_frequency INTERVAL,
   default_incremental_reindex_frequency INTERVAL,
   default_indexing_page_limit SMALLINT,
+  default_content_chunks_limit SMALLINT,
   default_on_demand_reindexing BOOLEAN,
   default_api_enabled BOOLEAN,
   cost_amount DECIMAL(5,2),
@@ -130,11 +132,11 @@ CREATE TABLE tblSettings (
 );
 
 INSERT INTO tblTiers 
-(tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration) 
+(tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_content_chunks_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration) 
 VALUES 
-(1, 'Basic',      '28 days',  '14 days',   50, FALSE, FALSE,  0.00, '£', '1 year'),
-(2, 'Free Trial', '28 days',  '14 days',  100, FALSE,  TRUE,  0.00, '£', '1 month'),
-(3, 'Full',        '7 days', '3.5 days',  500,  TRUE,  TRUE, 12.00, '£', '1 year');
+(1, 'Basic',      '28 days',  '14 days',  50,  8, FALSE, FALSE,  0.00, '£', '1 year'),
+(2, 'Free Trial', '28 days',  '14 days', 100, 12, FALSE, TRUE,   0.00, '£', '1 month'),
+(3, 'Full',        '7 days', '3.5 days', 500, 40, TRUE,  TRUE,  12.00, '£', '1 year');
 
 INSERT INTO tblSettings 
 (setting_name, setting_value) 

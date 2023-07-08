@@ -44,6 +44,7 @@ manage_indexing_form = [
 {'label':'next_reindex', 'label-text':'Next full reindex', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Earliest start time for the next full reindex.'},
 {'label':'web_feed', 'label-text':'Web feed', 'type':'text', 'class':'form-control', 'editable':True, 'help':'This is the web feed (RSS or Atom), used for indexing and for identifying pages which are part of a feed. The system tries to identify a feed but it can be entered or overridden here.'},
 {'label':'indexing_page_limit', 'label-text':'Indexing page limit', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The maximum number of pages on your domain which will be indexed.'},
+{'label':'content_chunks_limit', 'label-text':'Maximum vector search embeddings', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The maximum number of page content chunks which will be converted to embeddings for vector search. Any content beyond this will not be searchable via the vector search.'},
 {'label':'indexing_type', 'label-text':'Indexing type', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'What mechanism is used to index the site. In almost all cases it will be the default spider.'},
 ]
 

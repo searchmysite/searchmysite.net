@@ -60,7 +60,7 @@ sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 # The CASE statement sets a column full_index to be TRUE when a full index is required
 # and FALSE when an incremental index is required. In cases where both a full and 
 # incremental index are due to be triggered the full index will come first.
-sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered, "\
+sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.content_chunks_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered, "\
     "    CASE "\
     "        WHEN d.indexing_status = 'PENDING' THEN TRUE "\
     "        WHEN NOW() - d.last_full_index_completed > d.full_reindex_frequency THEN TRUE "\
@@ -105,6 +105,7 @@ try:
         site['tier'] = result['tier']
         site['date_domain_added'] = result['domain_first_submitted']
         site['indexing_page_limit'] = result['indexing_page_limit']
+        site['content_chunks_limit'] = result['content_chunks_limit']
         if result['tier'] == 3: site['owner_verified'] = True
         else: site['owner_verified'] = False
         site['site_category'] = result['category']
