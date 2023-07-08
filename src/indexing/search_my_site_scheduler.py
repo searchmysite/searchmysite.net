@@ -73,7 +73,7 @@ sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_fi
     "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_full_index_completed > full_reindex_frequency) "\
     "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_index_completed > incremental_reindex_frequency) "\
     "ORDER BY d.indexing_status DESC, l.tier DESC "\
-    "LIMIT 16;"
+    "LIMIT 8;"
 
 
 # MAINTENANCE JOBS
