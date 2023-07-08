@@ -6,3 +6,5 @@ psycopg2
 tldextract
 httplib2
 feedparser
+sentence-transformers
+langchain
