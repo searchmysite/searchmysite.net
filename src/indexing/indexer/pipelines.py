@@ -145,7 +145,7 @@ class SolrPipeline:
                     add = False
                     self.logger.info("Not going to add {} because it is a duplicate of {}".format(new_url, existing_url))
         if add == True:
-            self.logger.info("Adding {}".format(new_url))
+            self.debug.info("Adding {}".format(new_url))
             self.items.append(dict(item))
             return item
         else:

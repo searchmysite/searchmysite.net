@@ -294,6 +294,7 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
         #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
         if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
+            logger.info("Generating embeddings for {}".format(response.url))
             page_id = item['id']
             content_chunks = []
             chunks = get_content_chunks(content_text, site_config['content_chunks_limit'])
@@ -308,10 +309,9 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
                 content_chunk['content_chunk_text'] = chunk
                 content_chunk['content_chunk_vector'] = get_vector(chunk)
                 content_chunks.append(content_chunk)
-            logger.debug("Regenerating embeddings")
         else:
             content_chunks = previous_content_chunks
-            logger.debug("Reusing existing embeddings")
+            logger.debug("Reusing existing embeddings for {}".format(response.url))
         item['content_chunks'] = content_chunks
 
         # published_date
