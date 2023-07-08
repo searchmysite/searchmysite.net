@@ -85,7 +85,7 @@ sql_update_auto_discovered = "UPDATE tblDomains SET web_feed_auto_discovered = (
 # Solr config and queries
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
-solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fl=url&rows=1000"
+solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fq=!relationship%3Achild&fl=url&rows=1000"
 # The solr_query_to_get_content includes fl=content_chunks,[child] to get the correctly nested child documents, and fq=!relationship:child 
 # to ensure the child documents don't also appear as siblings (noting that fq=relationship:parent can't be used until all pages have that value set)  
 solr_query_to_get_content = "select?q=*%3A*&fq=domain%3A{}&fq=!relationship:child&fl=id,url,domain,content,content_last_modified,content_chunk_no,content_chunk_text,relationship,content_chunks,[child]&rows=1000"
