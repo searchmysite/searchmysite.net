@@ -117,6 +117,7 @@
     <!-- start searchmysite change -->
     <field name="url" type="string" indexed="true" stored="true" required="true" />
     <field name="domain" type="string" indexed="true" stored="true" required="true" />
+    <field name="relationship" type="string" indexed="true" stored="true" /> <!-- relationship:parent for whole docs and relationship:child for part doc (i.e. chunks) -->
     <field name="is_home" type="boolean" indexed="true" stored="true" /> <!-- true for home page, false for all other pages -->
     <field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />
     <field name="author" type="string" indexed="true" stored="true" />
@@ -145,6 +146,10 @@
     <field name="indexed_inlink_domains" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="indexed_inlink_domains_count" type="pint" indexed="true" stored="true" />
     <field name="indexed_outlinks" type="string" indexed="true" stored="true" multiValued="true" />
+    <fieldType name="knn_vector384" class="solr.DenseVectorField" vectorDimension="384" similarityFunction="dot_product"/>
+    <field name="content_chunk_no" type="pint" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+    <field name="content_chunk_text" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+    <field name="content_chunk_vector" type="knn_vector384" indexed="true" stored="true"/> <!-- only in relationship:child below content_chunks pseudo-field -->
     <copyField source="url" dest="_text_" />
     <copyField source="title" dest="_text_" />
     <copyField source="author" dest="_text_" />
