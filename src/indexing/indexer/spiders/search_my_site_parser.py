@@ -49,10 +49,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     logger.info('Parsing {}'.format(response.url))
 
     # check for type (this is first because some types might be on the exclude type list and we want to return None so it isn't yielded)
-    ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
-    if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+    ctype = None
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+        ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
+        if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
     exclusions = site_config['exclusions']
-    if exclusions:
+    if exclusions and ctype:
         for exclusion in exclusions:
             if exclusion['exclusion_type'] == 'type':
                 if exclusion['exclusion_value'] == ctype:
@@ -62,8 +64,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item = {}
 
 
-    # Attributes set on all TextResponse, i.e. on both HtmlResponse and XmlResponse
-    # -----------------------------------------------------------------------------
+    # Attributes set on all TextResponse, including application/json
+    # --------------------------------------------------------------
 
     # id
     item['id'] = response.url
@@ -78,10 +80,6 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     if is_home:
         logger.info('Setting home page: {}'.format(response.url))
     item['is_home'] = is_home
-
-    # title
-    # XML can have a title tag
-    item['title'] = response.xpath('//title/text()').get() # <title>...</title>
 
     # content_type, e.g. text/html; charset=utf-8
     content_type = None
@@ -134,16 +132,6 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     else:
         item['indexed_inlink_domains_count'] = None
 
-    # indexed_outlinks
-    # i.e. the links in this page to pages in the search collection on other domains
-    indexed_outlinks = []
-    if domains_for_indexed_links:
-        extractor = LinkExtractor(allow_domains=domains_for_indexed_links) # i.e. external links
-        links = extractor.extract_links(response)
-        for link in links:
-            indexed_outlinks.append(link.url)
-    item['indexed_outlinks'] = indexed_outlinks
-
     # owner_verified
     # This used to be an explicit field, but now is set by search_my_site_scheduler.py when tier = 3
     owner_verified = False
@@ -166,6 +154,26 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['web_feed'] = site_config['web_feed']
     else:
         item['in_web_feed'] = False
+
+
+    # Attributes set only on XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
+    # ----------------------------------------------------------------------------------------------------------
+
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+
+        # title
+        # XML can have a title tag
+        item['title'] = response.xpath('//title/text()').get() # <title>...</title>
+
+        # indexed_outlinks
+        # i.e. the links in this page to pages in the search collection on other domains
+        indexed_outlinks = []
+        if domains_for_indexed_links:
+            extractor = LinkExtractor(allow_domains=domains_for_indexed_links) # i.e. external links
+            links = extractor.extract_links(response)
+            for link in links:
+                indexed_outlinks.append(link.url)
+        item['indexed_outlinks'] = indexed_outlinks
 
 
     # Attributes set only on HtmlResponse
@@ -200,8 +208,6 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['tags'] = tag_list
 
         # content
-        # Note that if the logic to generate content_text changes in any way, even just in the way white space is treated,
-        # then that will trigger new values for content_last_modified, even if the actual content hasn't actually changed
         only_body = SoupStrainer('body')
         body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
         for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
@@ -235,8 +241,11 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         # 2. Page content unchanged: use previous_content_last_modified or page_last_modified or indexed_date
         # 3. New page: use page_last_modified or indexed_date
         # 4. No page content (or something else): no value
-        # Note that page_last_modified is not necessarily when the content was last changed, but is more likely to nearer than indexed_date, 
-        # plus it saves a lot of content_last_modified values being set to the time this functionality is first run
+        # Notes:
+        # 1. page_last_modified is not necessarily when the content was last changed, but is more likely to nearer than indexed_date, 
+        #    plus it saves a lot of content_last_modified values being set to the time this functionality is first run.
+        # 2. If the logic to generate content_text changes in any way, even just in the way white space is treated,
+        #    then that will trigger new values for content_last_modified, even if the actual content hasn't actually changed.
         if previous_content and new_content and previous_content != new_content:
             content_last_modified = indexed_date
             message = 'Updated page content: changing content_last_modified to {}'.format(content_last_modified)
