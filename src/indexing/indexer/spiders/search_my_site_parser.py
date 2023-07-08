@@ -8,11 +8,12 @@ from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
 import feedparser
-from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text
+from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text, get_content_chunks, get_vector
 
 # Solr schema is:
 #    <field name="url" type="string" indexed="true" stored="true" required="true" />
 #    <field name="domain" type="string" indexed="true" stored="true" required="true" />
+#    <field name="relationship" type="string" indexed="true" stored="true" /> <!-- relationship:parent for whole docs and relationship:child for part doc (i.e. chunks) -->
 #    <field name="is_home" type="boolean" indexed="true" stored="true" /> <!-- true for home page, false for all other pages -->
 #    <field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="author" type="string" indexed="true" stored="true" />
@@ -41,6 +42,10 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="indexed_inlink_domains" type="string" indexed="true" stored="true" multiValued="true" />
 #    <field name="indexed_inlink_domains_count" type="pint" indexed="true" stored="true" />
 #    <field name="indexed_outlinks" type="string" indexed="true" stored="true" multiValued="true" />
+#    <fieldType name="knn_vector384" class="solr.DenseVectorField" vectorDimension="384" similarityFunction="dot_product"/>
+#    <field name="content_chunk_no" type="pint" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+#    <field name="content_chunk_text" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+#    <field name="content_chunk_vector" type="knn_vector384" indexed="true" stored="true"/> <!-- only in relationship:child below content_chunks pseudo-field -->
 
 def customparser(response, domain, is_home, domains_for_indexed_links, site_config, common_config):
 
@@ -75,6 +80,9 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
 
     # domain
     item['domain'] = domain
+
+    # relationship
+    item['relationship'] = 'parent' # only content_chunks is child
 
     # is_home, i.e. the page is the home page
     if is_home:
@@ -268,6 +276,43 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
             message = 'No page content: content_last_modified not being set'
         logger.debug(message)
         item['content_last_modified'] = content_last_modified
+
+        # content_chunks (pseudo-field for nested documents)
+        # Get values from the previously indexed version of this page
+        previous_content_chunks = None
+        if response.url in previous_contents: # previous_contents already defined above
+            previous_page = previous_contents[response.url]
+            if 'content_chunks' in previous_page:
+                previous_content_chunks = previous_page['content_chunks']
+        # Scenarios:
+        # 1. Content has changed, or content is new, or there aren't any existing content_chunks (e.g. on first run) - regenerate
+        # 2. Else reuse previous values
+        # Note: A full reindex until now has always been a clean reindex, i.e. delete everything in the index for that domain and
+        #    start afresh. However, with the content_chunks functionality, it is the first time content is potentially preserved
+        #    between reindexes. So if the embedding config changes, the new config won't take effect for a page until it's content
+        #    has changed. That may be fine for minor embedding config changes, e.g. a change to the chunk length, but could be breaking
+        #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
+        #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
+        if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
+            page_id = item['id']
+            content_chunks = []
+            chunks = get_content_chunks(content_text, site_config['content_chunks_limit'])
+            for chunk in chunks:
+                chunk_no = chunks.index(chunk) + 1
+                content_chunk = {}
+                content_chunk['id'] = "{}!chunk{:03d}".format(page_id, chunk_no) # e.g. https://michael-lewis.com/!chunk001
+                content_chunk['url'] = response.url
+                content_chunk['domain'] = domain
+                content_chunk['relationship'] = "child"
+                content_chunk['content_chunk_no'] = chunk_no
+                content_chunk['content_chunk_text'] = chunk
+                content_chunk['content_chunk_vector'] = get_vector(chunk)
+                content_chunks.append(content_chunk)
+            logger.debug("Regenerating embeddings")
+        else:
+            content_chunks = previous_content_chunks
+            logger.debug("Reusing existing embeddings")
+        item['content_chunks'] = content_chunks
 
         # published_date
         published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
