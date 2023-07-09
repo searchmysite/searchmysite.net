@@ -159,11 +159,11 @@ for site_to_crawl in sites_to_crawl:
     site_to_crawl['contents'] = contents
     # already_indexed_links, i.e. pages on this domain which have already been indexed.
     # This is only set if it is needed, i.e. for an incremental index.
-    if site['full_index'] == False: 
+    if site_to_crawl['full_index'] == False: 
         already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
         no_of_already_indexed_links = len(already_indexed_links)
         indexing_page_limit = site_to_crawl['indexing_page_limit']
-        if no_of_already_indexed_links == indexing_page_limit:
+        if no_of_already_indexed_links >= indexing_page_limit:
             # if the indexing_page_limit was reached in the last index then abandon this index
             # update the status in the database so that it isn't selected again until the next scheduled full or incremental reindex
             sites_to_crawl.remove(site_to_crawl)
