@@ -130,12 +130,12 @@ class SolrPipeline:
         # Strip out the trailing slashes of the new for a fairer comparison
         # so e.g. https://michael-lewis.com/ and https://michael-lewis.com get treated as duplicates
         #if new_url.endswith('/'): new_url = new_url[:-1]
-        new_title = item['title']
+        if 'title' in item: new_title = item['title']
         add = True
         for i in self.items:
             existing_url = i['url']
             #if existing_url.endswith('/'): existing_url = existing_url[:-1]
-            existing_title = i['title']
+            if 'title' in i: existing_title = i['title']
             # if new_url is the same as existing_url (this shouldn't happen because of built-in deduplication) or
             # if new_url without www. is the same as an existing_url or vice versa (which could happen because the built-in deduplication doesn't catch this)
             if new_url == existing_url or re.sub("www\.", "", new_url, 1) == existing_url or re.sub("www\.", "", existing_url, 1) == new_url:
@@ -145,7 +145,7 @@ class SolrPipeline:
                     add = False
                     self.logger.info("Not going to add {} because it is a duplicate of {}".format(new_url, existing_url))
         if add == True:
-            self.logger.info("Adding {}".format(new_url))
+            self.logger.debug("Adding {}".format(new_url))
             self.items.append(dict(item))
             return item
         else:

@@ -60,7 +60,7 @@ sql_select_filters = "SELECT * FROM tblIndexingFilters WHERE domain = (%s);"
 # The CASE statement sets a column full_index to be TRUE when a full index is required
 # and FALSE when an incremental index is required. In cases where both a full and 
 # incremental index are due to be triggered the full index will come first.
-sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered, "\
+sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_first_submitted, d.indexing_page_limit, d.content_chunks_limit, d.category, d.api_enabled, d.include_in_public_search, d.web_feed_auto_discovered, d.web_feed_user_entered, "\
     "    CASE "\
     "        WHEN d.indexing_status = 'PENDING' THEN TRUE "\
     "        WHEN NOW() - d.last_full_index_completed > d.full_reindex_frequency THEN TRUE "\
@@ -69,11 +69,14 @@ sql_select_domains_to_index = "SELECT d.domain, d.home_page, l.tier, d.domain_fi
     "FROM tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.indexing_type = 'spider/default' "\
     "AND d.indexing_enabled = TRUE "\
-    "AND (d.indexing_status = 'PENDING') "\
+    "AND l.status = 'ACTIVE' "\
+    "AND ( "\
+    "    (d.indexing_status = 'PENDING') "\
     "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_full_index_completed > full_reindex_frequency) "\
     "    OR (d.indexing_status = 'COMPLETE' AND NOW() - last_index_completed > incremental_reindex_frequency) "\
+    ") "\
     "ORDER BY d.indexing_status DESC, l.tier DESC "\
-    "LIMIT 16;"
+    "LIMIT 8;"
 
 
 # MAINTENANCE JOBS
@@ -105,6 +108,7 @@ try:
         site['tier'] = result['tier']
         site['date_domain_added'] = result['domain_first_submitted']
         site['indexing_page_limit'] = result['indexing_page_limit']
+        site['content_chunks_limit'] = result['content_chunks_limit']
         if result['tier'] == 3: site['owner_verified'] = True
         else: site['owner_verified'] = False
         site['site_category'] = result['category']
@@ -155,11 +159,11 @@ for site_to_crawl in sites_to_crawl:
     site_to_crawl['contents'] = contents
     # already_indexed_links, i.e. pages on this domain which have already been indexed.
     # This is only set if it is needed, i.e. for an incremental index.
-    if site['full_index'] == False: 
+    if site_to_crawl['full_index'] == False: 
         already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
         no_of_already_indexed_links = len(already_indexed_links)
         indexing_page_limit = site_to_crawl['indexing_page_limit']
-        if no_of_already_indexed_links == indexing_page_limit:
+        if no_of_already_indexed_links >= indexing_page_limit:
             # if the indexing_page_limit was reached in the last index then abandon this index
             # update the status in the database so that it isn't selected again until the next scheduled full or incremental reindex
             sites_to_crawl.remove(site_to_crawl)

@@ -8,11 +8,12 @@ from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
 import feedparser
-from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text
+from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text, get_content_chunks, get_vector
 
 # Solr schema is:
 #    <field name="url" type="string" indexed="true" stored="true" required="true" />
 #    <field name="domain" type="string" indexed="true" stored="true" required="true" />
+#    <field name="relationship" type="string" indexed="true" stored="true" /> <!-- relationship:parent for whole docs and relationship:child for part doc (i.e. chunks) -->
 #    <field name="is_home" type="boolean" indexed="true" stored="true" /> <!-- true for home page, false for all other pages -->
 #    <field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />
 #    <field name="author" type="string" indexed="true" stored="true" />
@@ -41,6 +42,10 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="indexed_inlink_domains" type="string" indexed="true" stored="true" multiValued="true" />
 #    <field name="indexed_inlink_domains_count" type="pint" indexed="true" stored="true" />
 #    <field name="indexed_outlinks" type="string" indexed="true" stored="true" multiValued="true" />
+#    <fieldType name="knn_vector384" class="solr.DenseVectorField" vectorDimension="384" similarityFunction="dot_product"/>
+#    <field name="content_chunk_no" type="pint" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+#    <field name="content_chunk_text" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
+#    <field name="content_chunk_vector" type="knn_vector384" indexed="true" stored="true"/> <!-- only in relationship:child below content_chunks pseudo-field -->
 
 def customparser(response, domain, is_home, domains_for_indexed_links, site_config, common_config):
 
@@ -49,10 +54,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     logger.info('Parsing {}'.format(response.url))
 
     # check for type (this is first because some types might be on the exclude type list and we want to return None so it isn't yielded)
-    ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
-    if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+    ctype = None
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+        ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
+        if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
     exclusions = site_config['exclusions']
-    if exclusions:
+    if exclusions and ctype:
         for exclusion in exclusions:
             if exclusion['exclusion_type'] == 'type':
                 if exclusion['exclusion_value'] == ctype:
@@ -62,8 +69,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item = {}
 
 
-    # Attributes set on all TextResponse, i.e. on both HtmlResponse and XmlResponse
-    # -----------------------------------------------------------------------------
+    # Attributes set on all TextResponse, including application/json
+    # --------------------------------------------------------------
 
     # id
     item['id'] = response.url
@@ -74,14 +81,13 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # domain
     item['domain'] = domain
 
+    # relationship
+    item['relationship'] = 'parent' # only content_chunks is child
+
     # is_home, i.e. the page is the home page
     if is_home:
         logger.info('Setting home page: {}'.format(response.url))
     item['is_home'] = is_home
-
-    # title
-    # XML can have a title tag
-    item['title'] = response.xpath('//title/text()').get() # <title>...</title>
 
     # content_type, e.g. text/html; charset=utf-8
     content_type = None
@@ -134,16 +140,6 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     else:
         item['indexed_inlink_domains_count'] = None
 
-    # indexed_outlinks
-    # i.e. the links in this page to pages in the search collection on other domains
-    indexed_outlinks = []
-    if domains_for_indexed_links:
-        extractor = LinkExtractor(allow_domains=domains_for_indexed_links) # i.e. external links
-        links = extractor.extract_links(response)
-        for link in links:
-            indexed_outlinks.append(link.url)
-    item['indexed_outlinks'] = indexed_outlinks
-
     # owner_verified
     # This used to be an explicit field, but now is set by search_my_site_scheduler.py when tier = 3
     owner_verified = False
@@ -166,6 +162,26 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['web_feed'] = site_config['web_feed']
     else:
         item['in_web_feed'] = False
+
+
+    # Attributes set only on XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
+    # ----------------------------------------------------------------------------------------------------------
+
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+
+        # title
+        # XML can have a title tag
+        item['title'] = response.xpath('//title/text()').get() # <title>...</title>
+
+        # indexed_outlinks
+        # i.e. the links in this page to pages in the search collection on other domains
+        indexed_outlinks = []
+        if domains_for_indexed_links:
+            extractor = LinkExtractor(allow_domains=domains_for_indexed_links) # i.e. external links
+            links = extractor.extract_links(response)
+            for link in links:
+                indexed_outlinks.append(link.url)
+        item['indexed_outlinks'] = indexed_outlinks
 
 
     # Attributes set only on HtmlResponse
@@ -200,8 +216,6 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['tags'] = tag_list
 
         # content
-        # Note that if the logic to generate content_text changes in any way, even just in the way white space is treated,
-        # then that will trigger new values for content_last_modified, even if the actual content hasn't actually changed
         only_body = SoupStrainer('body')
         body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
         for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
@@ -235,8 +249,11 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         # 2. Page content unchanged: use previous_content_last_modified or page_last_modified or indexed_date
         # 3. New page: use page_last_modified or indexed_date
         # 4. No page content (or something else): no value
-        # Note that page_last_modified is not necessarily when the content was last changed, but is more likely to nearer than indexed_date, 
-        # plus it saves a lot of content_last_modified values being set to the time this functionality is first run
+        # Notes:
+        # 1. page_last_modified is not necessarily when the content was last changed, but is more likely to nearer than indexed_date, 
+        #    plus it saves a lot of content_last_modified values being set to the time this functionality is first run.
+        # 2. If the logic to generate content_text changes in any way, even just in the way white space is treated,
+        #    then that will trigger new values for content_last_modified, even if the actual content hasn't actually changed.
         if previous_content and new_content and previous_content != new_content:
             content_last_modified = indexed_date
             message = 'Updated page content: changing content_last_modified to {}'.format(content_last_modified)
@@ -259,6 +276,43 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
             message = 'No page content: content_last_modified not being set'
         logger.debug(message)
         item['content_last_modified'] = content_last_modified
+
+        # content_chunks (pseudo-field for nested documents)
+        # Get values from the previously indexed version of this page
+        previous_content_chunks = None
+        if response.url in previous_contents: # previous_contents already defined above
+            previous_page = previous_contents[response.url]
+            if 'content_chunks' in previous_page:
+                previous_content_chunks = previous_page['content_chunks']
+        # Scenarios:
+        # 1. Content has changed, or content is new, or there aren't any existing content_chunks (e.g. on first run) - regenerate
+        # 2. Else reuse previous values
+        # Note: A full reindex until now has always been a clean reindex, i.e. delete everything in the index for that domain and
+        #    start afresh. However, with the content_chunks functionality, it is the first time content is potentially preserved
+        #    between reindexes. So if the embedding config changes, the new config won't take effect for a page until it's content
+        #    has changed. That may be fine for minor embedding config changes, e.g. a change to the chunk length, but could be breaking
+        #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
+        #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
+        if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
+            logger.info("Generating embeddings for {}".format(response.url))
+            page_id = item['id']
+            content_chunks = []
+            chunks = get_content_chunks(content_text, site_config['content_chunks_limit'])
+            for chunk in chunks:
+                chunk_no = chunks.index(chunk) + 1
+                content_chunk = {}
+                content_chunk['id'] = "{}!chunk{:03d}".format(page_id, chunk_no) # e.g. https://michael-lewis.com/!chunk001
+                content_chunk['url'] = response.url
+                content_chunk['domain'] = domain
+                content_chunk['relationship'] = "child"
+                content_chunk['content_chunk_no'] = chunk_no
+                content_chunk['content_chunk_text'] = chunk
+                content_chunk['content_chunk_vector'] = get_vector(chunk)
+                content_chunks.append(content_chunk)
+        else:
+            content_chunks = previous_content_chunks
+            logger.debug("Reusing existing embeddings for {}".format(response.url))
+        item['content_chunks'] = content_chunks
 
         # published_date
         published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()

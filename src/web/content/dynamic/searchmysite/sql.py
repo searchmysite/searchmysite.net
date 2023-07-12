@@ -1,7 +1,7 @@
 # SQL for admin/add.py
 # --------------------
 
-sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
+sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_content_chunks_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
     "FROM tblTiers;"
 
 # Selects the status of the highest listed tier (whether active or not)
@@ -50,6 +50,7 @@ sql_update_freefull_approved = "UPDATE tblListingStatus "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
     "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "content_chunks_limit = tblTiers.default_content_chunks_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
@@ -79,6 +80,7 @@ sql_update_basic_approved = "UPDATE tblListingStatus "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
     "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "content_chunks_limit = tblTiers.default_content_chunks_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
@@ -152,6 +154,7 @@ sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', st
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
     "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "content_chunks_limit = tblTiers.default_content_chunks_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "indexing_status = 'PENDING', "\
     "indexing_status_changed = NOW() "\

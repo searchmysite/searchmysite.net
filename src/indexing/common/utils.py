@@ -14,39 +14,38 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dateutil.parser import parse, ParserError
 from bs4 import BeautifulSoup, SoupStrainer
+from sentence_transformers import SentenceTransformer
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from common import config
 
+
+# Database config
 db_password = config.DB_PASSWORD
 db_name = config.DB_NAME
 db_user = config.DB_USER
 db_host = config.DB_HOST
+
+# Email config
 smtp_server = environ.get('SMTP_SERVER')
 smtp_port = environ.get('SMTP_PORT')
 smtp_from_email = environ.get('SMTP_FROM_EMAIL')
 smtp_from_password = environ.get('SMTP_FROM_PASSWORD')
 smtp_to_email = environ.get('SMTP_TO_EMAIL')
 
+# SQL
 sql_select_domains = "SELECT d.domain from tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain WHERE l.status = 'ACTIVE' AND d.indexing_enabled = TRUE;"
-
 sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
-
 sql_update_indexing_status = "UPDATE tblDomains "\
     "SET indexing_status = (%s), indexing_status_changed = now() "\
     "WHERE domain = (%s); "\
     "INSERT INTO tblIndexingLog (domain, status, timestamp, message) "\
     "VALUES ((%s), (%s), now(), (%s));"
-
 sql_update_indexing_complete = "UPDATE tblDomains SET last_index_completed = now() WHERE domain = (%s);"
-
 sql_update_full_indexing_complete = "UPDATE tblDomains SET last_index_completed = now(), last_full_index_completed = now() WHERE domain = (%s);"
-
 sql_select_indexing_log = "SELECT * FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
-
 sql_select_last_complete_indexing_log_message = "SELECT message FROM tblIndexingLog WHERE domain = (%s) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
-
 sql_deactivate_indexing = "UPDATE tblDomains SET "\
     "indexing_enabled = FALSE, indexing_disabled_changed = now(), indexing_disabled_reason = (%s) WHERE domain = (%s);"
-
 sql_select_expired_listings = "SELECT d.domain, d.email from tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE l.listing_end < now() "\
@@ -54,11 +53,9 @@ sql_select_expired_listings = "SELECT d.domain, d.email from tblDomains d "\
     "AND l.tier = (%s) "\
     "AND d.indexing_type = 'spider/default' "\
     "ORDER BY d.domain_first_submitted ASC;"
-
 sql_expire_tier1_listing = "UPDATE tblDomains SET moderator_approved = NULL where domain = (%s);"\
     "UPDATE tblListingStatus SET status = 'PENDING', status_changed = NOW(), pending_state = 'MODERATOR_REVIEW', pending_state_changed = NOW() "\
     "WHERE domain = (%s) AND tier = 1;"
-
 sql_expire_tier2or3_listing = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = (%s); "\
     "INSERT INTO tblListingStatus (domain, tier, status, status_changed, listing_start, listing_end) "\
     "VALUES ((%s), (%s), 'ACTIVE', NOW(), NOW(), NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = (%s))) "\
@@ -68,7 +65,6 @@ sql_expire_tier2or3_listing = "UPDATE tblListingStatus SET status = 'EXPIRED', s
     "    status_changed = EXCLUDED.status_changed, "\
     "    listing_start = EXCLUDED.listing_start, "\
     "    listing_end = EXCLUDED.listing_end;"
-
 sql_reset_indexing_defaults = "UPDATE tblDomains SET "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
     "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
@@ -79,23 +75,28 @@ sql_reset_indexing_defaults = "UPDATE tblDomains SET "\
     "indexing_status = 'PENDING', "\
     "indexing_status_changed = NOW() "\
     "FROM tblTiers WHERE tblTiers.tier = (%s) and tblDomains.domain = (%s);"
-
 sql_select_stuck_jobs = "SELECT * FROM tblDomains "\
     "WHERE indexing_type = 'spider/default' "\
     "AND indexing_status = 'RUNNING' "\
     "AND indexing_status_changed + '6 hours' < NOW();"
-
 sql_select_user_entered = "SELECT web_feed_user_entered, sitemap_user_entered FROM tblDomains WHERE domain = (%s);"
-
 sql_update_auto_discovered = "UPDATE tblDomains SET web_feed_auto_discovered = (%s), sitemap_auto_discovered = (%s) WHERE domain = (%s);"
 
+# Solr config and queries
 solr_url = config.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
-solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fl=url&rows=1000"
-solr_query_to_get_content = "select?q=domain%3A{}&fl=url,content,content_last_modified&rows=1000"
+solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fq=!relationship%3Achild&fl=url&rows=1000"
+# The solr_query_to_get_content includes fl=content_chunks,[child] to get the correctly nested child documents, and fq=!relationship:child 
+# to ensure the child documents don't also appear as siblings (noting that fq=relationship:parent can't be used until all pages have that value set)  
+solr_query_to_get_content = "select?q=*%3A*&fq=domain%3A{}&fq=!relationship:child&fl=id,url,domain,content,content_last_modified,content_chunk_no,content_chunk_text,relationship,content_chunks,[child]&rows=1000"
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
+
+# Content chunking (for embedding) config
+chunk_size = 500 # in chars. note that sentence-transformers/all-MiniLM-L6-v2 has max input text 256 word pieces so this works if av word piece is 2 chars
+chunk_overlap = 50
+embedding_model = 'sentence-transformers/all-MiniLM-L6-v2'
 
 
 # Database utils
@@ -322,13 +323,35 @@ def get_already_indexed_links(domain):
                 already_indexed_links.append(url)
     return already_indexed_links
 
-# Get all the content for a domain (used for identifying whether content has changed)
-# Format is a dict of dicts.
-# The first dict has 'url' as the key, and the second has (optional) 'content' and 'content_last_modified'
-# Use with e.g.:
-# content = contents['https://michael-lewis.com/']
-# if content and 'content' in content and content['content']: ...
-
+# Get all the content for a domain
+# Used for (i) identifying whether content has changed, and (ii) preserving existing content_chunks if the content hasn't changed
+# Data structure is a dict of dicts, with the first dict keyed on id for easy retrieval,
+# and the second dict using the docs structure returned by Solr.
+# 'content', 'content_last_modified' and 'content_chunks' are all optional, and 'content_chunks' a list of dicts.
+# e.g. 
+# {
+#   "https://michael-lewis.com/": 
+#    {
+#      "id":"https://michael-lewis.com/",
+#      "url":"https://michael-lewis.com/",
+#      "relationship":"parent",
+#      "content":"...",
+#      "content_last_modified":"...",
+#      "content_chunks": 
+#      [
+#        {
+#          "id":"https://michael-lewis.com/!chunk01",
+#          "url":"https://michael-lewis.com/",
+#          "relationship":"child",
+#          "content_chunk_no":1,
+#          "content_chunk_text":"..."
+#        },
+#        {
+#          ...
+#        }
+#      ]
+#   }
+# }
 def get_contents(domain):
     contents = {}
     solrquery = solr_query_to_get_content.format(domain)
@@ -336,12 +359,8 @@ def get_contents(domain):
     results = json.load(connection)
     if results['response']['docs']:
         for doc in results['response']['docs']:
-            content = {}
-            if 'content' in doc and doc['content']:
-                content['content'] = doc['content']
-            if 'content_last_modified' in doc and doc['content_last_modified']:
-                content['content_last_modified'] = doc['content_last_modified']
-            contents[doc['url']] = content
+            if 'id' in doc:
+                contents[doc['id']] = doc
     return contents
 
 
@@ -481,6 +500,24 @@ def get_text(html):
     text = ' \n '.join(chunk for chunk in chunks if chunk)
     if text == "": text = None
     return text
+
+
+# Vector search utils
+# -------------------
+
+# Return the page content as a list of content chunks, each chunk a max chunk_size, with a max length of max_chunks 
+def get_content_chunks(content, max_chunks):
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    content_chunks = text_splitter.split_text(content)
+    return content_chunks[:max_chunks]
+
+# Return the embedding for the text as a list (i.e. in the format requried for Solr) 
+def get_vector(text):
+    logging.getLogger("sentence_transformers.SentenceTransformer").setLevel(logging.WARNING)
+    model = SentenceTransformer(embedding_model)
+    embedding = model.encode(text)
+    vector = embedding.tolist()
+    return vector
 
 
 # Wikipedia utils
