@@ -45,25 +45,5 @@
 
 			<div class="sms-dotted-line"></div>
 
-			<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
-				<div class="offcanvas-header">
-					<h5 class="offcanvas-title" id="offcanvasLabel">Filters</h5>
-					<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-				</div>
-				<div class="offcanvas-body">
-					{% for facet in facets %}
-						{% if facet['inputs'] %}
-							{{ facet['label_name'] }}<br>
-							{% for input in facet['inputs'] %}
-							<div class="form-check">
-								<input class="form-check-input" type="{{ input['type'] }}" name="{{ input['name'] }}" value="{{ input['value'] }}" id="{{ input['id'] }}" onchange="refreshPage(this.form);" {{ input['state'] }}>
-								<label class="form-check-label" for="{{ input['id'] }}">{{ input['label'] }}</label>
-							</div>
-							{% endfor %}
-						{% endif %}
-					{% endfor %}
-				</div>
-			</div>
-
 {% endblock %}
 
