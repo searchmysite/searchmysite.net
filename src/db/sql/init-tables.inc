@@ -157,5 +157,7 @@ VALUES
 ('domain_allowing_subdomains', 'substack.com'),
 ('domain_allowing_subdomains', 'ghost.io'),
 ('domain_allowing_subdomains', 'blogspot.com'),
-('domain_allowing_subdomains', 'bearblog.dev')
+('domain_allowing_subdomains', 'bearblog.dev'),
+('domain_allowing_subdomains', 'vercel.app'),
+('domain_allowing_subdomains', 'wixsite.com');
 
