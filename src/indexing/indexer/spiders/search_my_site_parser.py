@@ -294,24 +294,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
         #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
         if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
-            logger.info("Generating embeddings for {}".format(response.url))
-            page_id = item['id']
-            content_chunks = []
-            chunks = get_content_chunks(content_text, site_config['content_chunks_limit'])
-            for chunk in chunks:
-                chunk_no = chunks.index(chunk) + 1
-                content_chunk = {}
-                content_chunk['id'] = "{}!chunk{:03d}".format(page_id, chunk_no) # e.g. https://michael-lewis.com/!chunk001
-                content_chunk['url'] = response.url
-                content_chunk['domain'] = domain
-                content_chunk['relationship'] = "child"
-                content_chunk['content_chunk_no'] = chunk_no
-                content_chunk['content_chunk_text'] = chunk
-                content_chunk['content_chunk_vector'] = get_vector(chunk)
-                content_chunks.append(content_chunk)
+            content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], response.url, domain)
         else:
-            content_chunks = previous_content_chunks
             logger.debug("Reusing existing embeddings for {}".format(response.url))
+            content_chunks = previous_content_chunks
         item['content_chunks'] = content_chunks
 
         # published_date
