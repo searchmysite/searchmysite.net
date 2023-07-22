@@ -56,8 +56,13 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # check for type (this is first because some types might be on the exclude type list and we want to return None so it isn't yielded)
     ctype = None
     if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
-        ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
-        if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+        # If the page returns a Content-Type suggesting XmlResponse or HtmlResponse but is e.g. JSON it will throw a "ValueError: Cannot use xpath on a Selector of type 'json'"
+        try:
+            ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
+            if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+        except ValueError:
+            logger.info('Aborting parsing for {}: not XmlResponse or HtmlResponse'.format(response.url))
+            return None # Don't perform further parsing of this item in case it causes additional errors
     exclusions = site_config['exclusions']
     if exclusions and ctype:
         for exclusion in exclusions:
@@ -167,7 +172,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # Attributes set only on XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
     # ----------------------------------------------------------------------------------------------------------
 
-    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+    # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse):
 
         # title
         # XML can have a title tag
