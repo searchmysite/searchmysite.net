@@ -121,8 +121,6 @@ try:
             site['web_feed'] = result['web_feed_auto_discovered']
         site['full_index'] = result['full_index']
         sites_to_crawl.append(site)
-    if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
-    else: logger.debug('sites_to_crawl: {}'.format(sites_to_crawl))
     # common_config is the config shared between all sites
     if sites_to_crawl:
         # domains_for_indexed_links
@@ -146,37 +144,44 @@ except psycopg2.Error as e:
 finally:
     conn.close()
 
+if sites_to_crawl: logger.info('sites_to_crawl: {}'.format(sites_to_crawl))
+
 # Read data from Solr (indexed_inlinks, content and if necessary already_indexed_links)
 
+sites_to_remove = []
 for site_to_crawl in sites_to_crawl:
+    domain = site_to_crawl['domain']
+    full_index = site_to_crawl['full_index']
+    indexing_page_limit = site_to_crawl['indexing_page_limit']
     # indexed_inlinks, i.e. pages (from other domains within this search index) which link to this domain.
-    indexed_inlinks = get_all_indexed_inlinks_for_domain(site_to_crawl['domain'])
+    indexed_inlinks = get_all_indexed_inlinks_for_domain(domain)
     logger.debug('indexed_inlinks: {}'.format(indexed_inlinks))
     site_to_crawl['indexed_inlinks'] = indexed_inlinks
     # content, i.e. get_contents(domain)
-    contents = get_contents(site_to_crawl['domain'])
+    contents = get_contents(domain)
     logger.debug('contents: {}'.format(contents.keys))
     site_to_crawl['contents'] = contents
     # already_indexed_links, i.e. pages on this domain which have already been indexed.
     # This is only set if it is needed, i.e. for an incremental index.
-    if site_to_crawl['full_index'] == False: 
-        already_indexed_links = get_already_indexed_links(site_to_crawl['domain'])
+    if full_index == False:
+        already_indexed_links = get_already_indexed_links(domain)
         no_of_already_indexed_links = len(already_indexed_links)
-        indexing_page_limit = site_to_crawl['indexing_page_limit']
         if no_of_already_indexed_links >= indexing_page_limit:
-            # if the indexing_page_limit was reached in the last index then abandon this index
+            # if the indexing_page_limit was reached in the last index then remove this site from the sites to crawl
             # update the status in the database so that it isn't selected again until the next scheduled full or incremental reindex
-            sites_to_crawl.remove(site_to_crawl)
-            message = 'The indexing page limit was reached on the last index, so not going to perform incremental reindex for {}'.format(site_to_crawl['domain'])
-            update_indexing_status(site_to_crawl['domain'], site['full_index'], 'COMPLETE' , message)
+            sites_to_remove.append(domain)
+            message = 'The indexing page limit was reached on the last index, so not going to perform incremental reindex for {}'.format(domain)
+            update_indexing_status(domain, full_index, 'COMPLETE' , message)
             logger.warning(message)
         else:
             # reduce the indexing_page_limit according to the number of pages already in the index
             # so the incremental reindex doesn't exceed the indexing_page_limit
             new_indexing_page_limit = indexing_page_limit - no_of_already_indexed_links
             site_to_crawl['indexing_page_limit'] = new_indexing_page_limit
-            logger.info('no_of_already_indexed_links: {}, indexing_page_limit: {}, new_indexing_page_limit: {}, for {}'.format(no_of_already_indexed_links, indexing_page_limit, new_indexing_page_limit, site_to_crawl['domain']))
+            logger.info('no_of_already_indexed_links: {}, indexing_page_limit: {}, new_indexing_page_limit: {}, for {}'.format(no_of_already_indexed_links, indexing_page_limit, new_indexing_page_limit, domain))
             site_to_crawl['already_indexed_links'] = already_indexed_links
+
+sites_to_crawl = [site_to_crawl for site_to_crawl in sites_to_crawl if site_to_crawl['domain'] not in sites_to_remove]
 
 # Run the crawler
 
