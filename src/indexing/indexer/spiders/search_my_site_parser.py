@@ -56,8 +56,13 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # check for type (this is first because some types might be on the exclude type list and we want to return None so it isn't yielded)
     ctype = None
     if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
-        ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
-        if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+        # If the page returns a Content-Type suggesting XmlResponse or HtmlResponse but is e.g. JSON it will throw a "ValueError: Cannot use xpath on a Selector of type 'json'"
+        try:
+            ctype = response.xpath('//meta[@property="og:type"]/@content').get() # <meta property="og:type" content="..." />
+            if not ctype: ctype = response.xpath('//article/@data-post-type').get() # <article data-post-id="XXX" data-post-type="...">
+        except ValueError:
+            logger.info('Aborting parsing for {}: not XmlResponse or HtmlResponse'.format(response.url))
+            return None # Don't perform further parsing of this item in case it causes additional errors
     exclusions = site_config['exclusions']
     if exclusions and ctype:
         for exclusion in exclusions:
@@ -167,7 +172,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # Attributes set only on XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
     # ----------------------------------------------------------------------------------------------------------
 
-    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse): # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+    # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
+    if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse):
 
         # title
         # XML can have a title tag
@@ -294,24 +300,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
         #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
         if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
-            logger.info("Generating embeddings for {}".format(response.url))
-            page_id = item['id']
-            content_chunks = []
-            chunks = get_content_chunks(content_text, site_config['content_chunks_limit'])
-            for chunk in chunks:
-                chunk_no = chunks.index(chunk) + 1
-                content_chunk = {}
-                content_chunk['id'] = "{}!chunk{:03d}".format(page_id, chunk_no) # e.g. https://michael-lewis.com/!chunk001
-                content_chunk['url'] = response.url
-                content_chunk['domain'] = domain
-                content_chunk['relationship'] = "child"
-                content_chunk['content_chunk_no'] = chunk_no
-                content_chunk['content_chunk_text'] = chunk
-                content_chunk['content_chunk_vector'] = get_vector(chunk)
-                content_chunks.append(content_chunk)
+            content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], response.url, domain)
         else:
-            content_chunks = previous_content_chunks
             logger.debug("Reusing existing embeddings for {}".format(response.url))
+            content_chunks = previous_content_chunks
         item['content_chunks'] = content_chunks
 
         # published_date

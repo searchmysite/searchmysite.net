@@ -70,13 +70,14 @@ class SearchMySiteSpider(CrawlSpider):
                     self.logger.info('Changing {} in deny path to {}'.format(old_exclusion_value, exclusion_value))
                 deny.append(exclusion_value)
         self.logger.info('Deny path {}'.format(deny))
-        # Common rules are to only index pages on the same domain, deny paths as above, use an extended IGNORED_EXTENSIONS list as above,
-        # and add link to the tags to pick up RSS feeds from <link rel="alternate" type="application/rss+xml" href=
-        # There are two key differences if it is not a full index:
+        # Set up rules for full index or incremental index
+        # There are two key differences - if it is an incremental index:
         # 1. Only index new links, i.e. links which aren't already in the index (use process_links to remove 
         #    already indexed links from the home_page links and parse_start_url to remove already indexed links
         #    from the rss_feed and sitemap links).
         # 2. Do not follow links, i.e. only index the new links on the home page, rss_feed and sitemap. 
+        # Otherwise, both full and incremental have the same allowed domains, deny, deny extensions, and tags
+        # (link is in the tags to pick up RSS feeds from <link rel="alternate" type="application/rss+xml" href=)
         if self.full_index == True:
             self.rules = (
                 Rule(
@@ -133,7 +134,10 @@ class SearchMySiteSpider(CrawlSpider):
             item = customparser(response, self.domain, is_home, self.domains_for_indexed_links, self.site_config, self.common_config)
             yield item
             for link in links_to_index:
-                yield Request(link, callback=self.parse_item)
+                try:
+                    yield Request(link, callback=self.parse_item)
+                except ValueError:
+                    logger.warn('ValueError for {}'.format(link)) # Sometimes links in feeds are relative and throw ValueError(f"Missing scheme in request url: {self._url}")
         elif isinstance(response, HtmlResponse):
             logger.info('Processing home page: {}'.format(response.url))
             if self.full_index == True: # Only index the home page on full index
@@ -164,6 +168,8 @@ class SearchMySiteSpider(CrawlSpider):
             # This won't increment item_scraped_count
             if item:
                 yield item
+
+
 
     # As per https://docs.scrapy.org/en/latest/topics/spiders.html the "default implementation generates Request(url, dont_filter=True) 
     # for each url in start_urls"

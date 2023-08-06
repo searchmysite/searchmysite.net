@@ -506,10 +506,28 @@ def get_text(html):
 # -------------------
 
 # Return the page content as a list of content chunks, each chunk a max chunk_size, with a max length of max_chunks 
-def get_content_chunks(content, max_chunks):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    content_chunks = text_splitter.split_text(content)
-    return content_chunks[:max_chunks]
+def get_content_chunks(content, max_chunks, id, url, domain):
+    logger = logging.getLogger()
+    if content:
+        logger.info("Generating embeddings for {}".format(url))
+        content_chunks = []
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        chunks = text_splitter.split_text(content)
+        for chunk in chunks[:max_chunks]:
+            chunk_no = chunks.index(chunk) + 1
+            content_chunk = {}
+            content_chunk['id'] = "{}!chunk{:03d}".format(id, chunk_no) # e.g. https://michael-lewis.com/!chunk001
+            content_chunk['url'] = url
+            content_chunk['domain'] = domain
+            content_chunk['relationship'] = "child"
+            content_chunk['content_chunk_no'] = chunk_no
+            content_chunk['content_chunk_text'] = chunk
+            content_chunk['content_chunk_vector'] = get_vector(chunk)
+            content_chunks.append(content_chunk)
+    else:
+        logger.info("Skipping embeddings for {} (no content)".format(url))
+        content_chunks = None
+    return content_chunks
 
 # Return the embedding for the text as a list (i.e. in the format requried for Solr) 
 def get_vector(text):

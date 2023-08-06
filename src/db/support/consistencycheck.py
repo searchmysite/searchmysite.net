@@ -19,7 +19,7 @@ if not POSTGRES_PASSWORD:
                 if key == 'POSTGRES_PASSWORD': POSTGRES_PASSWORD = value
 #database_host = "db" # Dev database
 database_host = "142.132.178.149" # Prod database
-sql_select_indexed_domains = 'SELECT * FROM tblDomains WHERE indexing_enabled = TRUE;'
+sql_select_indexed_domains = "SELECT d.domain FROM tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain WHERE d.indexing_type = 'spider/default' AND d.indexing_enabled = TRUE AND l.status = 'ACTIVE';"
 
 # Solr
 #solr_url = 'http://localhost:8983/solr/content/' # Dev
