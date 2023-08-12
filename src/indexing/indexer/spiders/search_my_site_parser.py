@@ -77,8 +77,17 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     # Attributes set on all TextResponse, including application/json
     # --------------------------------------------------------------
 
+    original_url = response.url
+    if 'redirect_urls' in response.request.meta:
+        original_url = response.request.meta['redirect_urls'][0]
+        logger.info('Redirect detected. Current URL: {}, original URL(s): {}, using {} for id'.format(response.url, response.request.meta['redirect_urls'], original_url))
+
     # id
-    item['id'] = response.url
+    # This is the unique identifier for each page. If a second page is saved with the same id, it will overwrite the first page.
+    # For that reason, if a redirect is detected, use the pre-redirect URL as the ID, to prevent overwriting. This is especially important for the home page,
+    # to prevent a domain which redirects to another domain from overwriting the home page of that other domain.
+    # This of course means that there will be cases where the id does not match the url field, but I don't think that will be an issue.
+    item['id'] = original_url
 
     # url
     item['url'] = response.url
@@ -91,7 +100,7 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
 
     # is_home, i.e. the page is the home page
     if is_home:
-        logger.info('Setting home page: {}'.format(response.url))
+        logger.info('Setting home page: {}'.format(item['id']))
     item['is_home'] = is_home
 
     # content_type, e.g. text/html; charset=utf-8
@@ -300,9 +309,9 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
         #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
         if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
-            content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], response.url, domain)
+            content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], item['url'], domain)
         else:
-            logger.debug("Reusing existing embeddings for {}".format(response.url))
+            logger.debug("Reusing existing embeddings for {}".format(item['id']))
             content_chunks = previous_content_chunks
         item['content_chunks'] = content_chunks
 

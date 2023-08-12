@@ -396,12 +396,12 @@ def extract_data_from_result(result, results, subresult):
     data = {}
     data['id'] = result['id']
     data['url'] = result['url']
-    (full_title, short_title) = get_title(result.get('title'), result['url']) # title could be None, url is always set
+    (full_title, short_title) = get_title(result.get('title'), result['id']) # title could be None, url is always set
     data['full_title'] = full_title
     data['short_title'] = short_title
     if subresult == False:
         if 'highlighting' in results:
-            highlight = get_highlight(results['highlighting'], result['url'], result.get('description'))
+            highlight = get_highlight(results['highlighting'], result['id'], result.get('description'))
             if highlight: data['highlight'] = highlight
         if 'published_date' in result:
             published_date_string = result['published_date']

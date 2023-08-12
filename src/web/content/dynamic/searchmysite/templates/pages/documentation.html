@@ -160,8 +160,12 @@
 							</thead>
 							<tbody>
 							<tr>
+								<td>id</td>
+								<td>URL of the web page, before following any redirects. Will be unique.</td>
+							</tr>
+								<tr>
 								<td>url</td>
-								<td>Uniform Resource Locator, i.e. address of the web page.</td>
+								<td>URL of the web page, after following any redirects. Will be the same as id if there are no redirects, and might not be unique if there are redirects.</td>
 							</tr>
 							<tr>
 								<td>domain</td>
@@ -289,7 +293,7 @@
 							</ul>		
 						</p>
 						<p>
-							Results are returned in the following format, with all fields optional apart from id and url (which will have the same value):
+							Results are returned in the following format, with all fields optional apart from id and url:
 						</p>
 						<pre><code>
 {

@@ -53,7 +53,7 @@
 									{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
 									<a href="{{ result['url'] }}" class="result-title">{{ result['short_title'] }}</a>
 								</h5>
-							<a href="{{ result['url'] }}" class="result-link">{{ result['url'] }}</a>
+							<a href="{{ result['url'] }}" class="result-link">{{ result['id'] }}</a>
 							{% if result['highlight'] %}
 								<span id="result-hightlight">
 									<br>{{ result['highlight'][0] }}
