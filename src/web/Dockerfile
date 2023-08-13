@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y git && apt-get install -y python3 && ap
 # Need this to prevent "[wsgi:error] ... ModuleNotFoundError: No module named ..."
 ENV PYTHONPATH /usr/local/apache2/htdocs/dynamic/
 
+# By default the model is cached to /root/.cache/torch/sentence_transformers/sentence-transformers_all-MiniLM-L6-v2/
+# but /root is drwx------ and root:root and Flask/WSGI apps in the Apache httpd docker container run as daemon (uid 1)
+# so create the /root/.cache/ and grant write access to daemon:daemon (1:1)
+RUN chmod 755 /root ; mkdir /root/.cache/ ; chown -R 1:1 /root/.cache/
+
 COPY conf/ /usr/local/apache2/conf/ 
 
 ARG env

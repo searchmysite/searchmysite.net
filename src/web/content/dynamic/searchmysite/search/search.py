@@ -8,7 +8,8 @@ from random import randrange
 from datetime import datetime, date
 import config
 import searchmysite.solr
-from searchmysite.searchutils import get_search_params, get_start, get_filter_queries, do_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
+from searchmysite.searchutils import get_search_params, get_query_vector_string, get_start, get_filter_queries, do_search, do_vector_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
+import os
 
 bp = Blueprint('search', __name__)
 
@@ -57,6 +58,30 @@ def browse(search_type='browse'):
     display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
 
     return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_browse, results=display_results, no_of_domains=total_results, pagination=display_pagination, links=links, display_type='table', subtitle='Browse Sites')
+
+
+@bp.route('/chat/', methods=['GET', 'POST'])
+def chat(search_type='chat'):
+
+    # Get params and data required to perform search
+    params = get_search_params(request, search_type)
+    groupbydomain = False # Browse only returns home pages, so will only have one result per domain
+    query = params['q']
+    if query != '*':
+        query_vector_string = get_query_vector_string(query)
+
+        # Perform the actual search
+        search_results = do_vector_search(query_vector_string)
+        #current_app.logger.debug('search_results: {}'.format(search_results))
+
+        # Get data required to display the results
+        (total_results, total_domains) = get_no_of_results(search_results, groupbydomain) # groupbydomain False so both values will be the same
+        links = get_links(request, params, search_type)
+        display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
+    else:
+        display_results = None
+
+    return render_template('search/chat.html', params=params, subtitle='Chat', results=display_results)
 
 
 @bp.route('/new/', methods=['GET', 'POST'])

@@ -9,6 +9,9 @@ import searchmysite.solr
 import searchmysite.sql
 from searchmysite.db import get_db
 from searchmysite.adminutils import get_host
+from sentence_transformers import SentenceTransformer
+
+embedding_model = 'sentence-transformers/all-MiniLM-L6-v2'
 
 
 # Utils to get params and data required to perform search
@@ -85,6 +88,16 @@ def get_search_params(request, search_type):
     #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
 
+# Get the query string expressed as a vector string
+# i.e. convert the query string to a vector and convert the vector to a string representation of a list, 
+# e.g. "[1.0, 2.0, 3.0, 4.0]" as required by Solr (see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html)
+def get_query_vector_string(query):
+    model = SentenceTransformer(embedding_model)
+    embedding = model.encode(query)
+    query_vector = embedding.tolist()
+    query_vector_string = repr(query_vector)
+    return query_vector_string
+
 # Get start parameter for Solr query
 def get_start(params):
     start = (params['page'] * params['resultsperpage']) - params['resultsperpage'] # p1 is start 0, p2 is start 10, p3 is start 20 etc. if results_per_page = 10
@@ -135,6 +148,29 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
     #current_app.logger.debug('solr_search_json: {}'.format(solr_search_json))
     response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
     search_results = response.json()
+    return search_results
+
+# Perform the vector search
+# Example from https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html
+# &q={!knn f=vector topK=10}[1.0, 2.0, 3.0, 4.0]
+# Need double curly braces to escape the curly braces.
+# Field in schema is content_chunk_vector.
+# Vector has to be a string representation of a list like "[1.0, 2.0, 3.0, 4.0]"
+def do_vector_search(query_vector_string):
+    solr_select_params_vector_search = {
+        "q": '{{!knn f=content_chunk_vector topK=4}}{}'.format(query_vector_string),
+        "fl": ["id", "url", "content_chunk_text", "score"],
+    }
+    solr_search = {}
+    solr_search['params'] = solr_select_params_vector_search
+    solr_search_json = json.dumps(solr_search)
+    solrquery = config.SOLR_URL + searchmysite.solr.solr_request_handler
+    response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
+    search_results = response.json()
+#    results = []
+#    for search_result in search_results['response']['docs']:
+#        result = extract_data_from_result(search_result, search_results, False)
+#        results.append(result)
     return search_results
 
 
@@ -424,6 +460,8 @@ def extract_data_from_result(result, results, subresult):
                 data['tags'] = tags_list
                 data['tags_truncated'] = False
         if 'web_feed' in result: data['web_feed'] = result['web_feed']
+        if 'content_chunk_text' in result: data['content_chunk_text'] = result['content_chunk_text']
+        if 'score' in result: data['score'] = result['score']
     return data
 
 # Used by get_display_results

@@ -1,0 +1,51 @@
+{% extends "layoutwithchatbox.html" %}
+
+{% block title %}Search My Site - {{ subtitle }}{% endblock %}
+
+{% block content %}
+
+				{% if results %}
+
+				<div class="row">
+					<div class="col-lg-12">
+						{% for result in results %}
+						<div class="search-result">
+							<p>
+								<h5 class="fw-normal">
+									{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
+									{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
+									<a href="{{ result['url'] }}" class="result-title">{{ result['url'] }}</a>
+								</h5>
+							{% if result['content_chunk_text'] %}
+								<span id="result-hightlight">
+									{{ result['content_chunk_text'] }}
+									<!-- score: {{ result['score'] }} -->
+								</span>
+							{% endif %}
+							{% if result['subresults'] %}
+								<small>
+									{% for subresult in result['subresults'] %}
+									<br><a href="{{ subresult['url'] }}" class="result-title">{{ subresult['short_title'] }}</a>
+									{% endfor %}
+									<br><a href="?{{ result['subresults_link'] }}" class="result-title">{{ result['subresults_link_text'] }}</a>
+								</small>
+							{% endif %}
+							</p>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+
+				{% else %}
+
+				<pre>
+				</pre>
+				<div class="row">
+					<div class="col-lg-12">
+						<p>Please enter a question.</p>
+					</div>
+				</div>
+
+				{% endif %}
+
+{% endblock %}
