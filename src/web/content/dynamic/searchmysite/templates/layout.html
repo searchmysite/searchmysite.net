@@ -11,46 +11,52 @@
 	<script defer src="/static/js/bootstrap.5.2.2.min.js"></script>
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
+	<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css"/>
 	{% block head %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 sms-body">
 
-	<header>
-		<nav class="navbar navbar-expand-sm navbar-light bg-light" aria-label="searchmysite.net navbar">
-			<div class="container-fluid">
-				<a class="nav-link navbar-brand" href="/">Search My Site</a>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-			  	</button>
-			  	<div class="collapse navbar-collapse flex-grow-0" id="topnav">
-					<ul class="navbar-nav align-items-end">
-				  		<li class="nav-item">
-							<a class="nav-link" href="/admin/add/">Add Site</a>
-				  		</li>
-				  		<li class="nav-item">
-							<a class="nav-link" href="/admin/manage/">Manage Site</a>
-				  		</li>
-						{% if session.get('is_admin') == True %}
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('admin.review') }}">Review</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('admin.remove') }}">Remove</a>
-						</li>
-						{% endif %}
-						{% if session.get('logged_in_domain') %}
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-						</li>
-						{% endif %}
-					</ul>
-			  	</div>
-			</div>
-		</nav>
-	</header>
+	<div class="sms-search-conatiner">
+
+		<header class="search-header sms-layout-header">
+			<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
+				<div class="container-fluid">
+					<div class="sms-logo">
+						<a href="/"><img src="../../../static/images/searchmysite-logo.svg" alt="Search My Site Logo"></a>
+					</div>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse flex-grow-0 sms-user-nav" id="topnav">
+						<ul class="navbar-nav">
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="/admin/add/">Add Site</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="/admin/manage/">Manage Site</a>
+							</li>
+							{% if session.get('is_admin') == True %}
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="{{ url_for('admin.review') }}">Review</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="{{ url_for('admin.remove') }}">Remove</a>
+							</li>
+							{% endif %}
+							{% if session.get('logged_in_domain') %}
+							<li class="nav-item">
+								<a class="nav-link sms-medium-font" href="{{ url_for('auth.logout') }}">Logout</a>
+							</li>
+							{% endif %}
+						</ul>
+					</div>
+				</div>
+			</nav>
+		</header>
+	</div>
 
 	<main class="flex-grow-1">
-		<div class="container-fluid h-100 mt-5">
+		<div class="container-fluid h-100 mt-5 col-md-8">
 
 			{% block searchbox %}{% endblock %}
 
@@ -66,7 +72,7 @@
 	</main>
 
 	<footer class="footer mt-5">
-		<div class="navbar navbar-light bg-light justify-content-sm-around justify-content-md-evenly align-items-start">
+		<div class="navbar navbar-light justify-content-sm-around justify-content-md-evenly align-items-start">
 			<div class="flex-column ms-3">
 				<ul class="list-unstyled">
 					<li class="p-1">Community</li>
