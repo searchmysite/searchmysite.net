@@ -1,4 +1,4 @@
-scrapy==2.9.0
+scrapy==2.10.0
 beautifulsoup4
 pysolr
 python-dateutil
@@ -8,3 +8,4 @@ httplib2
 feedparser
 sentence-transformers
 langchain
+
