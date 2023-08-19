@@ -6,31 +6,27 @@
 
 				{% if results %}
 
-				<div class="row">
+				<div class="row sms-results-list sms-t-48">
 					<div class="col-lg-12">
 						{% for result in results %}
-						<div class="search-result">
-							<p>
-								<h5 class="fw-normal">
+						<div class="search-result sms-b-72">
+								<h2 class="sms-h2 sms-b-8">
 									{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
 									{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
 									<a href="{{ result['url'] }}" class="result-title">{{ result['url'] }}</a>
-								</h5>
+								</h2>
 							{% if result['content_chunk_text'] %}
-								<span id="result-hightlight">
+								<p id="result-hightlight" class="sms-p1">
 									{{ result['content_chunk_text'] }}
 									<!-- score: {{ result['score'] }} -->
-								</span>
+								</p>
 							{% endif %}
 							{% if result['subresults'] %}
-								<small>
-									{% for subresult in result['subresults'] %}
-									<br><a href="{{ subresult['url'] }}" class="result-title">{{ subresult['short_title'] }}</a>
-									{% endfor %}
-									<br><a href="?{{ result['subresults_link'] }}" class="result-title">{{ result['subresults_link_text'] }}</a>
-								</small>
+								{% for subresult in result['subresults'] %}
+								<p class="sms-p3 sms-subresult"><a href="{{ subresult['url'] }}" class="result-title-other">{{ subresult['short_title'] }}</a></p>
+								{% endfor %}
+								<p class="sms-p3 sms-subresult"><a href="?{{ result['subresults_link'] }}" class="result-title-other">{{ result['subresults_link_text'] }}</a></p>
 							{% endif %}
-							</p>
 						</div>
 						{% endfor %}
 					</div>
@@ -42,7 +38,7 @@
 				</pre>
 				<div class="row">
 					<div class="col-lg-12">
-						<p>Please enter a question.</p>
+						<p class="sms-p2">Please enter a question.</p>
 					</div>
 				</div>
 
