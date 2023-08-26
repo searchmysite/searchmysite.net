@@ -610,11 +610,6 @@ h2.sms-h2 a:visited
 }
 
 .sms-results-list h2.sms-h2 a:hover {
-    border: none;
-}
-
-.sms-results-list h2.sms-h2 a:hover {
-    border: none;
     opacity: 1;
 }
 
