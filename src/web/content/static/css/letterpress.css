@@ -557,6 +557,10 @@ a.sms-large-font:hover {
     content: "~";
 }
 
+.sms-feed {
+    width: 8.5rem;
+}
+
 .form-select.sms-select {
     border: none;
     background-color: transparent;
@@ -572,7 +576,7 @@ a.sms-large-font:hover {
 
 .sms-sort-container {
     float: right;
-    width: 28rem;
+    width: auto;
 }
 
 .sms-results-top-info {
