@@ -14,13 +14,13 @@
 
 				{% if (no_of_results and no_of_results > 0) or (no_of_domains and no_of_domains > 0) %}
 
-				<div class="row mt-2">
+				<div class="row mt-2 sms-results-filter-container">
 					<!-- <div class="col-sm-2 col-md-4 sms-filters">
 						<a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
 						Filters
 						</a>
 					</div> -->
-					<div class="col-4 sms-feed sms-medium-font">
+					<div class="col-6 sms-feed sms-medium-font">
 						<em>
 						{% if no_of_results %}
 						{{ no_of_results }} results
@@ -31,7 +31,7 @@
 						{% endif %}
 						</em>
 					</div>
-					<div class="col-8 col-md-8 sms-results-top-info">
+					<div class="col-6 col-md-8 sms-results-top-info">
 						<div class="input-group sms-sort-container">
 							<label class="sms-medium-font sms-sort-label d-none d-sm-block" for="sort">Sort by</label>
 							<select class="form-select sms-select sms-medium-font" id="sort" name="sort" onchange="refreshPage(this.form);">
