@@ -18,8 +18,7 @@ def test_api_full_and_params(anon_client, add_full_details):
     resultsperpage = 2
     response = anon_client.get('/api/v1/search/{}?q={}&page={}&resultsperpage={}'.format(pytest.add_full_domain, q, page, resultsperpage))
     params = {'q': q, 'page': page, 'resultsperpage': resultsperpage}
-    json_params = json.dumps(params)
     json_response = json.loads(response.data)
     assert response.status_code == 200
-    assert json.dumps(json_response['params']) == json_params
+    assert json.dumps(json_response['params'], sort_keys=True) == json.dumps(params, sort_keys=True)
 

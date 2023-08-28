@@ -33,7 +33,7 @@
 					</div>
 					<div class="col-8 col-md-8 sms-results-top-info">
 						<div class="input-group sms-sort-container">
-							<label class="sms-medium-font sms-sort-label" for="sort">Sort by</label>
+							<label class="sms-medium-font sms-sort-label d-none d-sm-block" for="sort">Sort by</label>
 							<select class="form-select sms-select sms-medium-font" id="sort" name="sort" onchange="refreshPage(this.form);">
 								{% for value in sort_options.keys() %}
 								<option value="{{value}}"{% if value == params['sort'] %} selected{% endif %}>{{sort_options[value]}}</option>

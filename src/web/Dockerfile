@@ -1,15 +1,25 @@
-FROM httpd:2.4.50
-# httpd:2.4.51 to httpd:2.4.54 will install Python 3.9.2 rather than 3.7.3, which causes psycopg2 to intermittently error:
-# ImportError: cannot import name 'encodings' from 'psycopg2._psycopg'
+FROM httpd:2.4.57
+# httpd:2.4.50 is Python 3.7.3, httpd:2.4.51 to httpd:2.4.54 are Python 3.9.2, and httpd:2.4.57 is Python 3.11.2
 
 # Working dir is /usr/local/apache2 so we'll end up with requirements.txt there, but that is outside the web root 
 COPY requirements.txt ./
 
-# Need git for the git+https:// in requirements.txt
+# Need apache2-dev for the mod-wsgi in requirements.txt
 # Need libpq-dev and python3-dev for the psycopg2 in requirements.txt
-# Need apache2-dev libapr1 libapr1-dev for the mod-wsgi in requirements.txt
-# Need build-essential, python-dev, libffi-dev, libssl-dev, zlib1g-dev, libbz2-dev, and liblzma-dev for the cryptography>=35.0 in requirements.txt
-RUN apt-get update && apt-get install -y git && apt-get install -y python3 && apt-get install -y python3-pip && python3 -m pip install --no-cache-dir --upgrade pip && apt-get install -y libpq-dev python3-dev apache2-dev libapr1 libapr1-dev build-essential libffi-dev libssl-dev zlib1g-dev libbz2-dev liblzma-dev && pip3 install --no-cache-dir -r requirements.txt
+# Need git for the git+https:// in requirements.txt
+RUN apt-get update && apt-get install -y apache2-dev libpq-dev git && apt-get install -y python3 python3-pip python3-dev
+
+# Install rust compiler, and make available in PATH, for safetensors (required by sentence-transformers) on aarch64
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH "$PATH:/root/.cargo/bin"
+
+# Install pip packages, with --break-system-packages to avoid the "error: externally-managed-environment" as per PEP 668 
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+
+# Create a symlink from the arch (and python version) specific .so to /usr/local/apache2/modules/mod_wsgi.so
+# This allows httpd.conf to just have the non arch (and python version) specific `LoadModule wsgi_module modules/mod_wsgi.so`
+# If any other arch are to be supported symlinks should go here, and if python is updated this should be updated too
+RUN if [ -f /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-aarch64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-aarch64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; elif [ -f /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; fi
 
 # Need this to prevent "[wsgi:error] ... ModuleNotFoundError: No module named ..."
 ENV PYTHONPATH /usr/local/apache2/htdocs/dynamic/

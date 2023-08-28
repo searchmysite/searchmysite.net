@@ -119,7 +119,7 @@ def browser():
     #from chromedriver_py import binary_path
     #driver = webdriver.Chrome(executable_path=binary_path)
     from webdriver_manager.chrome import ChromeDriverManager
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver = webdriver.Chrome()
     driver.implicitly_wait(10)
     yield driver
     driver.quit()

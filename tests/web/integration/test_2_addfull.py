@@ -3,6 +3,7 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 import time
 
 def test_full_usernamepassword_step0_post(anon_client, add_full_details):
@@ -69,33 +70,33 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         browser.get(URL)
         assert 'Search My Site - Add Site' in browser.title
         # (Re)submit the home page to get back to /admin/add/step4/
-        browser.find_element_by_css_selector("input[type='radio'][value='independent-website']").click() # site_category
-        browser.find_element_by_css_selector("input[type='radio'][value='3']").click() # tier
-        home_input = browser.find_element_by_id('home_page')
+        browser.find_element(By.CSS_SELECTOR, "input[type='radio'][value='independent-website']").click() # site_category
+        browser.find_element(By.CSS_SELECTOR, "input[type='radio'][value='3']").click() # tier
+        home_input = browser.find_element(By.ID, 'home_page')
         home_input.send_keys(pytest.add_full_home_page)
-        add_site_button = browser.find_element_by_id('add-site')
+        add_site_button = browser.find_element(By.ID, 'add-site')
         ActionChains(browser).click(add_site_button).perform()
         time.sleep(2)
         assert 'Search My Site - Add Site Step 4' in browser.title
         # Press the Purchase button
-        purchase_button = browser.find_element_by_id('submitBtn')
+        purchase_button = browser.find_element(By.ID, 'submitBtn')
         ActionChains(browser).click(purchase_button).perform()
         time.sleep(4)
         #assert 'searchmysite.net' in browser.title
         #assert 'Verified Owner Listing' in browser.response
         assert 'Stripe' in browser.page_source
         # Fill in details
-        email_input = browser.find_element_by_id('email')
+        email_input = browser.find_element(By.ID, 'email')
         email_input.send_keys(pytest.add_full_email)
-        card_number_input = browser.find_element_by_id('cardNumber')
+        card_number_input = browser.find_element(By.ID, 'cardNumber')
         card_number_input.send_keys('4242424242424242')
-        card_expiry_input = browser.find_element_by_id('cardExpiry')
+        card_expiry_input = browser.find_element(By.ID, 'cardExpiry')
         card_expiry_input.send_keys('10/24')
-        card_cvc_input = browser.find_element_by_id('cardCvc')
+        card_cvc_input = browser.find_element(By.ID, 'cardCvc')
         card_cvc_input.send_keys('123')
-        card_billing_name_input = browser.find_element_by_id('billingName')
+        card_billing_name_input = browser.find_element(By.ID, 'billingName')
         card_billing_name_input.send_keys('Michael')
-        card_billing_postcode_input = browser.find_element_by_id('billingPostalCode')
+        card_billing_postcode_input = browser.find_element(By.ID, 'billingPostalCode')
         card_billing_postcode_input.send_keys('NW3 1QG' + Keys.RETURN) # Return also submits
         time.sleep(6) # Give it time to submit and follow redirects
         assert 'Search My Site - Add Site Success' in browser.title
