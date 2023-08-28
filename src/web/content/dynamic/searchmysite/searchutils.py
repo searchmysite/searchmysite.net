@@ -9,7 +9,7 @@ import searchmysite.solr
 import searchmysite.sql
 from searchmysite.db import get_db
 from searchmysite.adminutils import get_host
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 
 embedding_model = 'sentence-transformers/all-MiniLM-L6-v2'
 
@@ -92,10 +92,10 @@ def get_search_params(request, search_type):
 # i.e. convert the query string to a vector and convert the vector to a string representation of a list, 
 # e.g. "[1.0, 2.0, 3.0, 4.0]" as required by Solr (see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html)
 def get_query_vector_string(query):
-    model = SentenceTransformer(embedding_model)
-    embedding = model.encode(query)
-    query_vector = embedding.tolist()
-    query_vector_string = repr(query_vector)
+#    model = SentenceTransformer(embedding_model)
+#    embedding = model.encode(query)
+#    query_vector = embedding.tolist()
+#    query_vector_string = repr(query_vector)
     return query_vector_string
 
 # Get start parameter for Solr query
