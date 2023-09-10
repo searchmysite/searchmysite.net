@@ -50,12 +50,11 @@
 						<div class="search-result sms-b-72">
 							<h2 class="sms-h2 sms-b-8">
 								{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
-								<!-- {% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %} -->
 								<a href="{{ result['url'] }}" class="result-title">
 									{{ result['short_title'] }}
 								</a>
 							</h2>
-							<p id="result-published-date">05 Aug 2023</p>
+							{% if result['published_date'] %}<p id="result-published-date">{{ result['published_date'] }}</p>{% endif %}
 							<p class="sms-p3"><a href="{{ result['url'] }}" class="result-link">{{ result['id'] }}</a></p>
 							{% if result['highlight'] %}
 							<p id="result-hightlight" class="sms-p1">
