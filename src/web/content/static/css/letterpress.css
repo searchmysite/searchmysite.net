@@ -636,6 +636,15 @@ h2.sms-h2 a:visited
     display: flex;
 }
 
+#result-published-date {
+    font-size:var(--med-font-size);
+    font-weight: normal;
+    font-style: italic;
+    color: var(--semi-dark-gray);
+    margin-top: -0.45rem;
+    margin-bottom: 0.7rem;
+}
+
 .page-item.active {
     border: 2px solid var(--dark-gray);
     border-radius: 50%;
