@@ -74,8 +74,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
     item = {}
 
 
-    # Attributes set on all TextResponse, including application/json
-    # --------------------------------------------------------------
+    # All TextResponse, including application/json
+    # --------------------------------------------
 
     original_url = response.url
     if 'redirect_urls' in response.request.meta:
@@ -178,8 +178,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['in_web_feed'] = False
 
 
-    # Attributes set only on XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
-    # ----------------------------------------------------------------------------------------------------------
+    # XmlResponse and HtmlResponse, i.e. not TextResponse which includes application/json
+    # -----------------------------------------------------------------------------------
 
     # i.e. not a TextResponse like application/json which wouldn't be parseable via xpath
     if isinstance(response, XmlResponse) or isinstance(response, HtmlResponse):
@@ -199,8 +199,8 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['indexed_outlinks'] = indexed_outlinks
 
 
-    # Attributes set only on HtmlResponse
-    # -----------------------------------
+    # HtmlResponse
+    # ------------
 
     if isinstance(response, HtmlResponse):
 
@@ -339,6 +339,10 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
             language_primary = language[:2] # First two characters, e.g. en-GB becomes en
         item['language_primary'] = language_primary
 
+
+    # XmlResponse
+    # -----------
+
     elif isinstance(response, XmlResponse):
 
         # For XML this will record the rood node name 
@@ -350,6 +354,15 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         if entries:
             version = d.version
             item['is_web_feed'] = True
+
+
+    # Not XmlResponse and HtmlResponse, i.e. TextResponse including text/plain and application/json
+    # ---------------------------------------------------------------------------------------------
+    # Note that non-browser friendly results, e.g. XML and RSS, are filtered out from the results pages
+
+    else:
+
+        item['content'] = response.text
 
 
     return item
