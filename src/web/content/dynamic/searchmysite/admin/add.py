@@ -37,17 +37,25 @@ def add():
         domain = extract_domain(home_page)
         if home_page.endswith(domain):
             home_page = home_page + '/'
-        # Check if home page has been submitted already and if so what its status is
+        # Check if home page has been submitted already and if so what the status of the highest tier is
+        # Note that the highest tier might not be the active tier, i.e. it might have an EXPIRED tier 3 and ACTIVE tier 1 listing
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(searchmysite.sql.sql_select_status, (domain,))
-        result = cursor.fetchone()
+        cursor.execute(searchmysite.sql.sql_select_highest_tier, (domain,))
+        highest_tier = cursor.fetchone()
+        # Get the current active tier
+        # Note that the current active tier might not be the highest tier
+        current_active_tier = get_active_tier(domain)
+        # See if the newly selected tier already exists or not. This is to determine if insert or update statements are required
+        new_tier_exists = False
+        if highest_tier and highest_tier['tier'] == tier:
+            new_tier_exists = True
         # Route to the next stage of the Add Site workflow
         if not home_page or not site_category or not tier: # There is client-side validation so this shouldn't be possible
             message = 'Please enter the required fields.'
             flash(message)
             return render_template('admin/add.html', tiers=tiers)
-        elif not result: # Domain hasn't previously been submitted
+        elif not highest_tier: # Domain hasn't previously been submitted
             cursor.execute(searchmysite.sql.sql_insert_domain, (domain, home_page, site_category))
             conn.commit()
             if tier == 1:
@@ -55,42 +63,40 @@ def add():
                 conn.commit()
                 return render_template('admin/add-success.html', tier=tier)
             elif tier == 2 or tier == 3:
-                start_freefull_approval_session(domain, home_page, tier)
+                start_freefull_approval_session(domain, home_page, tier, new_tier_exists)
                 return redirect(url_for('add.step1'))
-        elif result['status'] == 'ACTIVE': # Domain already has an active listing
-            current_tier = result['tier']
-            if current_tier: current_tier = int(current_tier)
-            if tier > current_tier: # The user has selected to upgrade the tier 
-                start_freefull_approval_session(domain, home_page, tier)
+        elif current_active_tier > 0: # Domain already has an active listing
+            if tier > current_active_tier: # The user has selected to upgrade the tier 
+                start_freefull_approval_session(domain, home_page, tier, new_tier_exists)
                 return redirect(url_for('add.step1'))
             else: # If they're not upgrading, i.e. staying the same or resubmitting as a lower tier
-                message = 'The domain {} already has an active tier {} listing with a home page at {}.'.format(domain, current_tier, result['home_page'])
-                if tier == current_tier:
+                message = 'The domain {} already has an active tier {} listing with a home page at {}.'.format(domain, current_active_tier, highest_tier['home_page'])
+                if tier == current_active_tier:
                     message = message + ' If you would like to upgrade the listing please resubmit with a higher tier.'
                 flash(message)
                 return redirect(url_for('add.add'))
-        elif result['moderator_approved'] == False or result['indexing_enabled'] == False: # Rejected or indexing disabled
-            if result['moderator_approved'] == False:
-                message = 'Domain {} has previously been submitted but rejected for the following reason: {}. '.format(domain, result['moderator_action_reason'])
-            if result['indexing_enabled'] == False:
-                message = 'Domain {} has had indexing disabled for the following reason: {}. '.format(domain, result['indexing_disabled_reason'])
+        elif highest_tier['moderator_approved'] == False or highest_tier['indexing_enabled'] == False: # Rejected or indexing disabled
+            if highest_tier['moderator_approved'] == False:
+                message = 'Domain {} has previously been submitted but rejected for the following reason: {}. '.format(domain, highest_tier['moderator_action_reason'])
+            if highest_tier['indexing_enabled'] == False:
+                message = 'Domain {} has had indexing disabled for the following reason: {}. '.format(domain, highest_tier['indexing_disabled_reason'])
             message += 'Please use the Contact link if you would like to query this.'
             flash(message)
             return redirect(url_for('add.add'))
-        elif result['status'] == 'PENDING':
-            if result['tier'] == 1 and result['pending_state'] == 'MODERATOR_REVIEW':
+        elif highest_tier['status'] == 'PENDING':
+            if highest_tier['tier'] == 1 and highest_tier['pending_state'] == 'MODERATOR_REVIEW':
                 message = 'Domain {} is currently pending moderator review.'.format(domain)
                 flash(message)
                 return redirect(url_for('add.add'))
-            elif result['tier'] == 2 or result['tier'] == 3:
+            elif highest_tier['tier'] == 2 or highest_tier['tier'] == 3:
                 session['home_page'] = home_page
-                if result['pending_state'] == 'LOGIN_AND_VALIDATION_METHOD':
+                if highest_tier['pending_state'] == 'LOGIN_AND_VALIDATION_METHOD':
                     return redirect(url_for('add.step1'))
-                elif result['pending_state'] == 'EMAIL' or result['pending_state'] == 'EMAIL_AND_PASSWORD':
+                elif highest_tier['pending_state'] == 'EMAIL' or highest_tier['pending_state'] == 'EMAIL_AND_PASSWORD':
                     return redirect(url_for('add.step2'))
-                elif result['pending_state'] == 'INDIEAUTH_LOGIN' or result['pending_state'] == 'VALIDATION_CHECK':
+                elif highest_tier['pending_state'] == 'INDIEAUTH_LOGIN' or highest_tier['pending_state'] == 'VALIDATION_CHECK':
                     return redirect(url_for('add.step3'))
-                elif result['pending_state'] == 'PAYMENT':
+                elif highest_tier['pending_state'] == 'PAYMENT':
                     return redirect(url_for('add.step4'))
             else:
                 message = 'Unknown state'
@@ -260,7 +266,7 @@ def success():
         current_app.logger.info('Finishing listing for domain {}, tier {}'.format(domain, tier))
         if tier == 2 or tier == 3:
             insert_subscription(domain, tier)
-            cursor.execute(searchmysite.sql.sql_update_freefull_approved, (domain, tier, tier, domain))
+            cursor.execute(searchmysite.sql.sql_update_freefull_approved, (domain, domain, tier, tier, domain))
             current_app.logger.info('Successfully finished listing for domain {}'.format(domain))
         conn.commit()
     return render_template('admin/add-success.html', tier=tier, login_type=login_type)
@@ -326,13 +332,25 @@ def get_tier_data():
             tiers.append(tier)
     return tiers
 
+# Return the active tier number (1, 2 or 3) or 0 if there is no active tier
+def get_active_tier(domain):
+    active_tier = 0
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_active_tier, (domain,))
+    active_tier_results = cursor.fetchone()
+    if active_tier_results:
+        active_tier = int(active_tier_results['tier'])
+    current_app.logger.debug('Current active tier: {}.'.format(active_tier))
+    return active_tier
+
 # Get previously entered data, using home page in session
 def get_session_data():
     home_page = session.get('home_page')
     domain = extract_domain(home_page)
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(searchmysite.sql.sql_select_status, (domain,))
+    cursor.execute(searchmysite.sql.sql_select_highest_tier, (domain,))
     result = cursor.fetchone()
     if result:
         tier = result['tier']
@@ -345,10 +363,13 @@ def get_session_data():
         site_category = None
     return (home_page, domain, tier, login_type, site_category)
 
-def start_freefull_approval_session(domain, home_page, tier):
+def start_freefull_approval_session(domain, home_page, tier, new_tier_exists):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(searchmysite.sql.sql_insert_freefull_listing, (domain, tier))
+    if new_tier_exists:
+        cursor.execute(searchmysite.sql.sql_update_freefull_listing, (domain, tier))
+    else:
+        cursor.execute(searchmysite.sql.sql_insert_freefull_listing, (domain, tier))
     conn.commit()
     session.clear()
     session['home_page'] = home_page

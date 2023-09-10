@@ -543,8 +543,6 @@ a.sms-large-font:hover {
 .sms-search-layout .sms-under-search-btns ul li.nav-item{
     margin-top: 2rem;
     margin-bottom: 1.2rem;
-    /* padding-left:2rem;
-    padding-right:2rem; */
 }
 
 
@@ -558,16 +556,17 @@ a.sms-large-font:hover {
 }
 
 .sms-feed {
-    width: 8.5rem;
+    width: auto;
 }
 
 .form-select.sms-select {
     border: none;
     background-color: transparent;
     display: inline;
-    padding: 0;
+    padding: 0 3rem 0 0;
     border-bottom: 0.25rem solid var(--link-underline);
     border-radius: 0;
+    width: auto;
 }
 
 .sms-sort-label {
@@ -577,6 +576,10 @@ a.sms-large-font:hover {
 .sms-sort-container {
     float: right;
     width: auto;
+}
+
+.sms-results-filter-container {
+    justify-content: space-between;
 }
 
 .sms-results-top-info {

@@ -4,11 +4,14 @@
 sql_select_tiers = "SELECT tier, tier_name, default_full_reindex_frequency, default_incremental_reindex_frequency, default_indexing_page_limit, default_content_chunks_limit, default_on_demand_reindexing, default_api_enabled, cost_amount, cost_currency, listing_duration "\
     "FROM tblTiers;"
 
-# Selects the status of the highest listed tier (whether active or not)
-sql_select_status = "SELECT l.status, l.tier, l.pending_state, d.moderator_approved, d.moderator_action_reason, d.indexing_enabled, d.indexing_disabled_reason, d.home_page, d.login_type, d.category FROM tblDomains d "\
+# Selects details of the highest listed tier (whether active or not)
+sql_select_highest_tier = "SELECT l.status, l.tier, l.pending_state, d.moderator_approved, d.moderator_action_reason, d.indexing_enabled, d.indexing_disabled_reason, d.home_page, d.login_type, d.category FROM tblDomains d "\
     "INNER JOIN tblListingStatus l ON d.domain = l.domain "\
     "WHERE d.domain = (%s) "\
-    "ORDER BY l.tier DESC;"
+    "ORDER BY l.tier DESC LIMIT 1;"
+
+# Selects the active tier
+sql_select_active_tier = "SELECT tier FROM tblListingStatus WHERE status = 'ACTIVE' AND domain = (%s);"
 
 sql_insert_domain = "INSERT INTO tblDomains "\
     "(domain, home_page, domain_first_submitted, category, include_in_public_search, indexing_type) "\
@@ -19,6 +22,10 @@ sql_insert_basic_listing = "INSERT INTO tblListingStatus (domain, tier, status, 
 
 sql_insert_freefull_listing = "INSERT INTO tblListingStatus (domain, tier, status, status_changed, pending_state, pending_state_changed) "\
     "VALUES ((%s), (%s), 'PENDING', NOW(), 'LOGIN_AND_VALIDATION_METHOD', NOW());"
+
+sql_update_freefull_listing = "UPDATE tblListingStatus "\
+    "SET status = 'PENDING', status_changed = NOW(), pending_state = 'LOGIN_AND_VALIDATION_METHOD', pending_state_changed = NOW() "\
+    "WHERE domain = (%s) AND tier = (%s);"
 
 sql_update_freefull_step1 = "UPDATE tblDomains "\
     "SET include_in_public_search = (%s), login_type = (%s) WHERE domain = (%s);"\
@@ -43,7 +50,9 @@ sql_update_freefull_validated = "UPDATE tblValidations "\
     "SET validation_success = TRUE, validation_date = NOW() "\
     "WHERE domain = (%s);"
 
-sql_update_freefull_approved = "UPDATE tblListingStatus "\
+# Delete any tier 1 listings if present to avoid any potential issues later, then update the tier 2 or 3 status to 'ACTIVE'
+sql_update_freefull_approved = "DELETE FROM tblListingStatus WHERE domain = (%s) AND tier = 1;"\
+    "UPDATE tblListingStatus "\
     "SET status = 'ACTIVE', status_changed = NOW(), pending_state = NULL, pending_state_changed = NOW() "\
     "WHERE domain = (%s) AND tier = (%s); "\
     "UPDATE tblDomains SET "\
