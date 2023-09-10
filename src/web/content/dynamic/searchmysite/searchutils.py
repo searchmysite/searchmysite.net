@@ -452,7 +452,7 @@ def extract_data_from_result(result, results, subresult):
             data['date_domain_added'] = domain_added_datetime.strftime('%d %b %Y')# add ", %H:%M%z" for time
         if 'tags' in result:
             tags_list = result['tags']
-            tags_truncation_point = 10 # Just so the display doesn't get taken over by a site that does keyword stuffing
+            tags_truncation_point = 5 # Just so the display doesn't get taken over by a site that does keyword stuffing
             if len(tags_list) > tags_truncation_point:
                 data['tags'] = tags_list[:tags_truncation_point]
                 data['tags_truncated'] = True
