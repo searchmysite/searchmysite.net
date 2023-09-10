@@ -367,7 +367,7 @@ a.sms-large-font:hover {
 
 /* Home ******************* */
 .sms-home-main-container {
-    height: 80vh;
+    height: 85vh;
     display: flex;
     flex-direction: column;
 }
