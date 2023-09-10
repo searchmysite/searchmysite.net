@@ -372,12 +372,12 @@ a.sms-large-font:hover {
     flex-direction: column;
 }
 .sms-home-header {
-    height: 20vh;
+    height: 15vh;
 }
 
 .sms-home-intro-txt {
-    margin-top: 5.875rem;
-    padding-top: 1.875rem;
+    margin-top: 3vh;
+    padding-top: 0.5rem;
     border-top: 0.0625rem solid var(--light-gray);
     border-bottom: 0.0625rem solid var(--light-gray);
     padding-bottom: 1rem;
