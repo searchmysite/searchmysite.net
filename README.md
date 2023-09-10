@@ -48,7 +48,7 @@ There are 3 docker-compose files, which are largely identical except:
 
 ### Prerequisites
 
-Ensure [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed, or [Docker Desktop](https://docs.docker.com/desktop/) which includes both. Note that there are currently [known issues](https://github.com/searchmysite/searchmysite.net/issues/86) running some of the containers on Mac OS with "Apple silicon".
+Ensure [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed, or [Docker Desktop](https://docs.docker.com/desktop/) which includes both.
 
 Get the source code with e.g.
 ```
