@@ -48,7 +48,7 @@ There are 3 docker-compose files, which are largely identical except:
 
 ### Prerequisites
 
-Ensure [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed, or [Docker Desktop](https://docs.docker.com/desktop/) which includes both.
+Ensure [Docker](https://docs.docker.com/engine/install/) is installed.
 
 Get the source code with e.g.
 ```
@@ -74,7 +74,7 @@ The POSTGRES_PASSWORD and SECRET_KEY can be any values you choose for local dev.
 And finally, build the docker images:
 ```
 cd ~/projects/searchmysite.net/src
-docker-compose build
+docker compose build
 ```
 
 
@@ -83,7 +83,7 @@ docker-compose build
 With the prerequisites in place, you can start your development environment with:
 ```
 cd ~/projects/searchmysite.net/src
-docker-compose up -d
+docker compose up -d
 ```
 The website will be available at [http://localhost:8080/](http://localhost:8080/), and the Apache Solr admin interface at [http://localhost:8983/solr/#/](http://localhost:8983/solr/#/).
 
@@ -176,25 +176,25 @@ UPDATE tblDomains
 ```
 and waiting for the next src/indexing/indexer/run.sh (up to 1 min on dev), or triggering it manually:
 ```
-docker exec -it src_indexing_1 python /usr/src/app/search_my_site_scheduler.py 
+docker exec -it src-indexing-1 python /usr/src/app/search_my_site_scheduler.py 
 ```
 There shouldn't be any issues with multiple schedulers running concurrently if you trigger it manually and the scheduled job then runs.
 
 You can monitor the indexing logs via: 
 ```
-docker logs -f src_indexing_1
+docker logs -f src-indexing-1
 ```
 and can change the LOG_LEVEL to DEBUG in src/indexing/indexer/settings.py.
 
 
 ### Search (Solr) changes
 
-The dev Solr docker container copies in the config on build, so a `docker-compose build` is required for each config change.
+The dev Solr docker container copies in the config on build, so a `docker compose build` is required for each config change.
 
-Note that the `solr-precreate content /opt/solr/server/solr/configsets/content` doesn't actually load the new config after a `docker-compose build`, so the following steps are required to apply Solr config changes:
+Note that the `solr-precreate content /opt/solr/server/solr/configsets/content` doesn't actually load the new config after a `docker compose build`, so the following steps are required to apply Solr config changes:
 ```
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 docker exec -it search_dev cp -r /opt/solr/server/solr/configsets/content/conf /var/solr/data/content/
 docker restart search_dev
 ```
