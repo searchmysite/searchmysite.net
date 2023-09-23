@@ -88,7 +88,7 @@ solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&
 solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fq=!relationship%3Achild&fl=url&rows=1000"
 # The solr_query_to_get_content includes fl=content_chunks,[child] to get the correctly nested child documents, and fq=!relationship:child 
 # to ensure the child documents don't also appear as siblings (noting that fq=relationship:parent can't be used until all pages have that value set)  
-solr_query_to_get_content = "select?q=*%3A*&fq=domain%3A{}&fq=!relationship:child&fl=id,url,domain,content,content_last_modified,content_chunk_no,content_chunk_text,relationship,content_chunks,[child]&rows=1000"
+solr_query_to_get_content = "select?q=*%3A*&fq=domain%3A{}&fq=!relationship:child&fl=id,url,domain,content,content_last_modified,content_chunk_no,content_chunk_text,content_chunk_vector,relationship,content_chunks,[child]&rows=1000"
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
@@ -523,7 +523,10 @@ def get_content_chunks(content, max_chunks, id, url, domain):
             content_chunk['content_chunk_no'] = chunk_no
             content_chunk['content_chunk_text'] = chunk
             content_chunk['content_chunk_vector'] = get_vector(chunk)
-            content_chunks.append(content_chunk)
+            if content_chunk['content_chunk_vector']:
+                content_chunks.append(content_chunk)
+            else:
+                logger.warn("Unable to generate chunk number {} for {}".format(chunk_no, url))
     else:
         logger.info("Skipping embeddings for {} (no content)".format(url))
         content_chunks = None
