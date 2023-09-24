@@ -196,16 +196,17 @@ sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings 
 domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 def extract_domain(url):
     # Get the domain from the URL
-    if not url: url =""
-    tld = tldextract.extract(url) # returns [subdomain, domain, suffix]
-    domain = '.'.join(tld[1:]) if tld[2] != '' else tld[1] # if suffix empty, e.g. localhost, just use domain
+    if not url: url = ""
+    tld = tldextract.extract(url) # returns [subdomain=subdomain, domain=domain, suffix=suffix, is_private=True|False]
+    domain = tld[1]
+    suffix = tld[2]
+    if suffix != '': # if suffix empty, e.g. localhost, just use domain
+        domain = domain + suffix
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Look up list of domains which allow subdomains from database
     domains_allowing_subdomains = []
-    #conn = get_db()
     conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    #cursor.execute(searchmysite.sql.sql_select_domains_allowing_subdomains)
     cursor.execute(sql_select_domains_allowing_subdomains)
     results = cursor.fetchall()
     for result in results:

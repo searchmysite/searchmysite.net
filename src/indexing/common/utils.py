@@ -451,11 +451,14 @@ def web_feed_and_sitemap(domain, items):
 # ------------
 
 # Extract domain from a URL, where domain could be a subdomain if that domain allows subdomains
-# This is a variant of ../../web/content/dynamic/admin/util.py which takes domains_allowing_subdomains as an input parameter
+# This is a variant of ../../web/content/dynamic/searchmysite/adminutils.py which takes domains_allowing_subdomains as an input parameter
 # because don't want a database lookup every time this is called in this context
 def extract_domain_from_url(url, domains_allowing_subdomains):
-    tld = tldextract.extract(url) # returns [subdomain, domain, suffix]
-    domain = '.'.join(tld[1:]) if tld[2] != '' else tld[1] # if suffix empty, e.g. localhost, just use domain
+    tld = tldextract.extract(url) # returns [subdomain=subdomain, domain=domain, suffix=suffix, is_private=True|False]
+    domain = tld[1]
+    suffix = tld[2]
+    if suffix != '': # if suffix empty, e.g. localhost, just use domain
+        domain = domain + suffix
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Add subdomain if in domains_allowing_subdomains
     if domain in domains_allowing_subdomains: # special domains where a site can be on a subdomain

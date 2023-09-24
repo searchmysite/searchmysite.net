@@ -33,9 +33,12 @@ smtp_to_email = environ.get('SMTP_TO_EMAIL')
 # later http://user2.github.io/
 def extract_domain(url):
     # Get the domain from the URL
-    if not url: url =""
-    tld = tldextract.extract(url) # returns [subdomain, domain, suffix]
-    domain = '.'.join(tld[1:]) if tld[2] != '' else tld[1] # if suffix empty, e.g. localhost, just use domain
+    if not url: url = ""
+    tld = tldextract.extract(url) # returns [subdomain=subdomain, domain=domain, suffix=suffix, is_private=True|False]
+    domain = tld[1]
+    suffix = tld[2]
+    if suffix != '': # if suffix empty, e.g. localhost, just use domain
+        domain = domain + suffix
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Look up list of domains which allow subdomains from database
     domains_allowing_subdomains = []
