@@ -458,7 +458,7 @@ def extract_domain_from_url(url, domains_allowing_subdomains):
     domain = tld[1]
     suffix = tld[2]
     if suffix != '': # if suffix empty, e.g. localhost, just use domain
-        domain = domain + suffix
+        domain = domain + '.' + suffix
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Add subdomain if in domains_allowing_subdomains
     if domain in domains_allowing_subdomains: # special domains where a site can be on a subdomain
