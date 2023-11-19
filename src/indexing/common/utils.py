@@ -454,11 +454,11 @@ def web_feed_and_sitemap(domain, items):
 # This is a variant of ../../web/content/dynamic/searchmysite/adminutils.py which takes domains_allowing_subdomains as an input parameter
 # because don't want a database lookup every time this is called in this context
 def extract_domain_from_url(url, domains_allowing_subdomains):
-    tld = tldextract.extract(url) # returns [subdomain=subdomain, domain=domain, suffix=suffix, is_private=True|False]
-    domain = tld[1]
-    suffix = tld[2]
-    if suffix != '': # if suffix empty, e.g. localhost, just use domain
-        domain = domain + '.' + suffix
+    # returns subdomain, domain, suffix, is_private=True|False), also registered_domain (domain+'.'+suffix) and fqdn (subdomain+'.'+domain+'.'+suffix)
+    tld = tldextract.extract(url) 
+    domain = tld.registered_domain
+    if tld.domain == 'localhost' and tld.suffix == '': # special case for localhost which has tld.registered_domain = ''
+        domain = tld.domain
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Add subdomain if in domains_allowing_subdomains
     if domain in domains_allowing_subdomains: # special domains where a site can be on a subdomain
