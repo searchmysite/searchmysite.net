@@ -87,7 +87,7 @@ def search(domain, search_type='search'):
             if 'published_date' in result:
                 result['published_date'] = convert_java_utc_string_to_python_utc_string(result['published_date'])
             url = result['url']
-            if response['highlighting'][url]:
+            if url in response['highlighting'] and response['highlighting'][url]:
                 result['fragment'] = response['highlighting'][url]['content'][0].split(searchmysite.solr.split_text)
         # Construct results response
         current_app.config['JSON_SORT_KEYS'] = False # Make sure the order is preserved (not essential, but I like seeing e.g. params before results and id as the first value in results)
