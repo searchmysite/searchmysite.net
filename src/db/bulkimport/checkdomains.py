@@ -197,11 +197,11 @@ domains_allowing_subdomains_sql = "SELECT setting_value FROM tblSettings WHERE s
 def extract_domain(url):
     # Get the domain from the URL
     if not url: url = ""
-    tld = tldextract.extract(url) # returns [subdomain=subdomain, domain=domain, suffix=suffix, is_private=True|False]
-    domain = tld[1]
-    suffix = tld[2]
-    if suffix != '': # if suffix empty, e.g. localhost, just use domain
-        domain = domain + '.' + suffix
+    # returns subdomain, domain, suffix, is_private=True|False), also registered_domain (domain+'.'+suffix) and fqdn (subdomain+'.'+domain+'.'+suffix)
+    tld = tldextract.extract(url) 
+    domain = tld.registered_domain
+    if tld.domain == 'localhost' and tld.suffix == '': # special case for localhost which has tld.registered_domain = ''
+        domain = tld.domain
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Look up list of domains which allow subdomains from database
     domains_allowing_subdomains = []
