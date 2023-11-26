@@ -55,6 +55,16 @@ def extract_domain(url):
     return domain
 
 
+def select_indexed_domains():
+    indexed_domains = []
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_indexed_domains)
+    results = cursor.fetchall()
+    for result in results:
+        indexed_domains.append(result['domain'])
+    return indexed_domains
+
 # Get the actual host URL, for use in links which need to contain the servername and protocol
 # This will be 'http://127.0.0.1:5000/' if run in Flask and 'http://127.0.0.1:8080/' if run in Apache httpd + mod_wsgi
 # If run behind a reverse proxy, production will also be 'http://127.0.0.1:8080/', 
