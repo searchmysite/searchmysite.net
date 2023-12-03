@@ -85,6 +85,9 @@ def get_search_params(request, search_type):
     except:
         resultsperpage = default_results_per_page
     search_params['resultsperpage'] = resultsperpage
+    # domain (currently just used by the vector search API)
+    domain = request.args.get('domain', '*')
+    search_params['domain'] = domain
     #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
 
@@ -156,10 +159,11 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
 # Need double curly braces to escape the curly braces.
 # Field in schema is content_chunk_vector.
 # Vector has to be a string representation of a list like "[1.0, 2.0, 3.0, 4.0]"
-def do_vector_search(query_vector_string):
+def do_vector_search(query_vector_string, domain):
     solr_select_params_vector_search = {
         "q": '{{!knn f=content_chunk_vector topK=4}}{}'.format(query_vector_string),
         "fl": ["id", "url", "content_chunk_text", "score"],
+        "fq": "domain:{}".format(domain)
     }
     solr_search = {}
     solr_search['params'] = solr_select_params_vector_search
