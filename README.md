@@ -1,6 +1,6 @@
 # searchmysite.net
 
-This repository contains the complete codebase for [https://searchmysite.net/](https://searchmysite.net/), the independent open source search engine and search as a service, currently focussed on personal and independent websites (see [About searchmysite.net](https://searchmysite.net/pages/about/) for further details of searchmysite.net).
+This repository contains the complete codebase for [https://searchmysite.net/](https://searchmysite.net/), the independent open source search engine and search as a service for personal and independent websites (see [About searchmysite.net](https://searchmysite.net/pages/about/) for further details of searchmysite.net).
 
 You can use this repository to:
 - See exactly how searchmysite.net works, e.g. inspect the code for indexing, relevancy tuning, search queries etc.
@@ -10,9 +10,10 @@ You can use this repository to:
 
 ## Directory structure and docker-compose files
 
-The application is split into 4 components, each deployed in its own Docker container:
+The application is split into 5 components, each deployed in its own Docker container:
 - db - Postgres database (for managing site and indexing configuration)
 - indexing - Scrapy web crawler and bulk import scripts (for indexing sites)
+- models - TorchServe container with the Large Language Model (LLM)
 - search - Apache Solr search server (for the actual search index)
 - web - Apache httpd with mod_wsgi web server, with static assets (including home page), and dynamic pages (including API)
 
@@ -29,6 +30,7 @@ The project directory structure is as follows:
     │   │   ├── bulkimport      # Scripts to load content directly into the search engine
     │   │   ├── common          # Indexing code shared between bulk import and spider
     │   │   ├── indexer         # Spidering code
+    │   ├── models              # Language models
     │   ├── search              # Search engine configuration
     │   ├── web                 # Files for deployment to web / app server
     │   │   ├── config          # Web server configuration
@@ -76,6 +78,7 @@ And finally, build the docker images:
 cd ~/projects/searchmysite.net/src
 docker compose build
 ```
+Note that the first build could take 20-30 mins, and the models container downloads a 3Gb model file.
 
 
 ### Starting your development environment
@@ -144,10 +147,11 @@ docker exec -it web_dev apachectl restart
 ```
 For frequent changes it is better to use a Flask development environment outside of Docker.
 
-To do this, given containers talk to each other internally via the "db", "indexing", "search" and "web" hostnames, you will need to set up local host entries for "search" and "db", i.e. in /etc/hosts:
+To do this, given the "web" container talks to the db, models and search containers via the "db", "models" and "search" hostnames, you will need to set up local host entries for "db", "models" and "search", i.e. in /etc/hosts:
 ```
 127.0.0.1       search
 127.0.0.1       db
+127.0.0.1       models
 ```
 After installing Flask and any dependencies locally (see requirements.txt), install the searchmysite package in editable mode (this just needs to be done once):
 ```
@@ -159,7 +163,7 @@ then load environment variables and start Flask in development mode via:
 set -a; source ~/projects/searchmysite.net/src/.env; set +a
 export FLASK_ENV=development
 export FLASK_APP=~/projects/searchmysite.net/src/web/content/dynamic/searchmysite
-flask run
+flask run --debug
 ```
 You local Flask website will be available at e.g. [http://localhost:5000/search/](http://localhost:5000/search/) (note that the home page, i.e. [http://localhost:5000/](http://localhost:5000/), isn't served dynamically so won't be available via Flask). Changes to the code will be reflected without a server restart, you will see debug log messages, and full stack traces will be more visible in case of errors.
 
