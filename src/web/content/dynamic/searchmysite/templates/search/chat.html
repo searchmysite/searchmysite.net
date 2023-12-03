@@ -1,47 +1,169 @@
-{% extends "layoutwithchatbox.html" %}
+{% extends "layout.html" %}
 
 {% block title %}Search My Site - {{ subtitle }}{% endblock %}
 
 {% block content %}
 
-				{% if results %}
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
 
-				<div class="row sms-results-list sms-t-48">
-					<div class="col-lg-12">
-						{% for result in results %}
-						<div class="search-result sms-b-72">
-								<h2 class="sms-h2 sms-b-8">
-									{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
-									{% if result['published_date'] %}<span id="result-published-date">{{ result['published_date'] }}</span>:{% endif %}
-									<a href="{{ result['url'] }}" class="result-title">{{ result['url'] }}</a>
-								</h2>
-							{% if result['content_chunk_text'] %}
-								<p id="result-hightlight" class="sms-p1">
-									{{ result['content_chunk_text'] }}
-									<!-- score: {{ result['score'] }} -->
+		// API endpoints
+		const searchAPI = "/api/v1/knnsearch/";
+		const llmAPI = "/api/v1/predictions/llama2";
+
+		// Elements
+		const chatContainer = document.getElementById('chat-container'); // Container for the chat prompts and responses
+		const messageInput = document.getElementById('message-input'); // User input, i.e. chat prompt
+		const sendMessage = document.getElementById("send-message"); // Send message button
+
+		// Question HTML template
+		// The <span id="question"></span> in the HTML template will be replaced by the question text.
+		const questionTemplate = `
+						<div class="d-flex flex-row justify-content-end mb-4">
+							<div class="p-3 ms-3" style="border-radius: 15px; background-color: var(--bs-gray-500);">
+								<p class="sms-p3 mb-0">
+									<span id="question"></span>
 								</p>
-							{% endif %}
-							{% if result['subresults'] %}
-								{% for subresult in result['subresults'] %}
-								<p class="sms-p3 sms-subresult"><a href="{{ subresult['url'] }}" class="result-title-other">{{ subresult['short_title'] }}</a></p>
-								{% endfor %}
-								<p class="sms-p3 sms-subresult"><a href="?{{ result['subresults_link'] }}" class="result-title-other">{{ result['subresults_link_text'] }}</a></p>
-							{% endif %}
+							</div>
+						</div>`;
+
+		// Response HTML template
+		// The <span id="response-search"></span> in the HTML template will be replaced by the result from the vector search.
+		// The <span id="response-llm"></span> in the HTML template will be replaced firstly by the spinner and then by the actual response from the LLM.
+		const responseTemplate = `
+						<div class="d-flex flex-row justify-content-start mb-4">
+							<div class="p-3 me-3 border" style="border-radius: 15px; background-color: var(--bs-gray-200);">
+								<p class="sms-p3">
+									<span id="response-llm"></span>
+								</p>
+								<div class="sms-h-line"></div>
+								<p class="sms-p4 mt-2 mb-0">
+									<span id="response-search"></span>
+								</p>
+							</div>
+						</div>`;
+
+		// The main function is activated on click of the send message button 
+		sendMessage.addEventListener("click", function () {
+
+			// Get user input
+			// Get the chat query, i.e. question
+			const question = messageInput.value;
+			// Get the domain to interact with, or * to interact with all domains
+			let domain = "*"; // Default value
+			if(document.getElementById('domain-datalist').value.trim() != '') {
+				domain = document.getElementById('domain-datalist').value.trim();
+				if(domain == 'All domains') {
+					domain = "*"
+				}
+			}
+			// Construct the vector search API call
+			let searchQuery = searchAPI + '?q=' + question + '&domain=' + domain
+
+			if(question != '') { // Don't do anything if nothing has been entered
+
+				fetch(searchQuery)
+					.then(response => {
+						if (!response.ok) {
+							throw new Error(`HTTP error! Status: ${response.status}`);
+						}
+						return response.json();
+					})
+					.then(data => {
+						let searchResults = data;
+						let result = searchResults[0];
+
+						// Create HTML components for insertion into the HTML templates
+						// <div class="spinner-border" id="spinner" role="status"></div>
+						const spinnerHTML = document.createElement('div');
+						spinnerHTML.className = "spinner-border"
+						spinnerHTML.id = "spinner"
+						spinnerHTML.role = "status"
+						// <span>Source: <a href="${result.url}" target="_blank">$result.url}</a>, score:${results.score}</span>
+						const sourceText = document.createTextNode('Source: ');
+						const sourceLink = document.createElement('a');
+						sourceLink.setAttribute('href', result.url);
+						sourceLink.setAttribute('target', '_blank');
+						sourceLink.innerHTML = result.url;
+						const scoreText = document.createTextNode(', score: ' + result.score);
+						const responseSearch = document.createElement('span');
+						responseSearch.appendChild(sourceText);
+						responseSearch.appendChild(sourceLink);
+						responseSearch.appendChild(scoreText);
+
+						// Display data in the container
+						chatContainer.innerHTML += questionTemplate + responseTemplate;
+						// Insert the question into the question HTML template
+						const blankQuestion = document.getElementById('question');
+						blankQuestion.replaceWith(question);
+						// Insert the spinner into the response HTML template (pending response from the LLM)
+						const blankResponse = document.getElementById('response-llm');
+						blankResponse.replaceWith(spinnerHTML);
+						// Insert the response from the vector search into the response HTML template
+						const blankResponseSearch = document.getElementById('response-search');
+						blankResponseSearch.replaceWith(responseSearch);
+
+						// Ready the display for the next question
+						//chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom of the chat container
+						messageInput.value = ''; // Clear the input field ready for the next question
+
+						// Now construct the LLM API query and fetch the response
+						let llmQuery = llmAPI + '?q=' + question + '&prompt=qa&context=' + result.content_chunk_text;
+						return fetch(llmQuery)
+					})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error(`HTTP error! Status: ${response.status}`);
+						}
+						return response.json();
+					})
+					.then(data => {
+						// Hide spinner
+						let spinner = document.getElementById("spinner"); // Spinner shown while awaiting for response 
+						spinner.replaceWith(data);
+					})
+					.catch(error => {
+						// Handle errors
+						console.error("Fetch error: ", error);
+						chatContainer.innerHTML = "<p>Error loading data.</p>";
+					});
+			}
+
+		})
+	})
+</script>  
+				<p class="sms-p3">
+					Please note:
+					<ul class="sms-list-3">
+						<li>
+							This service is experimental, is running on a relatively low powered machine so is very slow, and may sometimes generate incoherent results.
+						</li>
+						<li>
+							If you don't see a result you expect it might be because the content falls outside the 
+							page and embedding limits shown on <a href="/admin/add/">Add Site</a>.
+						</li>
+					</ul>
+				</p>
+
+				<div class="card">
+					<div class="card-body" id="chat-container">
+					</div>
+					<div class="card-footer">
+						<div class="input-group">
+								<input type="text" id="message-input" class="form-control sms-search-input sms-large-font" placeholder="Ask a question">
+								<button class="input-group-text sms-search-btn" id="send-message">
+									<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+										<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+									</svg>
+								</button>
 						</div>
-						{% endfor %}
+						<input class="form-control" list="domains" id="domain-datalist" placeholder="All domains">
+						<datalist id="domains">
+							<option value="All domains" selected>{% for domain in domains %}
+							<option value="{{ domain }}">{% endfor %}
+						</datalist>
+
 					</div>
 				</div>
-
-				{% else %}
-
-				<pre>
-				</pre>
-				<div class="row">
-					<div class="col-lg-12">
-						<p class="sms-p2">Please enter a question.</p>
-					</div>
-				</div>
-
-				{% endif %}
 
 {% endblock %}
