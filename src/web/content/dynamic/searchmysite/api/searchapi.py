@@ -244,14 +244,20 @@ def vector_search():
 @bp.route('/predictions/llm', methods=['GET', 'POST'])
 def predictions():
     # Get data from request
-    query = request.args.get('q', '')
-    context = request.args.get('context', '')
-    prompt_type = request.args.get('prompt', 'qa')
+    if request.method == 'GET':
+        query = request.args.get('q', '')
+        context = request.args.get('context', '')
+        prompt_type = request.args.get('prompt', 'qa')
+    else: # i.e. if POST
+        query = request.json['q']
+        context = request.json['context']
+        prompt_type = request.json['prompt']
     # Build LLM prompt
     # prompt_format is "chatml" for ChatML format, or "llama2-chat" for the Llama 2 Chat format
     prompt_format = "llama2-chat"
     llm_prompt = get_llm_prompt(query, context, prompt_type, prompt_format)
     llm_data = get_llm_data(llm_prompt)
+    #current_app.logger.debug('llm_prompt: {}'.format(llm_prompt))
     # Do request
     response = do_llm_prediction(llm_prompt, llm_data)
     return make_response(jsonify(response))
@@ -283,7 +289,7 @@ def do_llm_prediction(prompt, data):
     headers = {"Content-type": "application/json", "Accept": "text/plain"}
     response = requests.post(url=url, data=data, headers=headers)
     cleaned_response = response.text.removeprefix(prompt)
-    return cleaned_response
+    return cleaned_response     
 
 
 # Utilities

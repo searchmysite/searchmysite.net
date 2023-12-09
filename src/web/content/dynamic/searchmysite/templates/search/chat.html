@@ -108,8 +108,11 @@
 						messageInput.value = ''; // Clear the input field ready for the next question
 
 						// Now construct the LLM API query and fetch the response
-						let llmQuery = llmAPI + '?q=' + question + '&prompt=qa&context=' + result.content_chunk_text;
-						return fetch(llmQuery)
+						//let llmQuery = llmAPI + '?q=' + question + '&prompt=qa&context=' + result.content_chunk_text;
+						return fetch(llmAPI, {
+							method: 'POST', body: JSON.stringify({q:question, prompt:'qa', context:result.content_chunk_text}),
+							headers: { 'Content-type': 'application/json; charset=UTF-8'}
+  						})
 					})
 					.then(response => {
 						if (!response.ok) {
