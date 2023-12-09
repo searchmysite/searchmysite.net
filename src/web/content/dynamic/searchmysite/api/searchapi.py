@@ -245,18 +245,24 @@ def vector_search():
 def predictions():
     # Get data from request
     query = request.args.get('q', '')
-    prompt_type = request.args.get('prompt', 'qa')
     context = request.args.get('context', '')
+    prompt_type = request.args.get('prompt', 'qa')
     # Build LLM prompt
-    llm_prompt = get_llm_prompt(query, prompt_type, context)
+    # prompt_format is "chatml" for ChatML format, or "llama2-chat" for the Llama 2 Chat format
+    prompt_format = "llama2-chat"
+    llm_prompt = get_llm_prompt(query, context, prompt_type, prompt_format)
     llm_data = get_llm_data(llm_prompt)
     # Do request
     response = do_llm_prediction(llm_prompt, llm_data)
     return make_response(jsonify(response))
 
-def get_llm_prompt(query, prompt_type, context):
+def get_llm_prompt(question, context, prompt_type, prompt_format):
     if prompt_type == 'qa':
-        prompt = "<s>[INST] <<SYS>>Answer the question based on the context below.<</SYS>> \n [context]: {} \n [question]: {} [\INST]".format(context, query)
+        system = "Answer the question based on the context below."
+        if prompt_format == 'llama2-chat':
+            prompt = "<s>[INST] <<SYS>>{system}<</SYS>> \n [context]: {context} \n [question]: {question} [\INST]".format(system=system, context=context, question=question)
+        else:
+            prompt = "<|im_start|>system\n{system}<|im_end|><|im_start|>user\nContext:{context} Question: {question}<|im_end|>\n<|im_start|>assistant".format(system=system, context=context, question=question)
     else:
         prompt = "[INST] <<SYS>> You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.<</SYS>>{}[/INST]".format(query)
     return prompt
