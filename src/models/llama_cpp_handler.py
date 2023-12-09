@@ -39,6 +39,7 @@ class LlamaCppHandler(BaseHandler, ABC):
 
         seed = int(context.model_yaml_config["handler"]["manual_seed"])
         torch.manual_seed(seed)
+        torch.set_num_threads(1)
 
         self.model = Llama(model_path=model_path)
 
