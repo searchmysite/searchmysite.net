@@ -228,8 +228,8 @@ def vector_search():
 # ---------------------
 # 
 # Full URL:
-#   /api/v1/predictions/llama2/?q=<query>&prompt=<domain>&context=<context>
-#   e.g. /api/v1/predictions/llama2/?q=How%20long%20does%20it%20take%20to%20climb%20Ben%20Nevis&prompt=qa&context=it%20took%204%20hours%20to%20climb%20ben%20nevis
+#   /api/v1/predictions/llm/?q=<query>&prompt=<domain>&context=<context>
+#   e.g. /api/v1/predictions/llm/?q=How%20long%20does%20it%20take%20to%20climb%20Ben%20Nevis&prompt=qa&context=it%20took%204%20hours%20to%20climb%20ben%20nevis
 # 
 # Parameters:
 #   <query> is the query text
@@ -241,7 +241,7 @@ def vector_search():
 #     Text
 #
 
-@bp.route('/predictions/llama2', methods=['GET', 'POST'])
+@bp.route('/predictions/llm', methods=['GET', 'POST'])
 def predictions():
     # Get data from request
     query = request.args.get('q', '')
