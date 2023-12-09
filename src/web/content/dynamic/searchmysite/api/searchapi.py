@@ -254,7 +254,8 @@ def predictions():
         prompt_type = request.json['prompt']
     # Build LLM prompt
     # prompt_format is "chatml" for ChatML format, or "llama2-chat" for the Llama 2 Chat format
-    prompt_format = "llama2-chat"
+    #prompt_format = "llama2-chat"
+    prompt_format = "chatml"
     llm_prompt = get_llm_prompt(query, context, prompt_type, prompt_format)
     llm_data = get_llm_data(llm_prompt)
     #current_app.logger.debug('llm_prompt: {}'.format(llm_prompt))
@@ -285,7 +286,8 @@ def get_llm_data(prompt):
     return data
 
 def do_llm_prediction(prompt, data):
-    url = config.TORCHSERVE + "predictions/llama2"
+    #url = config.TORCHSERVE + "predictions/llama2"
+    url = config.TORCHSERVE + "predictions/rocket-3b"
     headers = {"Content-type": "application/json", "Accept": "text/plain"}
     response = requests.post(url=url, data=data, headers=headers)
     cleaned_response = response.text.removeprefix(prompt)

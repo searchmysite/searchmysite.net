@@ -18,13 +18,15 @@ WORKDIR /usr/app
 
 RUN pip install huggingface_hub
 
-RUN huggingface-cli download TheBloke/Llama-2-7b-Chat-GGUF llama-2-7b-chat.Q3_K_S.gguf config.json --local-dir . --local-dir-use-symlinks False
+#RUN huggingface-cli download TheBloke/Llama-2-7b-Chat-GGUF llama-2-7b-chat.Q3_K_S.gguf config.json --local-dir . --local-dir-use-symlinks False
+RUN huggingface-cli download TheBloke/rocket-3B-GGUF rocket-3b.Q4_K_M.gguf config.json --local-dir . --local-dir-use-symlinks False
 
 ADD llama_cpp_handler.py .
 ADD model-config.yaml .
 
 RUN mkdir model_store
-RUN torch-model-archiver --model-name llamacpp --version 1.0 --serialized-file llama-2-7b-chat.Q3_K_S.gguf --handler llama_cpp_handler.py --extra-files config.json --config-file model-config.yaml --export-path model_store
+#RUN torch-model-archiver --model-name llamacpp --version 1.0 --serialized-file llama-2-7b-chat.Q3_K_S.gguf --handler llama_cpp_handler.py --extra-files config.json --config-file model-config.yaml --export-path model_store
+RUN torch-model-archiver --model-name rocket-3b --version 1.0 --serialized-file rocket-3b.Q4_K_M.gguf --handler llama_cpp_handler.py --extra-files config.json --config-file model-config.yaml --export-path model_store
 
 
 # Production image
@@ -49,5 +51,6 @@ COPY --from=builder /usr/app/model_store model_store
 # As per above, temporarily using the lines below in place of the one above
 # The self-built torchserve container needs the config.properties to specify inference_address 
 # and the sleep infinity to stop the container exiting before torchserve starts
-CMD torchserve --start --model-store model_store --models llama2=llamacpp.mar --ncs --ts-config /config.properties && sleep infinity
+#CMD torchserve --start --model-store model_store --models llama2=llamacpp.mar --ncs --ts-config /config.properties && sleep infinity
+CMD torchserve --start --model-store model_store --models rocket-3b=rocket-3b.mar --ncs --ts-config /config.properties && sleep infinity
 # End arm64 workaround 3
