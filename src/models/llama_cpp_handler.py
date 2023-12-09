@@ -29,7 +29,6 @@ class LlamaCppHandler(BaseHandler, ABC):
         properties = context.system_properties
         logger.info('properties: {}'.format(properties))
 
-        model_name = context.model_yaml_config["handler"]["model_name"]
         #model_path = context.model_yaml_config["handler"]["model_path"]
         model_dir = properties.get("model_dir")
         serialized_file = self.manifest['model']['serializedFile']
@@ -57,7 +56,6 @@ class LlamaCppHandler(BaseHandler, ABC):
             stop=["Q:", "\n"],
             echo=True,
         )
-        tokens = self.model.tokenize(bytes(data["prompt"], "utf-8"))
         return result
 
     def postprocess(self, output):

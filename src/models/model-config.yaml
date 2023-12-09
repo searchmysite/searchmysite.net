@@ -2,5 +2,4 @@
 responseTimeout: 1200
 
 handler:
-    model_name: "llama-cpp"
     manual_seed: 40
