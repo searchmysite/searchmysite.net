@@ -150,6 +150,7 @@
     <field name="content_chunk_no" type="pint" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
     <field name="content_chunk_text" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
     <field name="content_chunk_vector" type="knn_vector384" indexed="true" stored="true"/> <!-- only in relationship:child below content_chunks pseudo-field -->
+    <field name="content_chunk_model" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
     <copyField source="url" dest="_text_" />
     <copyField source="title" dest="_text_" />
     <copyField source="author" dest="_text_" />
