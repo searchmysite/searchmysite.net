@@ -5,6 +5,7 @@ DB_NAME = 'searchmysitedb'
 DB_USER = 'postgres'
 DB_HOST = 'db'
 TORCHSERVE = 'http://models:8080/'
+EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 
 # POSTGRES_PASSWORD is normally set by docker from the .env file
 # The .env file is normally in the main application root (searchmysite/src/)
