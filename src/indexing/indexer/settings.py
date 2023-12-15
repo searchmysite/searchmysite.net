@@ -26,8 +26,8 @@ DB_HOST = 'db'
 SOLR_URL = 'http://search:8983/solr/content/'
 
 # Searchmysite custom config for chunking and embedding
-EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
-CHUNK_SIZE = 500 # in chars. note that sentence-transformers/all-MiniLM-L6-v2 has max input text 256 word pieces so this works if av word piece is 2 chars
+EMBEDDING_MODEL = 'BAAI/bge-small-en-v1.5'
+CHUNK_SIZE = 500 # in chars
 CHUNK_OVERLAP = 50
 
 LOG_LEVEL = 'INFO'
