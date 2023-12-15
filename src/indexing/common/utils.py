@@ -16,14 +16,14 @@ from dateutil.parser import parse, ParserError
 from bs4 import BeautifulSoup, SoupStrainer
 from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from common import config
+from indexer import settings
 
 
 # Database config
-db_password = config.DB_PASSWORD
-db_name = config.DB_NAME
-db_user = config.DB_USER
-db_host = config.DB_HOST
+db_password = settings.DB_PASSWORD
+db_name = settings.DB_NAME
+db_user = settings.DB_USER
+db_host = settings.DB_HOST
 
 # Email config
 smtp_server = environ.get('SMTP_SERVER')
@@ -83,7 +83,7 @@ sql_select_user_entered = "SELECT web_feed_user_entered, sitemap_user_entered FR
 sql_update_auto_discovered = "UPDATE tblDomains SET web_feed_auto_discovered = (%s), sitemap_auto_discovered = (%s) WHERE domain = (%s);"
 
 # Solr config and queries
-solr_url = config.SOLR_URL
+solr_url = settings.SOLR_URL
 solr_query_to_get_indexed_outlinks = "select?q=*%3A*&fq=indexed_outlinks%3A*{}*&fl=url,indexed_outlinks&rows=10000"
 solr_query_to_get_already_indexed_links = "select?q=domain%3A{}&fq=!relationship%3Achild&fl=url&rows=1000"
 # The solr_query_to_get_content includes fl=content_chunks,[child] to get the correctly nested child documents, and fq=!relationship:child 
@@ -92,11 +92,6 @@ solr_query_to_get_content = "select?q=*%3A*&fq=domain%3A{}&fq=!relationship:chil
 solr_delete_query = "update?commit=true"
 solr_delete_headers = {'Content-Type': 'text/xml'}
 solr_delete_data = "<delete><query>domain:{}</query></delete>"
-
-# Content chunking (for embedding) config
-chunk_size = 500 # in chars. note that sentence-transformers/all-MiniLM-L6-v2 has max input text 256 word pieces so this works if av word piece is 2 chars
-chunk_overlap = 50
-embedding_model = 'sentence-transformers/all-MiniLM-L6-v2'
 
 
 # Database utils
@@ -303,8 +298,7 @@ def get_all_indexed_inlinks_for_domain(domain):
 
 # Remove all pages from a domain from the Solr index
 def solr_delete_domain(domain):
-    solrurl = config.SOLR_URL
-    solrquery = solrurl + solr_delete_query
+    solrquery = solr_url + solr_delete_query
     data = solr_delete_data.format(domain)
     req = Request(solrquery, data.encode("utf8"), solr_delete_headers)
     response = urlopen(req)
@@ -514,7 +508,7 @@ def get_content_chunks(content, max_chunks, id, url, domain):
     if content:
         logger.info("Generating embeddings for {}".format(url))
         content_chunks = []
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=settings.CHUNK_SIZE, chunk_overlap=settings.CHUNK_OVERLAP)
         chunks = text_splitter.split_text(content)
         for chunk in chunks[:max_chunks]:
             chunk_no = chunks.index(chunk) + 1
@@ -525,6 +519,7 @@ def get_content_chunks(content, max_chunks, id, url, domain):
             content_chunk['relationship'] = "child"
             content_chunk['content_chunk_no'] = chunk_no
             content_chunk['content_chunk_text'] = chunk
+            content_chunk['content_chunk_model'] = settings.EMBEDDING_MODEL
             content_chunk['content_chunk_vector'] = get_vector(chunk)
             if content_chunk['content_chunk_vector']:
                 content_chunks.append(content_chunk)
@@ -538,7 +533,7 @@ def get_content_chunks(content, max_chunks, id, url, domain):
 # Return the embedding for the text as a list (i.e. in the format requried for Solr) 
 def get_vector(text):
     logging.getLogger("sentence_transformers.SentenceTransformer").setLevel(logging.WARNING)
-    model = SentenceTransformer(embedding_model)
+    model = SentenceTransformer(settings.EMBEDDING_MODEL)
     embedding = model.encode(text)
     vector = embedding.tolist()
     return vector

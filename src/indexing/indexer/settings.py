@@ -22,7 +22,13 @@ DB_NAME = 'searchmysitedb'
 DB_USER = 'postgres'
 DB_HOST = 'db'
 
+# Searchmysite custom config for search
 SOLR_URL = 'http://search:8983/solr/content/'
+
+# Searchmysite custom config for chunking and embedding
+EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
+CHUNK_SIZE = 500 # in chars. note that sentence-transformers/all-MiniLM-L6-v2 has max input text 256 word pieces so this works if av word piece is 2 chars
+CHUNK_OVERLAP = 50
 
 LOG_LEVEL = 'INFO'
 
