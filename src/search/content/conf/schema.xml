@@ -113,7 +113,7 @@
     -->
 
     <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-    
+
     <!-- start searchmysite change -->
     <field name="url" type="string" indexed="true" stored="true" required="true" />
     <field name="domain" type="string" indexed="true" stored="true" required="true" />
@@ -347,9 +347,9 @@
         <tokenizer name="standard"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <!-- start searchmysite change -->
-        <!-- Adding the ApostropheFilterFactory for cases like the title being "soandso's site" and people wanting to search for "soandso" rather than "soandso's" -->
-        <filter class="solr.ApostropheFilterFactory"/>
-        <!-- start searchmysite change -->
+        <!-- Adding the English Possessive Filter for cases like the title being "soandso's site" and people wanting to search for "soandso" rather than "soandso's" -->
+        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <!-- end searchmysite change -->
         <!-- in this example, we will only use synonyms at query time
         <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
         <filter class="solr.FlattenGraphFilterFactory"/>
