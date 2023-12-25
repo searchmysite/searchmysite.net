@@ -593,16 +593,34 @@ a.sms-large-font:hover {
     color: var(--highlight) !important;
 }
 
-.sms-results-list h2.sms-h2 {
-    margin-left: -2.5rem;
-}
-
 h2.sms-h2 a,
 h2.sms-h2 a:link,
 h2.sms-h2 a:visited
 {
     font-weight: bold;
 }
+
+.sms-results-list h2.sms-h2 {
+    margin-left: -2.5rem;
+}
+
+.sms-results-list h2.sms-h2 a:link,
+.sms-results-list h2.sms-h2 a:visited,
+.sms-results-list h2.sms-h2 a:hover  {
+    border-bottom: none;
+}
+
+.sms-results-list h2.sms-h2 a:link .result-title-txt,
+.sms-results-list h2.sms-h2 a:visited .result-title-txt,
+.sms-results-list h2.sms-h2 a:hover .result-title-txt
+ {
+    border-bottom: 0.125rem solid transparent;
+}
+
+.sms-results-list h2.sms-h2 a:hover .result-title-txt {
+    border-bottom: 0.125rem solid var(--link-underline);
+}
+
 
 .sms-results-list h2.sms-h2 a::before {
     content:"\E800";
@@ -614,11 +632,9 @@ h2.sms-h2 a:visited
 
 .sms-results-list h2.sms-h2 a:hover::before {
     color: var(--highlight);
+    /* text-decoration: none; */
 }
 
-.sms-results-list h2.sms-h2 a:hover {
-    opacity: 1;
-}
 
 #result-hightlight {
     color:var(--dark-gray);
