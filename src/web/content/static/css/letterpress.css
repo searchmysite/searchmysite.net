@@ -367,17 +367,17 @@ a.sms-large-font:hover {
 
 /* Home ******************* */
 .sms-home-main-container {
-    height: 80vh;
+    height: 85vh;
     display: flex;
     flex-direction: column;
 }
 .sms-home-header {
-    height: 20vh;
+    height: 15vh;
 }
 
 .sms-home-intro-txt {
-    margin-top: 5.875rem;
-    padding-top: 1.875rem;
+    margin-top: 3vh;
+    padding-top: 0.5rem;
     border-top: 0.0625rem solid var(--light-gray);
     border-bottom: 0.0625rem solid var(--light-gray);
     padding-bottom: 1rem;
@@ -634,6 +634,15 @@ h2.sms-h2 a:visited
 .result-title {
     flex-direction: row;
     display: flex;
+}
+
+#result-published-date {
+    font-size:var(--med-font-size);
+    font-weight: normal;
+    font-style: italic;
+    color: var(--semi-dark-gray);
+    margin-top: -0.45rem;
+    margin-bottom: 0.7rem;
 }
 
 .page-item.active {

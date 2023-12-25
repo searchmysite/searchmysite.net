@@ -308,6 +308,9 @@ def get_tier_data():
             # indexing_page_limit
             indexing_page_limit = str(result['default_indexing_page_limit']) + ' pages'
             tier['indexing_page_limit'] = indexing_page_limit
+            # default_content_chunks_limit
+            content_chunks_limit = str(result['default_content_chunks_limit'])
+            tier['content_chunks_limit'] = content_chunks_limit
             # on_demand_reindexing
             on_demand_reindexing = 'Yes' if result['default_on_demand_reindexing'] == True else 'No'
             tier['on_demand_reindexing'] = on_demand_reindexing

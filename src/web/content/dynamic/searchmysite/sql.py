@@ -173,6 +173,8 @@ sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', st
 # SQL for adminutils.py
 # ---------------------
 
+sql_select_indexed_domains = "SELECT d.domain FROM tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain WHERE d.indexing_enabled = TRUE AND l.status = 'ACTIVE' ORDER BY domain;"
+
 sql_select_domains_allowing_subdomains = "SELECT setting_value FROM tblSettings WHERE setting_name = 'domain_allowing_subdomains';"
 
 # Delete tables with foreign keys before finally deleting from tblDomains

@@ -46,6 +46,7 @@ from common.utils import extract_domain_from_url, convert_string_to_utc_date, co
 #    <field name="content_chunk_no" type="pint" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
 #    <field name="content_chunk_text" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
 #    <field name="content_chunk_vector" type="knn_vector384" indexed="true" stored="true"/> <!-- only in relationship:child below content_chunks pseudo-field -->
+#    <field name="content_chunk_model" type="string" indexed="true" stored="true" /> <!-- only in relationship:child below content_chunks pseudo-field -->
 
 def customparser(response, domain, is_home, domains_for_indexed_links, site_config, common_config):
 

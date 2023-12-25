@@ -1,0 +1,5 @@
+# TorchServe frontend parameters
+responseTimeout: 1200
+
+handler:
+    manual_seed: 40

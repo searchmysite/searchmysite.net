@@ -12,18 +12,19 @@ then
   rm -r searchmysite.net/
   git clone https://github.com/searchmysite/searchmysite.net.git
   cp .env searchmysite.net/src/
+  cp searchmysite.net/src/deployprod.sh .
   cd searchmysite.net/src/
   mv docker-compose.yml docker-compose.dev.yml
   mv docker-compose.prod.yml docker-compose.yml
-  docker-compose build
+  docker compose build
 
   # If the indexer container is indexing sites when it is restarted it will leave the sites stuck in RUNNING status
-  until grep -q "Checking for sites to index" <<< `docker logs --tail 1 src_indexing_1`
+  until grep -q "Checking for sites to index" <<< `docker logs --tail 1 src-indexing-1`
   do
     echo "Waiting for indexing job to finish"
     sleep 10
   done
-  docker-compose up -d
+  docker compose up -d
 	
   echo "If you have modified solr config you also need to:"
   echo "docker exec -it search_prod cp -r /opt/solr/server/solr/configsets/content/conf /var/solr/data/content/"

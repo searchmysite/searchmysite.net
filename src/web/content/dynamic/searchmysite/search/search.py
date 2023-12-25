@@ -9,6 +9,7 @@ from datetime import datetime, date
 import config
 import searchmysite.solr
 from searchmysite.searchutils import get_search_params, get_query_vector_string, get_start, get_filter_queries, do_search, do_vector_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
+from searchmysite.adminutils import select_indexed_domains
 import os
 
 bp = Blueprint('search', __name__)
@@ -64,24 +65,25 @@ def browse(search_type='browse'):
 def chat(search_type='chat'):
 
     # Get params and data required to perform search
-    params = get_search_params(request, search_type)
-    groupbydomain = False # Browse only returns home pages, so will only have one result per domain
-    query = params['q']
-    if query != '*':
-        query_vector_string = get_query_vector_string(query)
+    #params = get_search_params(request, search_type)
+    #groupbydomain = False # Browse only returns home pages, so will only have one result per domain
+    #query = params['q']
+    #if query != '*':
+    #    query_vector_string = get_query_vector_string(query)
 
         # Perform the actual search
-        search_results = do_vector_search(query_vector_string)
+    #    search_results = do_vector_search(query_vector_string)
         #current_app.logger.debug('search_results: {}'.format(search_results))
 
         # Get data required to display the results
-        (total_results, total_domains) = get_no_of_results(search_results, groupbydomain) # groupbydomain False so both values will be the same
-        links = get_links(request, params, search_type)
-        display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
-    else:
-        display_results = None
-
-    return render_template('search/chat.html', params=params, subtitle='Chat', results=display_results)
+    #    (total_results, total_domains) = get_no_of_results(search_results, groupbydomain) # groupbydomain False so both values will be the same
+    #    links = get_links(request, params, search_type)
+    #    display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
+    #else:
+    #    display_results = None
+    #return render_template('search/chat.html', params=params, subtitle='Chat', results=display_results)
+    all_indexed_domains = select_indexed_domains()
+    return render_template('search/chat.html', subtitle='Chat', domains=all_indexed_domains)
 
 
 @bp.route('/new/', methods=['GET', 'POST'])
