@@ -75,7 +75,9 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         home_input = browser.find_element(By.ID, 'home_page')
         home_input.send_keys(pytest.add_full_home_page)
         add_site_button = browser.find_element(By.ID, 'add-site')
-        ActionChains(browser).click(add_site_button).perform()
+        # With the new design the Add Site button is usually outside the viewport, so click via JavaScript to avoid "selenium.common.exceptions.MoveTargetOutOfBoundsException: Message: move target out of bounds"
+        browser.execute_script("arguments[0].click();", add_site_button)
+        #ActionChains(browser).click(add_site_button).perform()
         time.sleep(2)
         assert 'Search My Site - Add Site Step 4' in browser.title
         # Press the Purchase button

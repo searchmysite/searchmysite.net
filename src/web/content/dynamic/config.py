@@ -4,6 +4,8 @@ SOLR_URL = 'http://search:8983/solr/content/'
 DB_NAME = 'searchmysitedb'
 DB_USER = 'postgres'
 DB_HOST = 'db'
+TORCHSERVE = 'http://models:8080/'
+EMBEDDING_MODEL = 'BAAI/bge-small-en-v1.5'
 
 # POSTGRES_PASSWORD is normally set by docker from the .env file
 # The .env file is normally in the main application root (searchmysite/src/)

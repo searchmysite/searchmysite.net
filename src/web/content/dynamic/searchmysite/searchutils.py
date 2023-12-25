@@ -9,9 +9,8 @@ import searchmysite.solr
 import searchmysite.sql
 from searchmysite.db import get_db
 from searchmysite.adminutils import get_host
-#from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 
-embedding_model = 'sentence-transformers/all-MiniLM-L6-v2'
 
 
 # Utils to get params and data required to perform search
@@ -85,6 +84,9 @@ def get_search_params(request, search_type):
     except:
         resultsperpage = default_results_per_page
     search_params['resultsperpage'] = resultsperpage
+    # domain (currently just used by the vector search API)
+    domain = request.args.get('domain', '*')
+    search_params['domain'] = domain
     #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
 
@@ -92,10 +94,10 @@ def get_search_params(request, search_type):
 # i.e. convert the query string to a vector and convert the vector to a string representation of a list, 
 # e.g. "[1.0, 2.0, 3.0, 4.0]" as required by Solr (see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html)
 def get_query_vector_string(query):
-#    model = SentenceTransformer(embedding_model)
-#    embedding = model.encode(query)
-#    query_vector = embedding.tolist()
-#    query_vector_string = repr(query_vector)
+    model = SentenceTransformer(config.EMBEDDING_MODEL)
+    embedding = model.encode(query)
+    query_vector = embedding.tolist()
+    query_vector_string = repr(query_vector)
     return query_vector_string
 
 # Get start parameter for Solr query
@@ -156,10 +158,11 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
 # Need double curly braces to escape the curly braces.
 # Field in schema is content_chunk_vector.
 # Vector has to be a string representation of a list like "[1.0, 2.0, 3.0, 4.0]"
-def do_vector_search(query_vector_string):
+def do_vector_search(query_vector_string, domain):
     solr_select_params_vector_search = {
         "q": '{{!knn f=content_chunk_vector topK=4}}{}'.format(query_vector_string),
         "fl": ["id", "url", "content_chunk_text", "score"],
+        "fq": "domain:{}".format(domain)
     }
     solr_search = {}
     solr_search['params'] = solr_select_params_vector_search

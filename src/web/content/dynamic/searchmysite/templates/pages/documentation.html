@@ -326,9 +326,9 @@
 
 					<h3 class="sms-h3" id="how-does-indexing-work">How does the indexing process work?</h3>
 						<p class="sms-p2">
-							The indexing process respects the rules in robots.txt, so the indexing process begins by checking that file. 
-							Indexing then progresses accordingly, normally starting with the home page and following links to other pages 
-							within the same domain. The indexing process continues in a depth first manner until there are no further pages 
+							The indexing process first checks a robots.txt, and will obey any rules there. If the robots.txt allows, 
+							it will then load the home page and web feed (if a web feed was configured or discovered on a previous index),  
+							looking for links which it will follow breadth first, until there are no further pages 
 							to index or until the indexing page limit for the domain or the timeout is reached.
 						</p>
 						<p class="sms-p2">
@@ -338,7 +338,9 @@
 								<li>path: i.e. URLs containing a certain string.</li>
 								<li>type: i.e. values from the page_type field described above.</li>
 							</ul> 
-							This might be useful to, for example, filter out micro blog entries which have a particular path or type. 
+						</p>
+						<p class="sms-p2">
+							This might be useful to, for example, filter out micro blog entries which have a particular path or type.
 						</p>
 
 					<h3 class="sms-h3" id="how-frequently">How frequently are sites reindexed?</h3>

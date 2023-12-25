@@ -33,9 +33,12 @@ smtp_to_email = environ.get('SMTP_TO_EMAIL')
 # later http://user2.github.io/
 def extract_domain(url):
     # Get the domain from the URL
-    if not url: url =""
-    tld = tldextract.extract(url) # returns [subdomain, domain, suffix]
-    domain = '.'.join(tld[1:]) if tld[2] != '' else tld[1] # if suffix empty, e.g. localhost, just use domain
+    if not url: url = ""
+    # returns subdomain, domain, suffix, is_private=True|False), also registered_domain (domain+'.'+suffix) and fqdn (subdomain+'.'+domain+'.'+suffix)
+    tld = tldextract.extract(url) 
+    domain = tld.registered_domain
+    if tld.domain == 'localhost' and tld.suffix == '': # special case for localhost which has tld.registered_domain = ''
+        domain = tld.domain
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Look up list of domains which allow subdomains from database
     domains_allowing_subdomains = []
@@ -51,6 +54,16 @@ def extract_domain(url):
             domain = tld[0] + "." + domain
     return domain
 
+
+def select_indexed_domains():
+    indexed_domains = []
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_indexed_domains)
+    results = cursor.fetchall()
+    for result in results:
+        indexed_domains.append(result['domain'])
+    return indexed_domains
 
 # Get the actual host URL, for use in links which need to contain the servername and protocol
 # This will be 'http://127.0.0.1:5000/' if run in Flask and 'http://127.0.0.1:8080/' if run in Apache httpd + mod_wsgi

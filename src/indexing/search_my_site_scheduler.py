@@ -159,7 +159,7 @@ for site_to_crawl in sites_to_crawl:
     site_to_crawl['indexed_inlinks'] = indexed_inlinks
     # content, i.e. get_contents(domain)
     contents = get_contents(domain)
-    logger.debug('contents: {}'.format(contents.keys))
+    logger.debug('contents: {}'.format(contents))
     site_to_crawl['contents'] = contents
     # already_indexed_links, i.e. pages on this domain which have already been indexed.
     # This is only set if it is needed, i.e. for an incremental index.

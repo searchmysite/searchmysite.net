@@ -9,6 +9,6 @@ git+https://github.com/rs/domcheck#egg=domcheck
 # cryptography>=35.0 and rust required for scrapy install
 cryptography>=35.0
 rust
-scrapy==2.10.0
+scrapy==2.11.0
 sentence-transformers
 

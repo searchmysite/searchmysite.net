@@ -18,13 +18,13 @@ if not POSTGRES_PASSWORD:
                 key, value = line.strip().split('=')
                 if key == 'POSTGRES_PASSWORD': POSTGRES_PASSWORD = value
 #database_host = "db" # Dev database
-database_host = "142.132.178.149" # Prod database
+database_host = "128.140.125.52" # Prod database
 sql_select_indexed_domains = "SELECT d.domain FROM tblDomains d INNER JOIN tblListingStatus l ON d.domain = l.domain WHERE d.indexing_type = 'spider/default' AND d.indexing_enabled = TRUE AND l.status = 'ACTIVE';"
 
 # Solr
 #solr_url = 'http://localhost:8983/solr/content/' # Dev
-solr_url = 'http://142.132.178.149:8983/solr/content/' # Prod
-solr_select_domains = "select?fl=domain&fq=is_home%3Atrue&q=domain%3A*&sort=domain%20asc&rows=2000"
+solr_url = 'http://128.140.125.52:8983/solr/content/' # Prod
+solr_select_domains = "select?fl=domain&fq=is_home%3Atrue&q=domain%3A*&sort=domain%20asc&rows=10000"
 
 database_domains = []
 solr_domains = []

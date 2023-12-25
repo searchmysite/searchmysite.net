@@ -31,12 +31,12 @@ if not POSTGRES_PASSWORD:
                 key, value = line.strip().split('=')
                 if key == 'POSTGRES_PASSWORD': POSTGRES_PASSWORD = value
 #database_host = "db" # Dev database
-database_host = "142.132.178.149" # Prod database
+database_host = "128.140.125.52" # Prod database
 sql_select_home_pages = 'SELECT home_page, domain FROM tblDomains WHERE moderator_approved = TRUE AND indexing_enabled = TRUE;'
 
 # Solr
 #solr_url = 'http://localhost:8983/solr/content/' # Dev
-solr_url = 'http://142.132.178.149:8983/solr/content/' # Prod
+solr_url = 'http://128.140.125.52:8983/solr/content/' # Prod
 solr_select_home_pages = "select?fl=url,domain&fq=is_home%3Atrue&q=domain%3A*&sort=domain%20asc&rows=2000"
 
 database_home_page_list = []
@@ -88,4 +88,4 @@ for solr_home_page in home_pages_in_search_but_not_database:
     else:
         print('home mismatch: {} -> {}'.format(database_home_page, solr_home_page))
         different_home_pages.append(solr_domain)
-    
+
