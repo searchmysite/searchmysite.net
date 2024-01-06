@@ -456,8 +456,8 @@ def extract_domain_from_url(url, domains_allowing_subdomains):
     domain = domain.lower() # lowercase the domain to help prevent duplicates
     # Add subdomain if in domains_allowing_subdomains
     if domain in domains_allowing_subdomains: # special domains where a site can be on a subdomain
-        if tld[0] and tld[0] != "":
-            domain = tld[0] + "." + domain
+        if tld.subdomain and tld.subdomain != "":
+            domain = tld.subdomain + "." + domain
     return domain
 
 
