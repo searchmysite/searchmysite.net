@@ -53,6 +53,7 @@
     --medium-dark-gray: #bcbcbc;
     --light-gray:#CECECE;
     --medium-light-gray: #D9D9D9;
+    --underline-border-bottom: 0.125rem solid #DBA0C7;
     font-size:calc(1vw);
 }
 
@@ -112,16 +113,20 @@ a.nav-link, a:link.nav-link, a:visited.nav-link
 a:hover {
     font-weight: bold;
     color: black !important;
-    border-bottom: 0.125rem solid var(--link-underline);
+    border-bottom: var(--underline-border-bottom);
 }
 
+/**
+    For now, this is used for the italics text on the landing page.
+    "Search real content by real people from ..."
+**/
 em a, em a:link, em a:visited, em a:hover {
     color: var(--highlight) !important;
     font-weight: bold;
 }
 
 em a:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 a.sms-btn:hover,
@@ -169,7 +174,7 @@ table.sms-browse td.sms-first-column-cell {
 .sms-standard p a:visited
 {
     /* font-weight: bold; */
-    border-bottom: 0.125rem solid var(--link-underline);
+    border-bottom: var(--underline-border-bottom);
 }
 p.sms-p1, ul.sms-list-1 li {
     font-size: var(--large-font-size);
@@ -306,7 +311,7 @@ a.sms-medium-font:visited {
 }
 
 a.sms-medium-font:hover {
-    border-bottom: 0.125rem solid var(--link-underline);
+    border-bottom: var(--underline-border-bottom);
 } 
 
 a.sms-large-font, a.sms-large-font:link,
@@ -618,7 +623,7 @@ h2.sms-h2 a:visited
 }
 
 .sms-results-list h2.sms-h2 a:hover .result-title-txt {
-    border-bottom: 0.125rem solid var(--link-underline);
+    border-bottom: var(--underline-border-bottom);
 }
 
 
@@ -815,11 +820,7 @@ a:visited.badge.bg-primary
     font-family: sans-serif;
 }
 
-/**
- sms-bottom-line-container remove row for mobile? Row ads padding
- Solve the problem with internal padding, make sure that doesn't expand box.
- Lets set a rigid 100% widht or a specific viewport width.
-
-
-
-*/
+/** Forgot password screen */
+.nav-link.sms-forgot-pass-lnk {
+    display: inline;
+}
