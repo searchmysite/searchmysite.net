@@ -48,10 +48,10 @@
 					<div class="col-lg-12">
 						{% for result in results %}
 						<div class="search-result sms-b-72">
-							<h2 class="sms-h2 sms-b-8">
+							<h2 class="sms-h2 sms-b-8 sms-result-title">
 								{% if result['contains_adverts'] %}<img src="/static/images/containsadverts44x24.gif" alt="Page contains adverts" class="float-left" style="margin-right: 4px">{% endif %}
 								<a href="{{ result['url'] }}" class="result-title">
-									{{ result['short_title'] }}
+									<span class="result-title-txt">{{ result['short_title'] }}</span>
 								</a>
 							</h2>
 							{% if result['published_date'] %}<p id="result-published-date">{{ result['published_date'] }}</p>{% endif %}
