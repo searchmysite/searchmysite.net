@@ -314,7 +314,7 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                         return_action = "redirect"
                         return_target = next_page
                 else: # if logon workflow
-                    if indexed_result is not None and indexed_result['owner_verified'] == True and indexed_result['contact_email'] is not None:
+                    if indexed_result is not None and indexed_result['status'] == 'ACTIVE' and indexed_result['email'] is not None:
                         set_login_session(domain, "indieauth")
                         return_action = "redirect"
                         return_target = next_page
