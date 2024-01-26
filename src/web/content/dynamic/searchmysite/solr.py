@@ -64,6 +64,7 @@ query_params_search = {
 
 query_facets_search = {
     "site_category":                { "field": "site_category",                "type": "terms", "limit":  2, "sort": "count" },
+    "domain":                       { "field": "domain",                       "type": "terms", "limit":  6, "sort": "count" },
     "in_web_feed":                  { "field": "in_web_feed",                  "type": "terms", "limit":  2, "sort": "count" },
     "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 20, "sort": "count" }
 }
