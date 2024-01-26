@@ -8,7 +8,7 @@ from random import randrange
 from datetime import datetime, date
 import config
 import searchmysite.solr
-from searchmysite.searchutils import get_search_params, get_query_vector_string, get_start, get_filter_queries, do_search, do_vector_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
+from searchmysite.searchutils import get_search_params, get_groupbydomain, get_query_vector_string, get_start, get_filter_queries, do_search, do_vector_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
 from searchmysite.adminutils import select_indexed_domains
 import os
 
@@ -20,7 +20,7 @@ def search(search_type='search'):
 
     # Get params and data required to perform search
     params = get_search_params(request, search_type)
-    groupbydomain = False if "domain:" in params['q'] else True
+    groupbydomain = get_groupbydomain(params, search_type)
     start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 
@@ -43,7 +43,7 @@ def browse(search_type='browse'):
 
     # Get params and data required to perform search
     params = get_search_params(request, search_type)
-    groupbydomain = False # Browse only returns home pages, so will only have one result per domain
+    groupbydomain = get_groupbydomain(params, search_type)
     start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 
@@ -91,7 +91,7 @@ def newest(search_type='newest'):
 
     # Get params and data required to perform search
     params = get_search_params(request, search_type)
-    groupbydomain = True # There is a group by domain in the query, even though only 1 result is returned for each domain - this is to ensure only one result per domain in the feed
+    groupbydomain = get_groupbydomain(params, search_type)
     start = get_start(params)
     filter_queries = get_filter_queries(params['filter_queries'])
 

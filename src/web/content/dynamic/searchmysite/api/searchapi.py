@@ -10,7 +10,7 @@ import xml.dom.minidom
 from searchmysite.db import get_db
 import config
 import searchmysite.solr
-from searchmysite.searchutils import check_if_api_enabled_for_domain, get_search_params, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results, do_vector_search, get_query_vector_string
+from searchmysite.searchutils import check_if_api_enabled_for_domain, get_search_params, get_groupbydomain, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results, do_vector_search, get_query_vector_string
 import requests
 
 
@@ -139,7 +139,7 @@ def search(domain, search_type='search'):
 def feed_search(format, search_type='search'):
     if format == 'feed':
         params = get_search_params(request, search_type)
-        groupbydomain = False if "domain:" in params['q'] else True
+        groupbydomain = get_groupbydomain(params, search_type)
         start = get_start(params)
         filter_queries = get_filter_queries(params['filter_queries'])
         search_results = do_search(searchmysite.solr.query_params_search, searchmysite.solr.query_facets_search, params, start, searchmysite.solr.mandatory_filter_queries_search, filter_queries, groupbydomain)
@@ -157,7 +157,7 @@ def feed_search(format, search_type='search'):
 def feed_browse(format, search_type='browse'):
     if format == 'feed':
         params = get_search_params(request, search_type)
-        groupbydomain = False # Browse only returns home pages, so will only have one result per domain
+        groupbydomain = get_groupbydomain(params, search_type)
         start = get_start(params)
         filter_queries = get_filter_queries(params['filter_queries'])
         search_results = do_search(searchmysite.solr.query_params_browse, searchmysite.solr.query_facets_browse, params, start, searchmysite.solr.mandatory_filter_queries_browse, filter_queries, groupbydomain)
@@ -175,7 +175,7 @@ def feed_browse(format, search_type='browse'):
 def feed_newest(format, search_type='newest'):
     if format == 'feed':
         params = get_search_params(request, search_type)
-        groupbydomain = True # There is a group by domain in the query, even though only 1 result is returned for each domain - this is to ensure only one result per domain in the feed
+        groupbydomain = get_groupbydomain(params, search_type)
         start = get_start(params)
         filter_queries = get_filter_queries(params['filter_queries'])
         search_results = do_search(searchmysite.solr.query_params_newest, searchmysite.solr.query_facets_newest, params, start, searchmysite.solr.mandatory_filter_queries_newest, filter_queries, groupbydomain)

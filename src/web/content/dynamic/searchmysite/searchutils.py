@@ -17,7 +17,7 @@ from sentence_transformers import SentenceTransformer
 # -------------------------------------------------------
 
 # Get all the search params, irrespective of whether a GET or a POST, setting sensible defaults (using search_type)
-# Current list is: q, p, sort
+# Current list is: q, page, sort
 # plus the facets in the possible_facets list below which are returned in the filter_query dict
 def get_search_params(request, search_type):
     # Set defaults
@@ -84,11 +84,29 @@ def get_search_params(request, search_type):
     except:
         resultsperpage = default_results_per_page
     search_params['resultsperpage'] = resultsperpage
-    # domain (currently just used by the vector search API)
+    # domain
+    # Currently just used by the vector search API.
+    # This may need reviewing when vector search is rully rolled out, given domain can be specified in 3 ways now - in q, in filter_queries for search, and as a parameter for vector search
     domain = request.args.get('domain', '*')
     search_params['domain'] = domain
-    #current_app.logger.debug('get_search_params: {}'.format(search_params))
     return search_params
+
+# Get a value for groupbydomain
+# This is used for the group parameter
+# Note that group.field is set to 'domain' and group.ngroups set to True on all query types (except Browse which doesn't need group given only home pages are returned), although group.limit varies
+# See also https://solr.apache.org/guide/solr/latest/query-guide/result-grouping.html
+def get_groupbydomain(params, search_type):
+    groupbydomain = False
+    if search_type == 'search':
+        if 'domain' in params['filter_queries'] or 'domain:' in params['q']:
+            groupbydomain = False
+        else:
+            groupbydomain = True
+    elif search_type == 'newest':
+        groupbydomain = True # There is a group by domain in the query, even though only 1 result is returned for each domain - this is to ensure only one result per domain in the feed
+    elif search_type == 'browse':
+        groupbydomain = False # Browse only returns home pages, so will only have one result per domain
+    return groupbydomain
 
 # Get the query string expressed as a vector string
 # i.e. convert the query string to a vector and convert the vector to a string representation of a list, 
@@ -318,6 +336,8 @@ def get_display_facets(filter_queries, results):
                 facet['label_name'] = "In web feed"
             elif facet_field == "language_primary":
                 facet['label_name'] = "Language"
+            elif facet_field == "domain":
+                facet['label_name'] = "Domain"
             else:
                 facet['label_name'] = facet_field
             inputs = []
@@ -363,7 +383,7 @@ def get_display_results(search_results, groupbydomain, params, link):
                 subresults_domain  = domain_results['groupValue']
                 subresults_total = int(domain_results['doclist']['numFound'])
                 link_minus_query = link.replace('q='+params['q'], '')
-                result['subresults_link'] = 'q=' + params['q'] + '%20%2Bdomain:' + subresults_domain + link_minus_query # The + (%2B) before domain ensures that term is mandatory, otherwise multi word queries would treat the domain as optional
+                result['subresults_link'] = 'q=' + params['q'] + '&domain=' + subresults_domain + link_minus_query
                 result['subresults_link_text'] = "All " + str(subresults_total) + " results from " + subresults_domain
             results.append(result)
     else:
