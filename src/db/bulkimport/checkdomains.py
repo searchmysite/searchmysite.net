@@ -59,7 +59,7 @@ input_reviewed = True
 
 # Which database to read to check if the domains already exist in the database
 database_host = "db" # Dev database
-#database_host = "142.132.178.149" # Prod database
+#database_host = "128.140.125.52" # Prod database
 
 # SQL
 sql_select_indexed = 'SELECT * FROM tblDomains WHERE domain = (%s) AND moderator_approved = TRUE AND indexing_enabled = TRUE;'
