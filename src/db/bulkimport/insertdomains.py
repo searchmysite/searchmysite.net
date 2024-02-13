@@ -25,9 +25,10 @@ if not POSTGRES_PASSWORD:
 input_file = 'data/' + inp + '.json'
 
 database_host = "db" # Dev database
-#database_host = "142.132.178.149" # Prod database
+#database_host = "128.140.125.52" # Prod database
 
-# This is copied from ../../web/content/dynamic/searchmysite/sql.py - if that is updated this should be too
+# These are copied from ../../web/content/dynamic/searchmysite/sql.py - if they are updated these should be too
+
 sql_insert_domain = "INSERT INTO tblDomains "\
     "(domain, home_page, domain_first_submitted, category, include_in_public_search, indexing_type) "\
     "VALUES ((%s), (%s), NOW(), (%s), TRUE, 'spider/default');"
@@ -44,6 +45,7 @@ sql_update_basic_approved = "UPDATE tblListingStatus "\
     "full_reindex_frequency = tblTiers.default_full_reindex_frequency, "\
     "incremental_reindex_frequency = tblTiers.default_incremental_reindex_frequency, "\
     "indexing_page_limit = tblTiers.default_indexing_page_limit, "\
+    "content_chunks_limit = tblTiers.default_content_chunks_limit, "\
     "on_demand_reindexing = tblTiers.default_on_demand_reindexing, "\
     "api_enabled = tblTiers.default_api_enabled, "\
     "indexing_enabled = TRUE, "\
