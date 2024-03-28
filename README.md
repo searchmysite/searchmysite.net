@@ -147,18 +147,21 @@ docker exec -it web_dev apachectl restart
 ```
 For frequent changes it is better to use a Flask development environment outside of Docker.
 
-To do this, given the "web" container talks to the db, models and search containers via the "db", "models" and "search" hostnames, you will need to set up local host entries for "db", "models" and "search", i.e. in /etc/hosts:
+To do this, firstly, you will need to set up local host entries for "db", "models" and "search", i.e. in /etc/hosts (given the "web" container talks to the db, models and search containers via the "db", "models" and "search" hostnames):
 ```
-127.0.0.1       search
-127.0.0.1       db
-127.0.0.1       models
+127.0.0.1 search
+127.0.0.1 db
+127.0.0.1 models
 ```
-After installing Flask and any dependencies locally (see requirements.txt), install the searchmysite package in editable mode (this just needs to be done once):
+Secondly, install Flask and dependencies locally (noting that apache2-dev is required for mod-wsgi and libpq-dev for psycopg2), and install the searchmysite package in editable mode (these steps just need to be performed once):
 ```
+sudo apt install apache2-dev libpq-dev
+cd ~/projects/searchmysite.net/src/web/
+pip3 install -r requirements.txt
 cd ~/projects/searchmysite.net/src/web/content/dynamic/
 pip3 install -e .
 ```
-then load environment variables and start Flask in development mode via:
+Finally, at the start of every dev session, load environment variables and start Flask in development mode via:
 ```
 set -a; source ~/projects/searchmysite.net/src/.env; set +a
 export FLASK_ENV=development
