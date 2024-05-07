@@ -248,12 +248,7 @@ def expire_listings(tier):
                         text += 'Once the Free Trial expires, you will need to renew via Add Site (although you will not need to verify ownership of your site again).\n\n'
                         text += 'If you have any questions or comments, please don\'t hesitate to reply.\n\n'
                         text += 'Regards,\n\nsearchmysite.net\n\n'
-                        # Currently using:
-                        # success_status = send_email(None, None, subject, text)
-                        # This is so it defaults to sending to admin. Once a few emails have been successfully sent, this should be changed to   
-                        # success_status = send_email(None, expired_listing['email'], subject, text)
-                        # so that the emails go direct to the users
-                        success_status = send_email(None, None, subject, text)
+                        success_status = send_email(None, expired_listing['email'], subject, text) # Note that send_email still sends a copy to smtp_to_email i.e. admin
                         if not success_status:
                             logger.error('Error sending email')
                 conn.commit()
