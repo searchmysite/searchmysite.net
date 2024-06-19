@@ -5,7 +5,7 @@ from os import environ
 import psycopg2.extras
 from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
-from searchmysite.adminutils import delete_domain, delete_domain_from_solr
+from searchmysite.adminutils import delete_domain, delete_domain_from_solr, get_most_recent_indexing_log_message
 import config
 import searchmysite.sql
 
@@ -40,6 +40,7 @@ def review():
         review_form = [] # Form will be constructed from a list of dicts, where the dict will have domain, home, category, date and actions values, and actions will be a list
         count = 0
         for result in results:
+            # Construct actions list
             count += 1
             actions = [] 
             name = 'domain'+str(count)
@@ -47,7 +48,10 @@ def review():
                 action_id = name+action['id']
                 action_value = result['domain']+':'+action['value']
                 actions.append({'id':action_id, 'name':name, 'value':action_value, 'checked':action['checked'], 'label':action['label']})
-            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['category'], 'date':result['domain_first_submitted'], 'actions':actions})
+            # Determine status of last index (or NEW if no last index)
+            status = get_most_recent_indexing_log_message(result['domain'])
+            # Append to review_form list of dicts
+            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['category'], 'date':result['domain_first_submitted'].strftime('%d %b %Y, %H:%M'), 'status':status, 'actions':actions})
         return render_template('admin/review.html', results=results, review_form=review_form)
     else: # i.e. if POST 
         if results:

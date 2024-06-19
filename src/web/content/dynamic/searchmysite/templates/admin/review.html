@@ -15,20 +15,20 @@
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col">Domain</th>
-								<th scope="col">Home</th>
+								<th scope="col">Site</th>
 								<th scope="col">Category</th>
 								<th scope="col">Date</th>
+								<th scope="col">Status</th>
 								<th scope="col">Action</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for site in review_form %}
 							<tr>
-								<td>{{ site['domain'] }}</td>
-								<td><a href="{{ site['home'] }}" target="_blank" rel="noopener noreferrer">{{ site['home'] }}</a></td>
+								<td>{{ site['domain'] }}<br/><a href="{{ site['home'] }}" target="_blank" rel="noopener noreferrer">{{ site['home'] }}</a></td>
 								<td>{{ site['category'] }}</td>
 								<td>{{ site['date'] }}</td>
+								<td>{{ site['status'] }}</td>
 								<td>
 									{% for action in site['actions'] %}
 									<div class="form-check">

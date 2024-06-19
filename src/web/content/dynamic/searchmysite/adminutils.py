@@ -65,6 +65,18 @@ def select_indexed_domains():
         indexed_domains.append(result['domain'])
     return indexed_domains
 
+# Returns the most recent completed indexing message from the indexing log, or NEW if none
+def get_most_recent_indexing_log_message(domain):
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_indexing_log_message, (domain,))
+    last_indexing_log_message = cursor.fetchone()
+    if last_indexing_log_message:
+        message = last_indexing_log_message['message']
+    else:
+        message = 'NEW'
+    return message
+
 # Get the actual host URL, for use in links which need to contain the servername and protocol
 # This will be 'http://127.0.0.1:5000/' if run in Flask and 'http://127.0.0.1:8080/' if run in Apache httpd + mod_wsgi
 # If run behind a reverse proxy, production will also be 'http://127.0.0.1:8080/', 
