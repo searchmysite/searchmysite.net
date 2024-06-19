@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 import psycopg2
 import psycopg2.extras
@@ -6,7 +7,8 @@ import os
 from urllib.request import urlopen
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from bulkimport.checkdomains import extract_domain
+from common.utils import get_args, extract_domain, select_indexed_domains, get_solr_domains_with_a_home_page
+
 # This utility connects to the database and search index, and checks whether
 # the home page in the database has been redirected to a different home page.
 # Within those, there are two sub-categories:
@@ -20,72 +22,75 @@ from bulkimport.checkdomains import extract_domain
 #    These aren't usually problematic because the site should still be indexed,
 #    although might still indecate a problem if the home is redirected to something
 #    like /RUNCLOUD-7G-WAF-BLOCKED .
+# Currently just reporting the first category.
+# Also just printing the SQL to fix the first category for now, so it can be run domain by domain, 
+# until there's confidence to make bulk changes
+# Final note: Still want to manually verify the changes, because some of the redirects are to 
+# shared domains, which won't work, e.g. abc.com -> github.com/abc or abc.me -> persumi.com/u/abc
 
-# Database details
-# Get database password from ../../.env
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-if not POSTGRES_PASSWORD:
-    with open('../../.env') as f:
-        for line in f:
-            if '=' in line and not line.startswith('#'):
-                key, value = line.strip().split('=')
-                if key == 'POSTGRES_PASSWORD': POSTGRES_PASSWORD = value
-#database_host = "db" # Dev database
-database_host = "128.140.125.52" # Prod database
-sql_select_home_pages = 'SELECT home_page, domain FROM tblDomains WHERE moderator_approved = TRUE AND indexing_enabled = TRUE;'
+sql_insert_new_domain = "INSERT INTO tblDomains "\
+    "(domain, home_page, category, domain_first_submitted, email, include_in_public_search, moderator_approved, moderator_action_changed, moderator, full_reindex_frequency, indexing_page_limit, on_demand_reindexing, api_enabled, indexing_enabled, indexing_type, indexing_status, indexing_status_changed) "\
+    "(SELECT \'{new_domain}\', \'{new_home_page}\', category, domain_first_submitted, email, include_in_public_search, moderator_approved, moderator_action_changed, moderator, full_reindex_frequency, indexing_page_limit, on_demand_reindexing, api_enabled, indexing_enabled, indexing_type, 'PENDING', indexing_status_changed "\
+    "FROM tblDomains WHERE domain = \'{old_domain}\');"
 
-# Solr
-#solr_url = 'http://localhost:8983/solr/content/' # Dev
-solr_url = 'http://128.140.125.52:8983/solr/content/' # Prod
-solr_select_home_pages = "select?fl=url,domain&fq=is_home%3Atrue&q=domain%3A*&sort=domain%20asc&rows=2000"
+sql_insert_listing_status = "INSERT INTO tblListingStatus "\
+    "(domain, tier, status, status_changed, pending_state, pending_state_changed, listing_start, listing_end) "\
+    "(SELECT \'{new_domain}\', tier, status, status_changed, pending_state, pending_state_changed, listing_start, listing_end "\
+    "FROM tblListingStatus WHERE domain = \'{old_domain}\');"
 
-database_home_page_list = []
-database_home_page_dict = {}
-database_domain_dict = {}
-solr_home_page_list = []
-solr_home_page_dict = {}
-solr_domain_dict = {}
+args = get_args()
 
-try:
-    conn = psycopg2.connect(host=database_host, dbname="searchmysitedb", user="postgres", password=POSTGRES_PASSWORD)
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_home_pages)
-    results = cursor.fetchall()
-    for result in results:
-        database_home_page_list.append(result['home_page'])
-        database_home_page_dict[result['home_page']] = result['domain']
-        database_domain_dict[result['domain']] = result['home_page']
-except psycopg2.Error as e:
-    print(e.pgerror)
+def get_mismatched_home_pages(database_details, search_details):
+    mismatched_home_pages = []
+    for search_detail in search_details:
+        search_home = search_detail['url']
+        search_domain = search_detail['domain']
+        for database_detail in database_details:
+            if database_detail['domain'] == search_domain:
+                if database_detail['home_page'] != search_home:
+                    search_domain = extract_domain(search_home) # This can be a bit slow so best only do it where necessary, e.g. where home pages don't match
+                    mismatched_home_page = {}
+                    mismatched_home_page['search_home'] = search_home
+                    mismatched_home_page['search_domain'] = search_domain
+                    mismatched_home_page['database_home'] = database_detail['home_page']
+                    mismatched_home_page['database_domain'] = database_detail['domain']
+                    mismatched_home_page['tier'] = database_detail['tier']
+                    mismatched_home_pages.append(mismatched_home_page)
+    return mismatched_home_pages
 
-connection = urlopen(solr_url + solr_select_home_pages)
-response = json.load(connection)
-docs = response['response']['docs']
-for doc in docs:
-    solr_home_page_list.append(doc['url'])
-    solr_home_page_dict[doc['url']] = doc['domain']
-    solr_domain_dict[doc['domain']] = doc['url']
+# Mismatched domains will be a subset of mistmatched_home_pages
+def get_mismatched_domains(mismatched_home_pages, database_details):
+    mismatched_domains = []
+    for mismatched_home_page in mismatched_home_pages:
+        search_domain = mismatched_home_page['search_domain']
+        database_domain = mismatched_home_page['database_domain']
+        if search_domain != database_domain:
+            if any(database_detail['domain'] == search_domain for database_detail in database_details): # Only add new domains that don't already exist, to prevent an error
+                print('\n{} -> {} but there is already a separate entry for {}'.format(database_domain, search_domain, search_domain))
+            elif mismatched_home_page['tier'] != 1: # Only add new tier 1 domains for now, because tier 2 and 3 may require additional SQL
+                print('\n{} -> {} but this is not a tier 1 site, so additional SQL may be required'.format(database_domain, search_domain))
+            elif search_domain in ['github.com']:
+                print('\n{} -> {} but this is a shared domain'.format(database_domain, search_domain))
+            else:
+                mismatched_domains.append(mismatched_home_page)
+    return mismatched_domains
 
-home_pages_in_search_but_not_database = set(solr_home_page_list) - set(database_home_page_list)
+database_details = select_indexed_domains()
+search_details = get_solr_domains_with_a_home_page()
 
-different_domains = []
-different_home_pages = []
+mismatched_home_pages = get_mismatched_home_pages(database_details, search_details)
+#for mismatch in mismatched_home_pages:
+#    print("database_home: {}, search_home: {} (database domain: {}, search_domain: {}), ".format(mismatch['database_home'], mismatch['search_home'], mismatch['database_domain'], mismatch['search_domain']))
 
-for solr_home_page in home_pages_in_search_but_not_database:
-    if solr_home_page in solr_home_page_dict:
-        domain = solr_home_page_dict[solr_home_page]
-    else:
-        domain = ""
-    if domain in database_domain_dict:
-        database_home_page = database_domain_dict[domain]
-    else:
-        database_home_page = ""
-    #print(database_home_page)
-    solr_domain = extract_domain(solr_home_page)
-    if domain != solr_domain:
-        print('domain mismatch: {} -> {}'.format(domain, solr_domain))
-        different_domains.append(solr_domain)
-    else:
-        print('home mismatch: {} -> {}'.format(database_home_page, solr_home_page))
-        different_home_pages.append(solr_domain)
+mismatched_domains = get_mismatched_domains(mismatched_home_pages, database_details)
+for mismatch in mismatched_domains:
+    old_domain = mismatch['database_domain']
+    new_domain = mismatch['search_domain']
+    old_home_page = mismatch['database_home']
+    new_home_page = mismatch['search_home']
+    tier = mismatch['tier']
+    print("\n{} -> {} ({} -> {}) tier {}".format(old_domain, new_domain, old_home_page, new_home_page, tier))
+    if args.update:
+        print(sql_insert_new_domain.format(new_domain=new_domain, new_home_page=new_home_page, old_domain=old_domain))
+        print(sql_insert_listing_status.format(new_domain=new_domain, old_domain=old_domain))
 
