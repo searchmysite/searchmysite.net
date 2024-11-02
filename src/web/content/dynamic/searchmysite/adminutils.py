@@ -126,6 +126,7 @@ def delete_domain_from_database(domain):
 # so if it is updated in one it should be updated in the other
 def send_email(reply_to_email, to_email, subject, text): 
     success = True
+    server = None
     if not to_email:
         recipients = [smtp_to_email]
     else:
@@ -151,7 +152,8 @@ def send_email(reply_to_email, to_email, subject, text):
         logger = logging.getLogger()
         logger.error('Error sending email: {}'.format(e))
     finally:
-        server.quit() 
+        if server is not None:
+            server.quit() 
     return success
 
 # This will insert a new full subscription, 
