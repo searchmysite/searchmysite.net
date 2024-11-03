@@ -295,11 +295,11 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
 
         # content_chunks (pseudo-field for nested documents)
         # Get values from the previously indexed version of this page
-        previous_content_chunks = None
-        if response.url in previous_contents: # previous_contents already defined above
-            previous_page = previous_contents[response.url]
-            if 'content_chunks' in previous_page:
-                previous_content_chunks = previous_page['content_chunks']
+        #previous_content_chunks = None
+        #if response.url in previous_contents: # previous_contents already defined above
+        #    previous_page = previous_contents[response.url]
+        #    if 'content_chunks' in previous_page:
+        #        previous_content_chunks = previous_page['content_chunks']
         # Scenarios:
         # 1. Content has changed, or content is new, or there aren't any existing content_chunks (e.g. on first run) - regenerate
         # 2. Else reuse previous values
@@ -309,12 +309,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         #    has changed. That may be fine for minor embedding config changes, e.g. a change to the chunk length, but could be breaking
         #    for significant embedding config changes, e.g. if the embedding model is changed. Suggestion in the case of significant
         #    config changes is to delete all embeddings, e.g. via <delete><query>relationship:child</query></delete> . 
-        if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
-            content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], item['url'], domain)
-        else:
-            logger.debug("Reusing existing embeddings for {}".format(item['id']))
-            content_chunks = previous_content_chunks
-        item['content_chunks'] = content_chunks
+        #if (previous_content and new_content and previous_content != new_content) or (new_content and not previous_content) or (not previous_content_chunks):
+        #    content_chunks = get_content_chunks(content_text, site_config['content_chunks_limit'], item['id'], item['url'], domain)
+        #else:
+        #    logger.debug("Reusing existing embeddings for {}".format(item['id']))
+        #    content_chunks = previous_content_chunks
+        #item['content_chunks'] = content_chunks
 
         # published_date
         published_date = response.xpath('//meta[@property="article:published_time"]/@content').get()
