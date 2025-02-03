@@ -93,7 +93,7 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         card_number_input = browser.find_element(By.ID, 'cardNumber')
         card_number_input.send_keys('4242424242424242')
         card_expiry_input = browser.find_element(By.ID, 'cardExpiry')
-        card_expiry_input.send_keys('10/24')
+        card_expiry_input.send_keys('10/26')
         card_cvc_input = browser.find_element(By.ID, 'cardCvc')
         card_cvc_input.send_keys('123')
         card_billing_name_input = browser.find_element(By.ID, 'billingName')
