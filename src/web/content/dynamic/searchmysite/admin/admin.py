@@ -14,15 +14,16 @@ bp = Blueprint('admin', __name__)
 
 
 actions_list = [
-{'id':'action1', 'value':'noaction',             'checked':True,  'label':'No action'},
-{'id':'action2', 'value':'approve',              'checked':False, 'label':'Approve'},
-{'id':'action3', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site'},
-{'id':'action4', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
-{'id':'action5', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
-{'id':'action6', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
-{'id':'action7', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding'},
-{'id':'action8', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use'},
-{'id':'action9', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
+{'id':'action01', 'value':'noaction',             'checked':True,  'label':'No action'},
+{'id':'action02', 'value':'approve',              'checked':False, 'label':'Approve'},
+{'id':'action03', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site'},
+{'id':'action04', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
+{'id':'action05', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
+{'id':'action06', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
+{'id':'action07', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding'},
+{'id':'action08', 'value':'reject-robotsblocked', 'checked':False, 'label':'Reject - indexing blocked by robots.txt'},
+{'id':'action09', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use'},
+{'id':'action10', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
 ]
 
 
@@ -81,6 +82,8 @@ def review():
                             reason = "No content"
                         elif action == "reject-notresponding":
                             reason = "Site not responding"
+                        elif action == "reject-robotsblocked":
+                            reason = "Indexing blocked by robots.txt"
                         elif action == "reject-breach":
                             reason = "Site breaches Terms of Use"
                         else:
