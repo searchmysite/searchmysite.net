@@ -162,6 +162,5 @@ VALUES
 ('domain_allowing_subdomains', 'wixsite.com'),
 ('domain_allowing_subdomains', 'mixa.site'),
 ('domain_allowing_subdomains', 'typepad.com'),
-('domain_allowing_subdomains', 'wordpress.com'),
-;
+('domain_allowing_subdomains', 'wordpress.com');
 
