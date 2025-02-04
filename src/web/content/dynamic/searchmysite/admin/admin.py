@@ -14,16 +14,17 @@ bp = Blueprint('admin', __name__)
 
 
 actions_list = [
-{'id':'action01', 'value':'noaction',             'checked':True,  'label':'No action'},
-{'id':'action02', 'value':'approve',              'checked':False, 'label':'Approve'},
-{'id':'action03', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site'},
-{'id':'action04', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
-{'id':'action05', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
-{'id':'action06', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
-{'id':'action07', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding'},
-{'id':'action08', 'value':'reject-robotsblocked', 'checked':False, 'label':'Reject - indexing blocked by robots.txt'},
-{'id':'action09', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use'},
-{'id':'action10', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
+{'id':'action01', 'value':'noaction',             'checked':True,  'label':'No action',                               'reason':''},
+{'id':'action02', 'value':'approve',              'checked':False, 'label':'Approve',                                 'reason':''},
+{'id':'action03', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site',            'reason':'Not a personal website'},
+{'id':'action04', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained',        'reason':'Not actively maintained'},
+{'id':'action05', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain',                  'reason':'Shared domain'},
+{'id':'action06', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content',                     'reason':'No content'},
+{'id':'action07', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding',                 'reason':'Site not responding'},
+{'id':'action08', 'value':'reject-domainexpired', 'checked':False, 'label':'Reject - domain expired',                 'reason':'Domain expired'},
+{'id':'action09', 'value':'reject-robotsblocked', 'checked':False, 'label':'Reject - indexing blocked by robots.txt', 'reason':'Indexing blocked by robots.txt'},
+{'id':'action10', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use',          'reason':'Site breaches Terms of Use'},
+{'id':'action11', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed',              'reason':'Reason not listed'},
 ]
 
 
@@ -72,22 +73,7 @@ def review():
                         cursor.execute(searchmysite.sql.sql_update_basic_approved, (domain, moderator, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
-                        if action == "reject-notpersonal":
-                            reason = "Not a personal website"
-                        elif action == "reject-notmaintained":
-                            reason = "Not actively maintained"
-                        elif action == "reject-shared":
-                            reason = "Shared domain"
-                        elif action == "reject-nocontent":
-                            reason = "No content"
-                        elif action == "reject-notresponding":
-                            reason = "Site not responding"
-                        elif action == "reject-robotsblocked":
-                            reason = "Indexing blocked by robots.txt"
-                        elif action == "reject-breach":
-                            reason = "Site breaches Terms of Use"
-                        else:
-                            reason = "Reason not listed"
+                        reason = next((a['reason'] for a in actions_list if a['value'] == action), 'Reason not listed') # Use the reason for value matching action, default to 'Reason not listed'
                         moderator = session['logged_in_domain']
                         cursor.execute(searchmysite.sql.sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()
