@@ -1,4 +1,5 @@
 FROM python:3.11.2
+# The python version in the indexing container should be exactly the same as the python version in the web container
 
 WORKDIR /usr/src/app
 

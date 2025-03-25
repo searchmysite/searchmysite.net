@@ -65,6 +65,18 @@ def select_indexed_domains():
         indexed_domains.append(result['domain'])
     return indexed_domains
 
+# Returns the most recent completed indexing message from the indexing log, or NEW if none
+def get_most_recent_indexing_log_message(domain):
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_indexing_log_message, (domain,))
+    last_indexing_log_message = cursor.fetchone()
+    if last_indexing_log_message:
+        message = last_indexing_log_message['message']
+    else:
+        message = 'NEW'
+    return message
+
 # Get the actual host URL, for use in links which need to contain the servername and protocol
 # This will be 'http://127.0.0.1:5000/' if run in Flask and 'http://127.0.0.1:8080/' if run in Apache httpd + mod_wsgi
 # If run behind a reverse proxy, production will also be 'http://127.0.0.1:8080/', 
@@ -110,10 +122,12 @@ def delete_domain_from_database(domain):
 
 # reply_to_email and to_email optional.
 # If reply_to_email None no Reply-To header set, and if to_email None then smtp_to_email env variable is used
-# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/util.py
+# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/adminutils.py
 # so if it is updated in one it should be updated in the other
 def send_email(reply_to_email, to_email, subject, text): 
+    logger = logging.getLogger()
     success = True
+    server = None
     if not to_email:
         recipients = [smtp_to_email]
     else:
@@ -128,18 +142,16 @@ def send_email(reply_to_email, to_email, subject, text):
         message["CC"] = smtp_to_email # Always cc the smtp_to_email env variable
         message["Subject"] = subject
         message.attach(MIMEText(text, "plain"))
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context)
         #server.set_debuglevel(1)
-        server.starttls(context=context) # Secure the connection
         server.login(smtp_from_email, smtp_from_password)
         server.sendmail(smtp_from_email, recipients, message.as_string())
     except Exception as e:
         success = False
-        #current_app.logger.error('Error sending email: {}'.format(e))
-        logger = logging.getLogger()
         logger.error('Error sending email: {}'.format(e))
     finally:
-        server.quit() 
+        if server is not None:
+            server.quit() 
     return success
 
 # This will insert a new full subscription, 

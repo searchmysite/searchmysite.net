@@ -248,12 +248,7 @@ def expire_listings(tier):
                         text += 'Once the Free Trial expires, you will need to renew via Add Site (although you will not need to verify ownership of your site again).\n\n'
                         text += 'If you have any questions or comments, please don\'t hesitate to reply.\n\n'
                         text += 'Regards,\n\nsearchmysite.net\n\n'
-                        # Currently using:
-                        # success_status = send_email(None, None, subject, text)
-                        # This is so it defaults to sending to admin. Once a few emails have been successfully sent, this should be changed to   
-                        # success_status = send_email(None, expired_listing['email'], subject, text)
-                        # so that the emails go direct to the users
-                        success_status = send_email(None, None, subject, text)
+                        success_status = send_email(None, expired_listing['email'], subject, text) # Note that send_email still sends a copy to smtp_to_email i.e. admin
                         if not success_status:
                             logger.error('Error sending email')
                 conn.commit()
@@ -582,10 +577,12 @@ def get_latest_available_wikipedia_export(dump_location):
 
 # reply_to_email and to_email optional.
 # If reply_to_email None no Reply-To header set, and if to_email None then smtp_to_email env variable is used
-# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/util.py
+# IMPORTANT: This function is in both indexing/common/utils.py and web/content/dynamic/searchmysite/adminutils.py
 # so if it is updated in one it should be updated in the other
 def send_email(reply_to_email, to_email, subject, text): 
+    logger = logging.getLogger()
     success = True
+    server = None
     if not to_email:
         recipients = [smtp_to_email]
     else:
@@ -600,16 +597,14 @@ def send_email(reply_to_email, to_email, subject, text):
         message["CC"] = smtp_to_email # Always cc the smtp_to_email env variable
         message["Subject"] = subject
         message.attach(MIMEText(text, "plain"))
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context)
         #server.set_debuglevel(1)
-        server.starttls(context=context) # Secure the connection
         server.login(smtp_from_email, smtp_from_password)
         server.sendmail(smtp_from_email, recipients, message.as_string())
     except Exception as e:
         success = False
-        #current_app.logger.error('Error sending email: {}'.format(e))
-        logger = logging.getLogger()
         logger.error('Error sending email: {}'.format(e))
     finally:
-        server.quit() 
+        if server is not None:
+            server.quit() 
     return success

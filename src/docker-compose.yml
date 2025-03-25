@@ -1,5 +1,3 @@
-version: '3'
-
 services:
 
   search:
@@ -77,12 +75,12 @@ services:
       STRIPE_PRODUCT_ID: ${STRIPE_PRODUCT_ID}
       STRIPE_ENDPOINT_SECRET: ${STRIPE_ENDPOINT_SECRET}
 
-  models:
-    build: "models/"
-    image: models_dev
-    container_name: models_dev
-    restart: "no"
-    ports:
-      - "8083:8080"
-      - "8081:8081"
-      - "8082:8082"
+#  models:
+#    build: "models/"
+#    image: models_dev
+#    container_name: models_dev
+#    restart: "no"
+#    ports:
+#      - "8083:8080"
+#      - "8081:8081"
+#      - "8082:8082"

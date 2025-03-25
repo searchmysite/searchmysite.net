@@ -110,6 +110,8 @@ sql_update_basic_reject = "UPDATE tblListingStatus "\
     "indexing_disabled_changed = NOW() "\
     "WHERE domain = (%s);"
 
+sql_select_indexing_log_message = "SELECT domain, message FROM tblindexinglog WHERE domain IN ((%s)) AND status = 'COMPLETE' ORDER BY timestamp DESC LIMIT 1;"
+
 
 # SQL for admin/auth.py
 # ---------------------

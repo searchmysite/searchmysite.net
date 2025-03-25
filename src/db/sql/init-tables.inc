@@ -160,6 +160,7 @@ VALUES
 ('domain_allowing_subdomains', 'bearblog.dev'),
 ('domain_allowing_subdomains', 'vercel.app'),
 ('domain_allowing_subdomains', 'wixsite.com'),
-('domain_allowing_subdomains', 'mixa.site')
-;
+('domain_allowing_subdomains', 'mixa.site'),
+('domain_allowing_subdomains', 'typepad.com'),
+('domain_allowing_subdomains', 'wordpress.com');
 

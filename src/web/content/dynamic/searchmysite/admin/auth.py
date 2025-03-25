@@ -226,12 +226,12 @@ def get_login_session():
 # (i) just confirming they have IndieAuth login setup for that domain and can login to IndieAuth (for the add site workflow)
 # (ii) as per (i) but with an additional check that the domain is present and enabled in searchmysite.net (for the searchmysite.net login workflow)
 def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsql):
-    current_app.logger.debug('Starting do_indieauth_login')
+    current_app.logger.info('Starting do_indieauth_login')
     return_action = "redirect" # default, alternative is render_template
     return_target = current_page # default, alternative is next_page
     param_state = request.args.get('state')
     code = request.args.get('code')
-    current_app.logger.debug('request.base_url: {}, request.host_url: {}, request.headers.get(\'X-Forwarded-Host\'): {}'.format(request.base_url, request.host_url, request.headers.get('X-Forwarded-Host')))
+    current_app.logger.info('request.base_url: {}, request.host_url: {}, request.headers.get(\'X-Forwarded-Host\'): {}'.format(request.base_url, request.host_url, request.headers.get('X-Forwarded-Host')))
     if addsite_workflow or session.get('redirect_uri') is None: # Always use the current URL (base_url) for redirect_uri if in addsite_workflow, otherwise it'll pickup the login URL if they've clicked on a login protected URL before Add Site
         redirect_uri = get_host(request.base_url, request.headers) # need it to be e.g. https://searchmysite.net/admin/login/ (base_url) rather than https://searchmysite.net/admin/ (url_root)
         session['redirect_uri'] = redirect_uri
@@ -247,15 +247,15 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
         session['state'] = session_state
     else:
         session_state = session.get('state')
-    current_app.logger.debug('redirect_uri: {}, client_id: {}, state: {}'.format(redirect_uri, client_id, session_state))
+    current_app.logger.info('redirect_uri: {}, client_id: {}, state: {}'.format(redirect_uri, client_id, session_state))
     # If they haven't been redirected back here by IndieAuth
     if param_state is None and code is None:
-        current_app.logger.debug('Haven\'t been to IndieAuth yet')
+        current_app.logger.info('Haven\'t been to IndieAuth yet')
         return_action = "render_template"
         return_target = current_page
     # If they have been redirected back here by IndieAuth
     else: 
-        current_app.logger.debug('Redirected here by IndieAuth')
+        current_app.logger.info('Redirected here by IndieAuth')
         if param_state != session_state: # step 3 check
             current_app.logger.error('Submitted state does not match returned state')
             error_message = 'Submitted state does not match returned state. Please try again.'
@@ -263,7 +263,7 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
             return_action = "render_template"
             return_target = current_page
         else: # step 4 check
-            current_app.logger.debug('Submitted state matches returned state')
+            current_app.logger.info('Submitted state matches returned state')
             indieauth = "https://indielogin.com/auth"
             headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'Accept': 'application/json'}
             payload = {'code': code, 'redirect_uri': redirect_uri, 'client_id': client_id}
@@ -314,7 +314,7 @@ def do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsq
                         return_action = "redirect"
                         return_target = next_page
                 else: # if logon workflow
-                    if indexed_result is not None and indexed_result['owner_verified'] == True and indexed_result['contact_email'] is not None:
+                    if indexed_result is not None and indexed_result['status'] == 'ACTIVE' and indexed_result['email'] is not None:
                         set_login_session(domain, "indieauth")
                         return_action = "redirect"
                         return_target = next_page

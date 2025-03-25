@@ -1,5 +1,5 @@
 FROM postgres:12.4-alpine
-# Note: A data export and import will be required to migrate from postgres 12 to postgres 13
+# Note: A data export and import will be required to upgrade major versions of postgres
 
 # scripts in /docker-entrypoint-initdb.d are only run if you start the container with a data directory that is empty; 
 # any pre-existing database will be left untouched on container startup

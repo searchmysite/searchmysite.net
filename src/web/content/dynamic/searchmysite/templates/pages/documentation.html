@@ -257,25 +257,13 @@
 						</p>
 						<p class="sms-p2">
 							If you only have a Basic listing, or don't want to use the API, a simple alternative is to 
-							have a form which takes a query and appends "+domain:&lt;domain&gt; " to the query string (q parameter) and 
-							sends to https://searchmysite.net/search/ . The plus before the domain is to 
-							ensure that term is mandatory, i.e. that all results must come from that domain, and the space after the actual domain is to separate 
-							that term from any other query terms. For example, the form could take "antarctica book" and 
-							redirect to <a href="https://searchmysite.net/search/?q=%2Bdomain%3Amichael-lewis.com+antarctica+book">https://searchmysite.net/search/?q=%2Bdomain%3Amichael-lewis.com+antarctica+book</a> 
-							(noting that the + before domain is URL encoded as %2B and the space after the actual domain is encoded in this case as a +).
-							A simple form to do this could look like:
+							have a form which takes a query and a domain hidden parameter containing the value of
+							the domain to which to want to restrict results, e.g. (for michael-lewis.com): 
 						</p>
 						<pre><code>
-&lt;script&gt;
-  window.onload = function() {
-    document.getElementById('searchForm').onsubmit = function() {
-      var searchQuery = document.getElementById('searchQuery');
-      searchQuery.value = "+domain:michael-lewis.com " + searchQuery.value;
-    };
-  };
-&lt;/script&gt;
-&lt;form id="searchForm" action="https://searchmysite.net/search/"&gt;
-  &lt;input id="searchQuery" type="search" name="q" &gt;&lt;/input&gt;
+&lt;form action="https://searchmysite.net/search/"&gt;
+  &lt;input type="search" name="q" &gt;&lt;/input&gt;
+  &lt;input type="hidden" name="domain" value="michael-lewis.com"&gt;&lt;/input&gt;
   &lt;input type="submit" value="Search"&gt;&lt;/input&gt;
 &lt;/form&gt;
 						</code></pre>	

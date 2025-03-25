@@ -5,7 +5,7 @@ from os import environ
 import psycopg2.extras
 from searchmysite.admin.auth import login_required, admin_required
 from searchmysite.db import get_db
-from searchmysite.adminutils import delete_domain, delete_domain_from_solr
+from searchmysite.adminutils import delete_domain, delete_domain_from_solr, get_most_recent_indexing_log_message
 import config
 import searchmysite.sql
 
@@ -14,15 +14,17 @@ bp = Blueprint('admin', __name__)
 
 
 actions_list = [
-{'id':'action1', 'value':'noaction',             'checked':True,  'label':'No action'},
-{'id':'action2', 'value':'approve',              'checked':False, 'label':'Approve'},
-{'id':'action3', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site'},
-{'id':'action4', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained'},
-{'id':'action5', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain'},
-{'id':'action6', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content'},
-{'id':'action7', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding'},
-{'id':'action8', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use'},
-{'id':'action9', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed'},
+{'id':'action01', 'value':'noaction',             'checked':True,  'label':'No action',                               'reason':''},
+{'id':'action02', 'value':'approve',              'checked':False, 'label':'Approve',                                 'reason':''},
+{'id':'action03', 'value':'reject-notpersonal',   'checked':False, 'label':'Reject - not a personal site',            'reason':'Not a personal website'},
+{'id':'action04', 'value':'reject-notmaintained', 'checked':False, 'label':'Reject - not actively maintained',        'reason':'Not actively maintained'},
+{'id':'action05', 'value':'reject-shared',        'checked':False, 'label':'Reject - shared domain',                  'reason':'Shared domain'},
+{'id':'action06', 'value':'reject-nocontent',     'checked':False, 'label':'Reject - no content',                     'reason':'No content'},
+{'id':'action07', 'value':'reject-notresponding', 'checked':False, 'label':'Reject - not responding',                 'reason':'Site not responding'},
+{'id':'action08', 'value':'reject-domainexpired', 'checked':False, 'label':'Reject - domain expired',                 'reason':'Domain expired'},
+{'id':'action09', 'value':'reject-robotsblocked', 'checked':False, 'label':'Reject - indexing blocked by robots.txt', 'reason':'Indexing blocked by robots.txt'},
+{'id':'action10', 'value':'reject-breach',        'checked':False, 'label':'Reject - breaches Terms of Use',          'reason':'Site breaches Terms of Use'},
+{'id':'action11', 'value':'reject-other',         'checked':False, 'label':'Reject - reason not listed',              'reason':'Reason not listed'},
 ]
 
 
@@ -40,6 +42,7 @@ def review():
         review_form = [] # Form will be constructed from a list of dicts, where the dict will have domain, home, category, date and actions values, and actions will be a list
         count = 0
         for result in results:
+            # Construct actions list
             count += 1
             actions = [] 
             name = 'domain'+str(count)
@@ -47,7 +50,10 @@ def review():
                 action_id = name+action['id']
                 action_value = result['domain']+':'+action['value']
                 actions.append({'id':action_id, 'name':name, 'value':action_value, 'checked':action['checked'], 'label':action['label']})
-            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['category'], 'date':result['domain_first_submitted'], 'actions':actions})
+            # Determine status of last index (or NEW if no last index)
+            status = get_most_recent_indexing_log_message(result['domain'])
+            # Append to review_form list of dicts
+            review_form.append({'domain':result['domain'], 'home':result['home_page'], 'category':result['category'], 'date':result['domain_first_submitted'].strftime('%d %b %Y, %H:%M'), 'status':status, 'actions':actions})
         return render_template('admin/review.html', results=results, review_form=review_form)
     else: # i.e. if POST 
         if results:
@@ -67,20 +73,7 @@ def review():
                         cursor.execute(searchmysite.sql.sql_update_basic_approved, (domain, moderator, domain, ))
                         conn.commit()
                     elif action.startswith("reject"):
-                        if action == "reject-notpersonal":
-                            reason = "Not a personal website"
-                        elif action == "reject-notmaintained":
-                            reason = "Not actively maintained"
-                        elif action == "reject-shared":
-                            reason = "Shared domain"
-                        elif action == "reject-nocontent":
-                            reason = "No content"
-                        elif action == "reject-notresponding":
-                            reason = "Site not responding"
-                        elif action == "reject-breach":
-                            reason = "Site breaches Terms of Use"
-                        else:
-                            reason = "Reason not listed"
+                        reason = next((a['reason'] for a in actions_list if a['value'] == action), 'Reason not listed') # Use the reason for value matching action, default to 'Reason not listed'
                         moderator = session['logged_in_domain']
                         cursor.execute(searchmysite.sql.sql_update_basic_reject, (domain, moderator, reason, domain))
                         conn.commit()

@@ -12,7 +12,8 @@ sort_options_newest = {"published_date desc": "Published (new-old)", "published_
 default_sort_search = "score desc"
 default_sort_browse = "date_domain_added desc"
 default_sort_newest = "published_date desc"
-mandatory_filter_queries_search = ["public:true", "!content_type:*xml", "!content_type:application*", "!content_type:binary*"]
+#mandatory_filter_queries_search = ["public:true", "!content_type:*xml", "!content_type:text/css", "!content_type:application*", "!content_type:binary*"]
+mandatory_filter_queries_search = ["public:true", "(content_type:text/html OR content_type:text/plain)"]
 mandatory_filter_queries_browse = ["public:true", "is_home:true"]
 mandatory_filter_queries_newest = mandatory_filter_queries_search + ["contains_adverts:false", "published_date:[NOW-30YEARS TO NOW]", "is_home:false"] # to ensure no future dates or infeasibly far past dates, and no home pages
 split_text = '--split-here--'
@@ -64,6 +65,7 @@ query_params_search = {
 
 query_facets_search = {
     "site_category":                { "field": "site_category",                "type": "terms", "limit":  2, "sort": "count" },
+    "domain":                       { "field": "domain",                       "type": "terms", "limit":  6, "sort": "count" },
     "in_web_feed":                  { "field": "in_web_feed",                  "type": "terms", "limit":  2, "sort": "count" },
     "language_primary":             { "field": "language_primary",             "type": "terms", "limit": 20, "sort": "count" }
 }
