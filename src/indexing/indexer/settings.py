@@ -67,8 +67,6 @@ DOWNLOAD_WARNSIZE = 1048576 # 1Mb
 # If the spider remains open for more than that number of seconds, it will be automatically closed with the reason closespider_timeout
 CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
 
-REQUEST_FINGERPRINTER_IMPLEMENTATION = '2.7'
-
 # Changing from Last In First Out to First In First Out as per https://docs.scrapy.org/en/latest/faq.html#does-scrapy-crawl-in-breadth-first-or-depth-first-order
 # This is because important links like the RSS/Atom feed are often found first but not reached before the indexing page limit 
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
