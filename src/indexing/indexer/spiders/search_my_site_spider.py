@@ -175,7 +175,7 @@ class SearchMySiteSpider(CrawlSpider):
     # for each url in start_urls"
     # The dont_filter=True means that the start_urls bypass the deduplication, which means a 2nd home page could be indexed after the first, 
     # and the 2nd wouldn't have is_home=true, so we need to override this method
-    def start_requests(self):
+    async def start(self):
         for url in self.start_urls:
             yield Request(url)
 
