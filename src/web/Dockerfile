@@ -12,8 +12,8 @@ COPY requirements.txt ./
 RUN apt-get update && apt-get install -y apache2-dev libpq-dev git && apt-get install -y python3 python3-pip python3-dev
 
 # Install rust compiler, and make available in PATH, for safetensors (required by sentence-transformers) on aarch64
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH "$PATH:/root/.cargo/bin"
+#RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+#ENV PATH "$PATH:/root/.cargo/bin"
 
 # Install pip packages, with --break-system-packages to avoid the "error: externally-managed-environment" as per PEP 668 
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
