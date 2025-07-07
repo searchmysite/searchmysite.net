@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta charset="utf-8">
-	<meta name="description" content="searchmysite.net - the open source search engine and search as a service for user-submitted personal and independent websites">
-	<meta name="keywords" content="search my site, independent search engine, search as a service, open source search, blog search engine">
+	<meta name="description"
+		content="searchmysite.net - the open source search engine and search as a service for user-submitted personal and independent websites">
+	<meta name="keywords"
+		content="search my site, independent search engine, search as a service, open source search, blog search engine">
 	<title>{% block title %}{% endblock %}</title>
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.5.2.2.min.css"/>
-	<link rel="stylesheet" type="text/css" href="/static/css/custom.css"/>
-	<script defer src="/static/js/bootstrap.5.2.2.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.5.3.7.min.css" />
+	<link rel="stylesheet" type="text/css" href="/static/css/custom.css" />
+	<script defer src="/static/js/bootstrap.5.3.7.min.js"></script>
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
-	<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css" />
 	{% block head %}{% endblock %}
 </head>
+
 <body class="d-flex flex-column min-vh-100 sms-body">
 
 	<div class="sms-search-container">
@@ -22,9 +26,11 @@
 			<nav class="navbar navbar-expand-sm navbar-light" aria-label="searchmysite.net navbar">
 				<div class="container-fluid">
 					<div class="sms-logo">
-						<a href="/"><img src="../../../static/images/searchmysite-logo.svg" alt="Search My Site Logo"></a>
+						<a href="/"><img src="../../../static/images/searchmysite-logo.svg"
+								alt="Search My Site Logo"></a>
 					</div>
-					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav"
+						aria-controls="topnav" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
 					<div class="collapse navbar-collapse flex-grow-0 sms-user-nav" id="topnav">
@@ -78,7 +84,8 @@
 					<li class="p-1">Community</li>
 					<li class="p-1"><a href="https://blog.searchmysite.net/">Blog</a></li>
 					<li class="p-1"><a href="/admin/contact/">Contact</a></li>
-					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
+					<li class="p-1"><a
+							href="https://github.com/searchmysite/searchmysite.net/discussions">Discussion</a></li>
 					<li class="p-1"><a href="/pages/documentation/">Documentation</a></li>
 					<li class="p-1"><a href="https://github.com/searchmysite/searchmysite.net">Source</a></li>
 				</ul>
@@ -95,4 +102,5 @@
 	</footer>
 
 </body>
+
 </html>
