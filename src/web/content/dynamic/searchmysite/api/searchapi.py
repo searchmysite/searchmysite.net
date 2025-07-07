@@ -10,7 +10,7 @@ import xml.dom.minidom
 from searchmysite.db import get_db
 import config
 import searchmysite.solr
-from searchmysite.searchutils import check_if_api_enabled_for_domain, get_search_params, get_groupbydomain, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results, do_vector_search, get_query_vector_string
+from searchmysite.searchutils import check_if_api_enabled_for_domain, get_search_params, get_groupbydomain, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results #, do_vector_search, get_query_vector_string
 import requests
 
 

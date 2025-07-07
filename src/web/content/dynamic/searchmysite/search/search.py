@@ -8,7 +8,7 @@ from random import randrange
 from datetime import datetime, date
 import config
 import searchmysite.solr
-from searchmysite.searchutils import get_search_params, get_groupbydomain, get_query_vector_string, get_start, get_filter_queries, do_search, do_vector_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results
+from searchmysite.searchutils import get_search_params, get_groupbydomain, get_start, get_filter_queries, do_search, get_no_of_results, get_page_range, get_links, get_display_pagination, get_display_facets, get_display_results #, get_query_vector_string, do_vector_search
 from searchmysite.adminutils import select_indexed_domains
 import os
 
