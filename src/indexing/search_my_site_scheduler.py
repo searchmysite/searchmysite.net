@@ -1,8 +1,8 @@
 import scrapy
-from twisted.internet import reactor
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
+from scrapy.utils.reactor import install_reactor
 import logging
 import psycopg2
 import psycopg2.extras
@@ -159,7 +159,7 @@ for site_to_crawl in sites_to_crawl:
     site_to_crawl['indexed_inlinks'] = indexed_inlinks
     # content, i.e. get_contents(domain)
     contents = get_contents(domain)
-    logger.debug('contents: {}'.format(contents))
+    #logger.debug('contents: {}'.format(contents))
     site_to_crawl['contents'] = contents
     # already_indexed_links, i.e. pages on this domain which have already been indexed.
     # This is only set if it is needed, i.e. for an incremental index.
@@ -184,13 +184,20 @@ for site_to_crawl in sites_to_crawl:
 sites_to_crawl = [site_to_crawl for site_to_crawl in sites_to_crawl if site_to_crawl['domain'] not in sites_to_remove]
 
 # Run the crawler
+# Note that from Scrapy 2.13.0 you need to
+# (i) explicitly install_reactor for a CrawlerRunner (see https://docs.scrapy.org/en/latest/topics/practices.html#run-scrapy-from-a-script) and
+# (ii) import reactor *after* the install_reactor (rather than with the other imports at the start of the file) because the
+# twisted.internet.reactor import installs the default Twisted reactor as a side effect and once a Twisted reactor is installed it is not possible to switch to a different reactor at run time
+# (see https://docs.scrapy.org/en/latest/topics/asyncio.html#handling-a-pre-installed-reactor)
 
 if sites_to_crawl:
+    install_reactor(settings.get('TWISTED_REACTOR')) 
     runner = CrawlerRunner(settings)
     for site_to_crawl in sites_to_crawl:
         runner.crawl(SearchMySiteSpider, 
         site_config=site_to_crawl, common_config=common_config 
         )
+    from twisted.internet import reactor
     d = runner.join()
     d.addBoth(lambda _: reactor.stop())
 

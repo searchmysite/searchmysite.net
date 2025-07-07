@@ -64,6 +64,10 @@ DOWNLOAD_MAXSIZE = 2097152 # 2Mb
 # Default: 33554432 (32MB)
 DOWNLOAD_WARNSIZE = 1048576 # 1Mb
 
+# From Scrapy 2.13.0, to enable asyncio support, your TWISTED_REACTOR setting needs to be set to 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
+# See: https://docs.scrapy.org/en/latest/news.html#backward-incompatible-changes & https://docs.scrapy.org/en/latest/topics/asyncio.html#installing-the-asyncio-reactor
+TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
+
 # If the spider remains open for more than that number of seconds, it will be automatically closed with the reason closespider_timeout
 CLOSESPIDER_TIMEOUT = 1800 # i.e. 30 minutes
 
