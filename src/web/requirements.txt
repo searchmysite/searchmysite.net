@@ -10,5 +10,5 @@ git+https://github.com/rs/domcheck#egg=domcheck
 cryptography>=35.0
 rust
 scrapy==2.13.3
-sentence-transformers
+#sentence-transformers
 
