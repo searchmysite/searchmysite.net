@@ -1,7 +1,7 @@
-FROM httpd:2.4.57
-# If the httpd version is updated, check python version in new httpd container, then 
+FROM httpd:2.4.63
+# If the httpd version is updated, check python version in new httpd container with docker exec -it web_dev python3 --version, then 
 # (i) update indexing Dockerfile to match, and (ii) update symlink to mod_wsgi.so below accordingly
-# httpd:2.4.50 is Python 3.7.3, httpd:2.4.51 to httpd:2.4.54 are Python 3.9.2, and httpd:2.4.57 is Python 3.11.2
+# httpd:2.4.50 is Python 3.7.3, httpd:2.4.51 to httpd:2.4.54 are Python 3.9.2, and httpd:2.4.57 to httpd:2.4.63 are Python 3.11.2
 
 # Working dir is /usr/local/apache2 so we'll end up with requirements.txt there, but that is outside the web root 
 COPY requirements.txt ./
