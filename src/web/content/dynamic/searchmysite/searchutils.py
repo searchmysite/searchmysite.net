@@ -9,7 +9,7 @@ import searchmysite.solr
 import searchmysite.sql
 from searchmysite.db import get_db
 from searchmysite.adminutils import get_host
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 
 
 
@@ -111,12 +111,12 @@ def get_groupbydomain(params, search_type):
 # Get the query string expressed as a vector string
 # i.e. convert the query string to a vector and convert the vector to a string representation of a list, 
 # e.g. "[1.0, 2.0, 3.0, 4.0]" as required by Solr (see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html)
-def get_query_vector_string(query):
-    model = SentenceTransformer(config.EMBEDDING_MODEL)
-    embedding = model.encode(query)
-    query_vector = embedding.tolist()
-    query_vector_string = repr(query_vector)
-    return query_vector_string
+# def get_query_vector_string(query):
+#     model = SentenceTransformer(config.EMBEDDING_MODEL)
+#     embedding = model.encode(query)
+#     query_vector = embedding.tolist()
+#     query_vector_string = repr(query_vector)
+#     return query_vector_string
 
 # Get start parameter for Solr query
 def get_start(params):
@@ -176,23 +176,23 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
 # Need double curly braces to escape the curly braces.
 # Field in schema is content_chunk_vector.
 # Vector has to be a string representation of a list like "[1.0, 2.0, 3.0, 4.0]"
-def do_vector_search(query_vector_string, domain):
-    solr_select_params_vector_search = {
-        "q": '{{!knn f=content_chunk_vector topK=4}}{}'.format(query_vector_string),
-        "fl": ["id", "url", "content_chunk_text", "score"],
-        "fq": "domain:{}".format(domain)
-    }
-    solr_search = {}
-    solr_search['params'] = solr_select_params_vector_search
-    solr_search_json = json.dumps(solr_search)
-    solrquery = config.SOLR_URL + searchmysite.solr.solr_request_handler
-    response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
-    search_results = response.json()
-#    results = []
-#    for search_result in search_results['response']['docs']:
-#        result = extract_data_from_result(search_result, search_results, False)
-#        results.append(result)
-    return search_results
+#def do_vector_search(query_vector_string, domain):
+#    solr_select_params_vector_search = {
+#        "q": '{{!knn f=content_chunk_vector topK=4}}{}'.format(query_vector_string),
+#        "fl": ["id", "url", "content_chunk_text", "score"],
+#        "fq": "domain:{}".format(domain)
+#    }
+#    solr_search = {}
+#    solr_search['params'] = solr_select_params_vector_search
+#    solr_search_json = json.dumps(solr_search)
+#    solrquery = config.SOLR_URL + searchmysite.solr.solr_request_handler
+#    response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
+#    search_results = response.json()
+##    results = []
+##    for search_result in search_results['response']['docs']:
+##        result = extract_data_from_result(search_result, search_results, False)
+##        results.append(result)
+#    return search_results
 
 
 # Utils to get data required to display the results
