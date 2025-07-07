@@ -8,7 +8,7 @@ from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 import logging
 import feedparser
-from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text, get_content_chunks, get_vector
+from common.utils import extract_domain_from_url, convert_string_to_utc_date, convert_datetime_to_utc_date, get_text #, get_content_chunks, get_vector
 
 # Solr schema is:
 #    <field name="url" type="string" indexed="true" stored="true" required="true" />
