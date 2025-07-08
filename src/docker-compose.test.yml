@@ -21,7 +21,7 @@ services:
     ports:
       - "5432:5432"
 #    volumes:
-#      - "../../data/sqldata:/var/lib/postgresql/data"
+#      - "../../data/sqldata-pg17:/var/lib/postgresql/data"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
