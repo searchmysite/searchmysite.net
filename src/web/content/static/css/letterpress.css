@@ -51,22 +51,23 @@
     --dark-gray: #333333;
     --semi-dark-gray: #4A4A4A;
     --medium-dark-gray: #bcbcbc;
-    --light-gray:#CECECE;
+    --light-gray: #CECECE;
     --medium-light-gray: #D9D9D9;
     --underline-border-bottom: 0.125rem solid #DBA0C7;
-    font-size:calc(1vw);
+    font-size: calc(1vw);
 }
 
 /* DESKTOP LARGE REM SCALE */
 @media screen and (min-width: 1200px) {
     :root {
-        font-size:16px;
+        font-size: 16px;
     }
 }
+
 /* TABLET - SMALL LAPTOP AND SMALLER REM SCALE*/
 @media screen and (max-width: 1199px) {
     :root {
-        font-size:12px;
+        font-size: 12px;
     }
 }
 
@@ -78,13 +79,14 @@ body.sms-body {
 
 /* ICONS */
 
-div.sms-icons, span.sms-icons {
+div.sms-icons,
+span.sms-icons {
     font-family: 'SeMS-icons';
 }
 
 .sms-filters-icon {
     font-size: 1rem;
-    position:relative;
+    position: relative;
 }
 
 .sms-filters-icon::before {
@@ -96,17 +98,21 @@ div.sms-icons, span.sms-icons {
     left: -2.4rem;
     top: -0.8rem;
 }
+
 /* GENERAL */
 
-a, a:link, a:visited {
+a,
+a:link,
+a:visited {
     color: var(--dark-gray);
     padding: 0;
     font-weight: normal;
     border-bottom: 0.125rem solid transparent;
 }
 
-a.nav-link, a:link.nav-link, a:visited.nav-link
-{
+a.nav-link,
+a:link.nav-link,
+a:visited.nav-link {
     padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
 }
 
@@ -120,7 +126,10 @@ a:hover {
     For now, this is used for the italics text on the landing page.
     "Search real content by real people from ..."
 **/
-em a, em a:link, em a:visited, em a:hover {
+em a,
+em a:link,
+em a:visited,
+em a:hover {
     color: var(--highlight) !important;
     font-weight: bold;
 }
@@ -131,13 +140,12 @@ em a:hover {
 
 a.sms-btn:hover,
 a.sms-medium-font.sms-btn:hover,
-a.sms-large-font.sms-btn:hover  {
+a.sms-large-font.sms-btn:hover {
     font-weight: normal;
     border: none;
 }
 
-.sms-browse .sms-underline-link a:hover
-{
+.sms-browse .sms-underline-link a:hover {
     border: none;
     text-decoration: underline;
     font-weight: normal;
@@ -148,6 +156,15 @@ table.sms-browse td.sms-first-column-cell {
     width: 50%;
 }
 
+.sms-browse td,
+.sms-browse th {
+    background-color: transparent;
+}
+
+.sms-table td,
+.sms-table th {
+    background-color: transparent;
+}
 
 
 
@@ -171,30 +188,33 @@ table.sms-browse td.sms-first-column-cell {
 
 .sms-standard p a,
 .sms-standard p a:link,
-.sms-standard p a:visited
-{
+.sms-standard p a:visited {
     /* font-weight: bold; */
     border-bottom: var(--underline-border-bottom);
 }
-p.sms-p1, ul.sms-list-1 li {
+
+p.sms-p1,
+ul.sms-list-1 li {
     font-size: var(--large-font-size);
     line-height: var(--large-line-height);
     margin-bottom: 1.5rem;
 }
 
-p.sms-p2, ul.sms-list-2 li {
+p.sms-p2,
+ul.sms-list-2 li {
     font-size: var(--med-font-size);
     line-height: var(--med-line-height);
     margin-bottom: 1rem;
 }
 
-p, p.sms-p3{
+p,
+p.sms-p3 {
     font-size: var(--reg-font-size);
     line-height: var(--reg-line-height);
     margin-bottom: 0.3rem;
 }
 
-p.sms-p4{
+p.sms-p4 {
     font-size: var(--small-font-size);
     line-height: var(--small-line-height);
     margin-bottom: 0.3rem;
@@ -208,12 +228,11 @@ pre {
 
 ul.sms-list-1.sms-special-bullet li {
     list-style: none;
-    padding: 0 0 0 2rem;    
+    padding: 0 0 0 2rem;
 }
 
 
-ul.sms-list-1.sms-special-bullet li:before
-{
+ul.sms-list-1.sms-special-bullet li:before {
     content: '\2749';
     margin-right: 1rem;
     margin-left: -2rem;
@@ -229,13 +248,14 @@ h2.sms-h2 {
 }
 
 h3.sms-h3 {
-    font-size:var(--large-font-size);
+    font-size: var(--large-font-size);
     font-weight: bold;
 }
 
 h4.sms-h4 {
     margin-bottom: 2rem;
 }
+
 .sms-standard ul.sms-list-2 li {
     margin-bottom: .5rem;
 }
@@ -260,27 +280,29 @@ h4.sms-h4 {
     padding: 1rem 1rem 1rem 0;
 }
 
-.sms-table td, .sms-table th {
+.sms-table td,
+.sms-table th {
     font-size: var(--med-font-size);
 }
 
 
-.sms-table-sml td, .sms-table-sml th {
+.sms-table-sml td,
+.sms-table-sml th {
     font-size: var(--reg-font-size);
 }
 
-.sms-table.sms-definition-table td:nth-child(1) {  
+.sms-table.sms-definition-table td:nth-child(1) {
     font-weight: bold;
-  }
+}
 
 .sms-table th {
     padding: 1rem 0 1rem 0;
-    border-bottom:.2rem solid var(--medium-dark-gray);
+    border-bottom: .2rem solid var(--medium-dark-gray);
 }
 
 
 blockquote.sms-quote-1 {
-    font-size:1.875rem;
+    font-size: 1.875rem;
     padding-top: 2rem;
     padding-bottom: 2rem;
     border-top: 0.0625rem solid var(--light-gray);
@@ -305,16 +327,18 @@ blockquote::after {
     font-size: var(--large-font-size);
 }
 
-a.sms-medium-font, a.sms-medium-font:link,
+a.sms-medium-font,
+a.sms-medium-font:link,
 a.sms-medium-font:visited {
     border-bottom: 0.125rem solid transparent;
 }
 
 a.sms-medium-font:hover {
     border-bottom: var(--underline-border-bottom);
-} 
+}
 
-a.sms-large-font, a.sms-large-font:link,
+a.sms-large-font,
+a.sms-large-font:link,
 a.sms-large-font:visited {
     border-bottom: 0.25rem solid transparent;
 }
@@ -340,27 +364,28 @@ a.sms-large-font:hover {
     border-width: 0.03125rem;
 }
 
-.sms-user-nav  ul li.nav-item{
+.sms-user-nav ul li.nav-item {
     padding: 0rem 2rem 0 0;
     /* width: 7rem; */
     text-align: right;
 }
 
-.sms-under-search-btns ul li.nav-item{
+.sms-under-search-btns ul li.nav-item {
     margin-top: 3rem;
     /* width: 7rem; */
 }
 
-.sms-under-search-btns ul{
+.sms-under-search-btns ul {
     width: 90%;
     display: flex;
     justify-content: space-between;
 }
 
 .sms-under-search-btns ul li a.nav-link,
-.sms-user-nav ul li a.nav-link{
+.sms-user-nav ul li a.nav-link {
     width: fit-content;
 }
+
 .sms-user-nav ul li a.nav-link {
     padding: 0 !important;
 }
@@ -376,6 +401,7 @@ a.sms-large-font:hover {
     display: flex;
     flex-direction: column;
 }
+
 .sms-home-header {
     height: 15vh;
 }
@@ -402,7 +428,7 @@ a.sms-large-font:hover {
 }
 
 .sms-layout-header {
-    padding-bottom:2rem;
+    padding-bottom: 2rem;
     background-color: var(--medium-light-gray);
 }
 
@@ -433,19 +459,21 @@ a.sms-large-font:hover {
 .sms-v-stripes {
     background-image: url("../images/stripes.png");
     background-repeat: repeat;
-    height:100%;
+    height: 100%;
     width: 80%;
 }
-.sms-about-section{
+
+.sms-about-section {
     padding-bottom: 5rem;
 }
+
 .sms-about-text {
     padding-top: 5rem;
     padding-bottom: 5rem;
 }
 
 .sms-about-text h1 {
-    margin-bottom:2.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .sms-r-stripe {
@@ -455,13 +483,14 @@ a.sms-large-font:hover {
 .sms-body footer {
     background-color: var(--dark-gray);
     color: white;
-    padding-top:4rem;
-    padding-bottom:4rem;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
 }
+
 .sms-body footer a,
 .sms-body footer a:link,
 .sms-body footer a:visited,
-.sms-body footer a:hover{
+.sms-body footer a:hover {
     color: white !important;
 }
 
@@ -469,60 +498,77 @@ a.sms-large-font:hover {
 .sms-b-4 {
     margin-bottom: .25rem !important;
 }
+
 .sms-b-8 {
     margin-bottom: .5rem !important;
 }
+
 .sms-b-16 {
     margin-bottom: 1rem !important;
 }
+
 .sms-b-20 {
-    margin-bottom:1.25rem !important;
+    margin-bottom: 1.25rem !important;
 }
+
 .sms-b-20 {
-    margin-bottom:1.25rem !important;
+    margin-bottom: 1.25rem !important;
 }
+
 .sms-b-24 {
-    margin-bottom:1.5rem !important;
+    margin-bottom: 1.5rem !important;
 }
+
 .sms-b-32 {
-    margin-bottom:2rem !important;
+    margin-bottom: 2rem !important;
 }
+
 .sms-b-48 {
-    margin-bottom:3rem !important;
+    margin-bottom: 3rem !important;
 }
+
 .sms-b-72 {
-    margin-bottom:4.5rem !important;
+    margin-bottom: 4.5rem !important;
 }
+
 .sms-b-80 {
-    margin-bottom:5rem !important;
+    margin-bottom: 5rem !important;
 }
 
 .sms-t-4 {
     margin-top: .25rem !important;
 }
+
 .sms-t-8 {
     margin-top: .5rem !important;
 }
+
 .sms-t-16 {
     margin-top: 1rem !important;
 }
+
 .sms-t-20 {
-    margin-top:1.25rem !important;
+    margin-top: 1.25rem !important;
 }
+
 .sms-t-24 {
-    margin-top:1.5rem !important;
+    margin-top: 1.5rem !important;
 }
+
 .sms-t-32 {
-    margin-top:2rem !important;
+    margin-top: 2rem !important;
 }
+
 .sms-t-48 {
-    margin-top:3rem !important;
+    margin-top: 3rem !important;
 }
+
 .sms-t-72 {
-    margin-top:4.5rem !important;
+    margin-top: 4.5rem !important;
 }
+
 .sms-t-80 {
-    margin-top:5rem !important;
+    margin-top: 5rem !important;
 }
 
 
@@ -535,17 +581,17 @@ a.sms-large-font:hover {
 .nav.sms-filters .nav-item {
     width: 100%;
 }
-  
+
 .nav.sms-filters {
     width: 100%;
-    text-align: right; 
+    text-align: right;
 }
 
 .sms-search-layout .sms-under-search-btns ul {
     width: 100%;
 }
 
-.sms-search-layout .sms-under-search-btns ul li.nav-item{
+.sms-search-layout .sms-under-search-btns ul li.nav-item {
     margin-top: 2rem;
     margin-bottom: 1.2rem;
 }
@@ -553,10 +599,11 @@ a.sms-large-font:hover {
 
 .sms-results-form {
     margin-top: 2rem;
-    padding-left:2rem;
+    padding-left: 2rem;
 }
 
-.sms-feed::before, .sms-feed::after {
+.sms-feed::before,
+.sms-feed::after {
     content: "~";
 }
 
@@ -600,8 +647,7 @@ a.sms-large-font:hover {
 
 h2.sms-h2 a,
 h2.sms-h2 a:link,
-h2.sms-h2 a:visited
-{
+h2.sms-h2 a:visited {
     font-weight: bold;
 }
 
@@ -611,14 +657,13 @@ h2.sms-h2 a:visited
 
 .sms-results-list h2.sms-h2 a:link,
 .sms-results-list h2.sms-h2 a:visited,
-.sms-results-list h2.sms-h2 a:hover  {
+.sms-results-list h2.sms-h2 a:hover {
     border-bottom: none;
 }
 
 .sms-results-list h2.sms-h2 a:link .result-title-txt,
 .sms-results-list h2.sms-h2 a:visited .result-title-txt,
-.sms-results-list h2.sms-h2 a:hover .result-title-txt
- {
+.sms-results-list h2.sms-h2 a:hover .result-title-txt {
     border-bottom: 0.125rem solid transparent;
 }
 
@@ -628,7 +673,7 @@ h2.sms-h2 a:visited
 
 
 .sms-results-list h2.sms-h2 a::before {
-    content:"\E800";
+    content: "\E800";
     font-family: 'SeMS-icons';
     color: var(--medium-dark-gray);
     padding-right: .5rem;
@@ -642,13 +687,12 @@ h2.sms-h2 a:visited
 
 
 #result-hightlight {
-    color:var(--dark-gray);
+    color: var(--dark-gray);
 }
 
 .sms-subresult a,
 .sms-subresult a:visited,
-.sms-subresult a:link
-{
+.sms-subresult a:link {
     color: var(--semi-dark-gray);
 }
 
@@ -658,7 +702,7 @@ h2.sms-h2 a:visited
 }
 
 #result-published-date {
-    font-size:var(--med-font-size);
+    font-size: var(--med-font-size);
     font-weight: normal;
     font-style: italic;
     color: var(--semi-dark-gray);
@@ -674,7 +718,7 @@ h2.sms-h2 a:visited
     width: 2.5rem;
     height: 2.5rem;
     text-align: center;
-  }
+}
 
 .pagination .page-link {
     background-color: transparent !important;
@@ -717,30 +761,34 @@ h2.sms-h2 a:visited
         padding-right: 0;
         padding-top: 2rem;
     }
+
     .sms-search-form {
         margin-top: 10vh;
     }
+
     .sms-home-intro-txt {
         margin-top: 19vh;
     }
 
     .container-fluid {
-        padding-right: var(--bs-gutter-x,1.2rem);
-        padding-left: var(--bs-gutter-x,1.2rem);
+        padding-right: var(--bs-gutter-x, 1.2rem);
+        padding-left: var(--bs-gutter-x, 1.2rem);
     }
 
     .nav.sms-filters {
-        width:initial;
-    }
-    
-    .sms-search-layout .sms-under-search-btns ul {
-        width:initial;
+        width: initial;
     }
 
-    a.nav-link, a:link.nav-link, a:visited.nav-link {
+    .sms-search-layout .sms-under-search-btns ul {
+        width: initial;
+    }
+
+    a.nav-link,
+    a:link.nav-link,
+    a:visited.nav-link {
         padding: 0 .5rem 0 .5rem;
     }
-} 
+}
 
 
 @media (max-width: 576px) {
@@ -769,8 +817,7 @@ Forms
 **/
 .sms-body form label,
 .sms-body form input,
-.sms-body form button
-{
+.sms-body form button {
     margin-bottom: 1rem;
 }
 
@@ -779,9 +826,8 @@ Forms
 .sms-body form.sms-results-form button,
 .sms-body form.sms-search-layout button,
 .sms-body form.sms-search-layout input,
-.sms-body form.sms-search-layout label
-{
-    margin-bottom:0;
+.sms-body form.sms-search-layout label {
+    margin-bottom: 0;
 }
 
 /** Link Buttons **/
@@ -811,8 +857,7 @@ Badges
 a.badge.bg-primary,
 a:hover.badge.bg-primary,
 a:link.badge.bg-primary,
-a:visited.badge.bg-primary
- {
+a:visited.badge.bg-primary {
     padding: .3rem .5rem .2rem .5rem;
     color: white !important;
     border: none;
