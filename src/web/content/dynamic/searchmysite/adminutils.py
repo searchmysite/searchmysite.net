@@ -92,9 +92,23 @@ def generate_validation_key(no_of_digits):
     validation_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(no_of_digits))
     return validation_key
 
-def check_for_validation_key(domain, prefix, validation_key):
+# This checks domain ownership (Domain Control Validation - DCV) via https://pypi.org/project/domcheck/
+# If it succeeds it returns the string "DCV"
+# Note that domain is usually the subdomain, e.g. searchmysite.net, 
+# except for those on the list of domain allowing subdomains, e.g. username.github.io
+# However, some people put their sites on subdomains which aren't on the list of domains allowing subdomains, 
+# e.g. searchmysite.net has its blog at blog.searchmysite.net,
+# So to allow for those, if validation initially fails on the domain, it tries again on subdomain.domain
+def check_for_validation_key(home_page, domain, prefix, validation_key):
+    current_app.logger.debug('checking for validation key on domain {}, prefix {}, validation_key {}'.format(domain, prefix, validation_key))
     validation_method = ""
-    if domcheck.check(domain, prefix, validation_key): validation_method = "DCV"
+    if domcheck.check(domain, prefix, validation_key):
+        validation_method = "DCV"
+    else:
+        subdomain = tldextract.extract(home_page).subdomain + '.' + domain
+        current_app.info.debug('checking for validation key again with subdomain {}'.format(subdomain))
+        if domcheck.check(subdomain, prefix, validation_key):
+            validation_method = "DCV"
     return validation_method
 
 def delete_domain(domain):

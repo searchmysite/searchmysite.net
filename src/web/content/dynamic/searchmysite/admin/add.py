@@ -180,7 +180,7 @@ def step3():
                 return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, validation_key=validation_key)
             else:
                 prefix = 'searchmysite-verification'
-                validation_method = check_for_validation_key(domain, prefix, validation_key)
+                validation_method = check_for_validation_key(home_page, domain, prefix, validation_key)
                 if validation_method == 'DCV': # i.e. if the ownership verification has succeeded
                     indexable = check_a_site_can_be_indexed(domain, home_page)
                     if indexable: # i.e. if the site is indexable
