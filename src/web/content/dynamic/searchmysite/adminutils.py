@@ -106,7 +106,7 @@ def check_for_validation_key(home_page, domain, prefix, validation_key):
         validation_method = "DCV"
     else:
         subdomain = tldextract.extract(home_page).subdomain + '.' + domain
-        current_app.info.debug('checking for validation key again with subdomain {}'.format(subdomain))
+        current_app.logger.info('checking for validation key again with subdomain {}'.format(subdomain))
         if domcheck.check(subdomain, prefix, validation_key):
             validation_method = "DCV"
     return validation_method
