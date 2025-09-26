@@ -67,6 +67,8 @@ def get_search_params(request, search_type):
         keys = request.args.keys()
     elif request.method == 'POST':
         keys = request.form.keys()
+    else:
+        keys = [] # for e.g. HEAD requests
     for key in keys:
         if key in possible_facets:
             values = []
