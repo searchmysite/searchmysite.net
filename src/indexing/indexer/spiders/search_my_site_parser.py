@@ -1,3 +1,4 @@
+from urllib import response
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.exceptions import DropItem
@@ -324,9 +325,12 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
         item['published_date'] = published_date
 
         # contains_adverts
-        # Just looks for Google Ads at the moment
         contains_adverts = False # assume a page has no adverts unless proven otherwise
-        if response.xpath('//ins[contains(@class,"adsbygoogle")]') != []: contains_adverts = True
+        ad_domains = ['googlesyndication.com', 'adservice.google.com', 'adservice.google.co.uk', 'amazon-adsystem.com', 'adsdk.microsoft.com', 'ads.twitter.com', 'ads.yahoo.com']
+        srcs = response.xpath('//@src').getall() # Returns a list like ['//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', 'https://widgets.wp.com/likes/master.html']
+        # Check if any ad_domain is a substring of any src attribute
+        if any(ad_domain in src for src in srcs for ad_domain in ad_domains):
+            contains_adverts = True
         item['contains_adverts'] = contains_adverts
 
         # language, e.g. en-GB
