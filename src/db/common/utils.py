@@ -114,7 +114,7 @@ def select_all_domains():
     all_domains = []
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute(sql_select_indexed_domains)
+    cursor.execute(sql_select_all_domains)
     results = cursor.fetchall()
     for result in results:
         all_domains.append(result['domain'])
