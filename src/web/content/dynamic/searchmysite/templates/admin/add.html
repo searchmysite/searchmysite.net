@@ -3,148 +3,148 @@
 {% block title %}Search My Site - Add Site{% endblock %}
 
 {% block content %}
-			<div class="row">
-				<div class="col-lg-12">
-					<ul class="nav nav-tabs">
-						<li class="nav-item">
-							<a class="nav-link active">Add Site</a>
-						</li>
-					</ul>
-				</div>
+<div class="row">
+	<div class="col-lg-12">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active">Add Site</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+<div class="row mt-4 sms-standard">
+	<div class="col-md-10 offset-md-1">
+
+		<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
+			<div class="form-group">
+				<label for="home_page" class="col-form-label sms-p2">Home page</label>
+				<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page"
+					aria-describedby="homepage-help" required autofocus>
+				<small id="homepage-help" class="form-text text-muted">
+					Enter the home page of the site you would like to add (see <a href="/pages/documentation/"
+						target="_blank">Documentation</a> for further guidance).
+				</small>
 			</div>
-
-			<div class="row mt-4 sms-standard">
-				<div class="col-md-10 offset-md-1">
-
-					<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
-						<div class="form-group">
-							<label for="home_page" class="col-form-label sms-p2">Home page</label>
-							<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page" aria-describedby="homepage-help" required autofocus>
-							<small id="homepage-help" class="form-text text-muted">
-								Enter the home page of the site you would like to add (see <a href="/pages/documentation/" target="_blank">Documentation</a> for further guidance).
-							</small>
-						</div>
-						<div class="form-group">
-							<label for="site_category" class="col-form-label sms-p2">Category</label>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="site_category" id="site_category-personal-website" value="personal-website" required>
-								<label class="form-check-label  sms-p2" for="site_category-personal-website">
-									Personal website
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="site_category" id="site_category-independent-website" value="independent-website" required>
-								<label class="form-check-label sms-p2" for="site_category-independent-website">
-									Independent website
-								</label>
-							</div>
-							<small id="site_category-help" class="form-text text-muted">
-								Confirm what type of site it is (see <a href="/pages/terms/#submission-guidelines" target="_blank">Terms of Use</a> for definitions).
-							</small>
-						</div>
-						<div class="form-group">
-							<label for="tier" class="col-form-label sms-p2">Listing tier</label>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="tier" id="tier-basic" value="1" required>
-								<label class="form-check-label sms-p2" for="tier-basic">
-									Basic
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="tier" id="tier-free" value="2" required>
-								<label class="form-check-label sms-p2" for="tier-free">
-									Free Trial
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="tier" id="tier-full" value="3" required>
-								<label class="form-check-label sms-p2" for="tier-full">
-									Full
-								</label>
-							</div>
-							<small id="tier-help" class="form-text text-muted">
-								Select listing tier for your site. 
-								Note that listings revert to lower tier on expiry if no further action taken.
-							</small>
-						</div>
-					<table class="table sms-table sms-table-sml sms-definition-table">
-						<thead>
-							<tr>
-								<th scope="col"></th>
-								<th scope="col">{{ tiers[0]['tier_name'] }}</th>
-								<th scope="col">{{ tiers[1]['tier_name'] }}</th>
-								<th scope="col">{{ tiers[2]['tier_name'] }}</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Full indexing frequency</td>
-								<td><span style="white-space: nowrap;">{{ tiers[0]['full_reindex_frequency'] }}</span></td>
-								<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
-								<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
-							</tr>
-							<tr>
-								<td>Incremental indexing frequency</td>
-								<td><span style="white-space: nowrap;">{{ tiers[0]['incremental_reindex_frequency'] }}</span></td>
-								<td>{{ tiers[1]['incremental_reindex_frequency'] }}</td>
-								<td>{{ tiers[2]['incremental_reindex_frequency'] }}</td>
-							</tr>
-							<tr>
-								<td>Indexing page limit</td>
-								<td><span style="white-space: nowrap;">{{ tiers[0]['indexing_page_limit'] }}</span></td>
-								<td>{{ tiers[1]['indexing_page_limit'] }}</td>
-								<td>{{ tiers[2]['indexing_page_limit'] }}</td>
-							</tr>
-							<tr>
-								<td>Number of embeddings per page</td>
-								<td><span style="white-space: nowrap;">{{ tiers[0]['content_chunks_limit'] }}</span></td>
-								<td>{{ tiers[1]['content_chunks_limit'] }}</td>
-								<td>{{ tiers[2]['content_chunks_limit'] }}</td>
-							</tr>
-							<tr>
-								<td>On-demand reindexing</td>
-								<td>{{ tiers[0]['on_demand_reindexing'] }}</td>
-								<td>{{ tiers[1]['on_demand_reindexing'] }}</td>
-								<td>{{ tiers[2]['on_demand_reindexing'] }}</td>
-							</tr>
-							<tr>
-								<td>API enabled</td>
-								<td>{{ tiers[0]['api_enabled'] }}</td>
-								<td>{{ tiers[1]['api_enabled'] }}</td>
-								<td>{{ tiers[2]['api_enabled'] }}</td>
-							</tr>
-							<tr>
-								<td>Access Manage Site to configure indexing</td>
-								<td>{{ tiers[0]['access_to_manage'] }}</td>
-								<td>{{ tiers[1]['access_to_manage'] }}</td>
-								<td>{{ tiers[2]['access_to_manage'] }}</td>
-							</tr>
-							<tr>
-								<td>Cost</td>
-								<td>{{ tiers[0]['cost'] }}</td>
-								<td>{{ tiers[1]['cost'] }}</td>
-								<td>{{ tiers[2]['cost'] }}</td>
-							</tr>
-							<tr>
-								<td>Listing duration</td>
-								<td>n/a</td>
-								<td>{{ tiers[1]['duration'] }}</td>
-								<td>{{ tiers[2]['duration'] }}</td>
-							</tr>
-							<tr>
-								<td></td>
-								<td></td>
-								<td><small>Requires proof of domain ownership.</small></td>
-								<td><small>Requires proof of domain ownership and one-off credit card payment.</small></td>
-							</tr>
-						</tbody>
-					</table>
-
-					<button type="submit" class="btn btn-primary mt-3" id="add-site">Add Site</button>
-					
-					</form>
-
+			<div class="form-group">
+				<label for="site_category" class="col-form-label sms-p2">Category</label>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="site_category"
+						id="site_category-personal-website" value="personal-website" required>
+					<label class="form-check-label  sms-p2" for="site_category-personal-website">
+						Personal website
+					</label>
 				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="site_category"
+						id="site_category-independent-website" value="independent-website" required>
+					<label class="form-check-label sms-p2" for="site_category-independent-website">
+						Independent website
+					</label>
+				</div>
+				<small id="site_category-help" class="form-text text-muted">
+					Confirm what type of site it is (see <a href="/pages/terms/#submission-guidelines"
+						target="_blank">Terms of Use</a> for definitions).
+				</small>
 			</div>
+			<div class="form-group">
+				<label for="tier" class="col-form-label sms-p2">Listing tier</label>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="tier" id="tier-basic" value="1" required>
+					<label class="form-check-label sms-p2" for="tier-basic">
+						Basic
+					</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="tier" id="tier-free" value="2" required>
+					<label class="form-check-label sms-p2" for="tier-free">
+						Free Trial
+					</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="tier" id="tier-full" value="3" required>
+					<label class="form-check-label sms-p2" for="tier-full">
+						Full
+					</label>
+				</div>
+				<small id="tier-help" class="form-text text-muted">
+					Select listing tier for your site.
+					Note that listings revert to lower tier on expiry if no further action taken.
+				</small>
+			</div>
+			<table class="table sms-table sms-table-sml sms-definition-table">
+				<thead>
+					<tr>
+						<th scope="col"></th>
+						<th scope="col">{{ tiers[0]['tier_name'] }}</th>
+						<th scope="col">{{ tiers[1]['tier_name'] }}</th>
+						<th scope="col">{{ tiers[2]['tier_name'] }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Full indexing frequency</td>
+						<td><span style="white-space: nowrap;">{{ tiers[0]['full_reindex_frequency'] }}</span></td>
+						<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
+						<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
+					</tr>
+					<tr>
+						<td>Incremental indexing frequency</td>
+						<td><span style="white-space: nowrap;">{{ tiers[0]['incremental_reindex_frequency'] }}</span>
+						</td>
+						<td>{{ tiers[1]['incremental_reindex_frequency'] }}</td>
+						<td>{{ tiers[2]['incremental_reindex_frequency'] }}</td>
+					</tr>
+					<tr>
+						<td>Indexing page limit</td>
+						<td><span style="white-space: nowrap;">{{ tiers[0]['indexing_page_limit'] }}</span></td>
+						<td>{{ tiers[1]['indexing_page_limit'] }}</td>
+						<td>{{ tiers[2]['indexing_page_limit'] }}</td>
+					</tr>
+					<tr>
+						<td>On-demand reindexing</td>
+						<td>{{ tiers[0]['on_demand_reindexing'] }}</td>
+						<td>{{ tiers[1]['on_demand_reindexing'] }}</td>
+						<td>{{ tiers[2]['on_demand_reindexing'] }}</td>
+					</tr>
+					<tr>
+						<td>API enabled</td>
+						<td>{{ tiers[0]['api_enabled'] }}</td>
+						<td>{{ tiers[1]['api_enabled'] }}</td>
+						<td>{{ tiers[2]['api_enabled'] }}</td>
+					</tr>
+					<tr>
+						<td>Access Manage Site to configure indexing</td>
+						<td>{{ tiers[0]['access_to_manage'] }}</td>
+						<td>{{ tiers[1]['access_to_manage'] }}</td>
+						<td>{{ tiers[2]['access_to_manage'] }}</td>
+					</tr>
+					<tr>
+						<td>Cost</td>
+						<td>{{ tiers[0]['cost'] }}</td>
+						<td>{{ tiers[1]['cost'] }}</td>
+						<td>{{ tiers[2]['cost'] }}</td>
+					</tr>
+					<tr>
+						<td>Listing duration</td>
+						<td>n/a</td>
+						<td>{{ tiers[1]['duration'] }}</td>
+						<td>{{ tiers[2]['duration'] }}</td>
+					</tr>
+					<tr>
+						<td></td>
+						<td></td>
+						<td><small>Requires proof of domain ownership.</small></td>
+						<td><small>Requires proof of domain ownership and one-off credit card payment.</small></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<button type="submit" class="btn btn-primary mt-3" id="add-site">Add Site</button>
+
+		</form>
+
+	</div>
+</div>
 
 {% endblock %}
