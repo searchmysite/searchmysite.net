@@ -152,7 +152,7 @@ sql_update_indexing_status = "UPDATE tblDomains SET indexing_status = 'PENDING',
 
 sql_select_tier = "SELECT l.status, l.tier, t.tier_name, l.listing_end FROM tblListingStatus l INNER JOIN tblTiers t ON t.tier = l.tier WHERE l.domain = (%s) AND l.status = 'ACTIVE' ORDER BY tier DESC LIMIT 1;"
 
-sql_upgrade_tier2_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = 2; "\
+sql_upgrade_to_tier3 = "UPDATE tblListingStatus SET status = 'EXPIRED', status_changed = NOW() WHERE domain = (%s) AND tier = (%s); "\
     "INSERT INTO tblListingStatus (domain, tier, status, status_changed, listing_start, listing_end) "\
     "VALUES ((%s), 3, 'ACTIVE', NOW(), NOW(), NOW() + (SELECT listing_duration FROM tblTiers WHERE tier = 3)) "\
     "  ON CONFLICT (domain, tier) "\
