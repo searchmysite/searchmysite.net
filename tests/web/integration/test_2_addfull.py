@@ -2,7 +2,6 @@ import pytest
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 
@@ -99,7 +98,11 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         card_billing_name_input = browser.find_element(By.ID, 'billingName')
         card_billing_name_input.send_keys('Michael')
         card_billing_postcode_input = browser.find_element(By.ID, 'billingPostalCode')
-        card_billing_postcode_input.send_keys('NW3 1QG' + Keys.RETURN) # Return also submits
+        card_billing_postcode_input.send_keys('NW3 1QG')
+        # The current Stripe Checkout design does not submit when Enter is pressed,
+        # so the payment must be submitted by explicitly clicking the Pay button.
+        pay_button = browser.find_element(By.CSS_SELECTOR, '[data-testid="hosted-payment-submit-button"]')
+        ActionChains(browser).click(pay_button).perform()
         time.sleep(6) # Give it time to submit and follow redirects
         assert 'Search My Site - Add Site Success' in browser.title
         #assert 'You have successfully submitted your site.' in browser.response
