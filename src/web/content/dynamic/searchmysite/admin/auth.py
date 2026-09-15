@@ -5,6 +5,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from urllib.parse import urlparse
 import requests
 from searchmysite.db import get_db
 from searchmysite.adminutils import generate_validation_key, extract_domain, send_email, get_host
@@ -25,6 +26,7 @@ def login():
     if request.method == 'POST':
         domain = request.form['domain']
         password = request.form['password']
+
         conn = get_db()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         error = None
@@ -39,13 +41,17 @@ def login():
         elif not check_password_hash(results['password'], password):
             error = 'Incorrect password.'
         if error is None:
+            # Get next_page before set_login_session, because it clears the session
+            next_page = get_next_page()
             set_login_session(domain, "usernamepassword")
-            return redirect(url_for('manage.manage'))
+            return redirect(next_page or url_for('manage.manage'))
         flash(error)
         return render_template('admin/login.html')
     else:
         current_page = 'admin/login.html'
-        next_page = url_for('manage.manage')
+        # Not popped here, because the value must survive the IndieAuth round trip.
+        # It is removed from the session when the login succeeds, because set_login_session clears it.
+        next_page = get_next_page() or url_for('manage.manage')
         addsite_workflow = False
         insertdomainsql = None
         return_action, return_target = do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsql)
@@ -68,6 +74,7 @@ def login_required(view):
             if param_state is not None and code is not None:
                 return redirect(url_for('auth.login', state=param_state, code=code))
             else:
+                session['next_page'] = request.url
                 return redirect(url_for('auth.login'))
         return view(**kwargs)
     return wrapped_view
@@ -76,6 +83,7 @@ def admin_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if session.get('is_admin') == False:
+            session['next_page'] = request.url
             return redirect(url_for('auth.login'))
         return view(**kwargs)
     return wrapped_view
@@ -170,6 +178,19 @@ def forgottenpassword_post():
                 return render_template('admin/forgottenpassword.html')
         else:
             return render_template('admin/forgottenpassword.html')
+
+# Returns the URL the user was trying to reach before being redirected to login,
+# or None if there is none (or it is not a valid internal URL).
+# The value is removed from the session when a login succeeds, because set_login_session clears it.
+def get_next_page():
+    next_page = session.get('next_page')
+    if next_page:
+        parsed = urlparse(next_page)
+        if parsed.netloc and parsed.netloc != request.host: # i.e. if it is an external URL
+            current_app.logger.warn('Ignoring external next_page in session: {}'.format(next_page))
+            session.pop('next_page', None)
+            return None
+    return next_page
 
 def set_login_session(domain, method):
     session.clear()
