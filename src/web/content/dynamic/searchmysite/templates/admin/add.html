@@ -16,6 +16,29 @@
 <div class="row mt-4 sms-standard">
 	<div class="col-md-10 offset-md-1">
 
+		<p class="sms-p3">
+			Unfortunately, due to the high volume of submissions of AI generated sites, anonymous submissions are no
+			longer allowed.
+		</p>
+		<p class="sms-p3 mt-3">
+			If you already have a login (i.e. a Full listing) you can:
+		</p>
+		<ul class="sms-ul">
+			<li>Suggest a <a href="{{ url_for('add.basic') }}">Basic listing</a>.</li>
+		</ul>
+		<p class="sms-p3">
+			If you do not have a login, and you are not an AI agent, your options are either to:
+		</p>
+		<ul class="sms-ul">
+			<li>Submit as a Full listing below. This will require proof of site ownership and payment.</li>
+			<li>Submit as a Free Trial below. This will require proof of site ownership.</li>
+			<li>Request a site owner with an existing Full listing (e.g. <a href="https://michaelianlewis.com/"
+					target="_blank">https://michaelianlewis.com/</a> or someone from
+				the list at <a href="https://searchmysite.net/search/browse/?owner_verified=True"
+					target="_blank">https://searchmysite.net/search/browse/?owner_verified=True</a>) suggest your site
+				for a Basic listing on your behalf.</li>
+		</ul>
+
 		<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
 			<div class="form-group">
 				<label for="home_page" class="col-form-label sms-p2">Home page</label>
@@ -27,7 +50,7 @@
 				</small>
 			</div>
 			<div class="form-group">
-				<label for="site_category" class="col-form-label sms-p2">Category</label>
+				<label for="site_category" class="col-form-label sms-p2 mt-3">Category</label>
 				<div class="form-check">
 					<input class="form-check-input" type="radio" name="site_category"
 						id="site_category-personal-website" value="personal-website" required>
@@ -48,13 +71,13 @@
 				</small>
 			</div>
 			<div class="form-group">
-				<label for="tier" class="col-form-label sms-p2">Listing tier</label>
-				<div class="form-check">
+				<label for="tier" class="col-form-label sms-p2 mt-3">Listing tier</label>
+				<!-- <div class="form-check">
 					<input class="form-check-input" type="radio" name="tier" id="tier-basic" value="1" required>
 					<label class="form-check-label sms-p2" for="tier-basic">
 						Basic
 					</label>
-				</div>
+				</div> -->
 				<div class="form-check">
 					<input class="form-check-input" type="radio" name="tier" id="tier-free" value="2" required>
 					<label class="form-check-label sms-p2" for="tier-free">
@@ -118,6 +141,12 @@
 						<td>{{ tiers[0]['access_to_manage'] }}</td>
 						<td>{{ tiers[1]['access_to_manage'] }}</td>
 						<td>{{ tiers[2]['access_to_manage'] }}</td>
+					</tr>
+					<tr>
+						<td>Ability to suggest new Basic listings</td>
+						<td>No</td>
+						<td>No</td>
+						<td>Yes</td>
 					</tr>
 					<tr>
 						<td>Cost</td>

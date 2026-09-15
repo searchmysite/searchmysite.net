@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}Search My Site - Add Basic Site{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="col-lg-12">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active">Add Basic Site</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+<div class="row mt-4 sms-standard">
+	<div class="col-md-10 offset-md-1">
+
+		<form action="{{ url_for('add.basic') }}" method="post" name="searchmysite-add-basic-site">
+			<div class="form-group">
+				<label for="home_page" class="col-form-label sms-p2 mt-3">Home page</label>
+				<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page"
+					aria-describedby="homepage-help" required autofocus>
+				<small id="homepage-help" class="form-text text-muted">
+					Enter the home page of the site you would like to add (see <a href="/pages/documentation/"
+						target="_blank">Documentation</a> for further guidance).
+				</small>
+			</div>
+			<div class="form-group">
+				<label for="site_category" class="col-form-label sms-p2 mt-3">Category</label>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="site_category"
+						id="site_category-personal-website" value="personal-website" required>
+					<label class="form-check-label  sms-p2" for="site_category-personal-website">
+						Personal website
+					</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="site_category"
+						id="site_category-independent-website" value="independent-website" required>
+					<label class="form-check-label sms-p2" for="site_category-independent-website">
+						Independent website
+					</label>
+				</div>
+				<small id="site_category-help" class="form-text text-muted">
+					Confirm what type of site it is (see <a href="/pages/terms/#submission-guidelines"
+						target="_blank">Terms of Use</a> for definitions).
+				</small>
+			</div>
+
+			<input type="hidden" name="tier" id="tier-basic" value="1">
+
+			<button type="submit" class="btn btn-primary mt-3" id="add-site">Add Site</button>
+
+		</form>
+
+	</div>
+</div>
+
+{% endblock %}

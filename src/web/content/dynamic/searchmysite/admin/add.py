@@ -4,6 +4,7 @@ from flask import (
 from werkzeug.security import generate_password_hash
 import psycopg2.extras
 from os import environ
+from searchmysite.admin.auth import login_required
 from searchmysite.db import get_db
 import searchmysite.sql
 from searchmysite.adminutils import extract_domain, generate_validation_key, check_for_validation_key, get_host, insert_subscription
@@ -28,43 +29,24 @@ def add():
     if request.method == 'GET':
         return render_template('admin/add.html', tiers=tiers)
     else: # i.e. if POST 
-        # Get user entered data
-        home_page = request.form.get('home_page')
-        site_category = request.form.get('site_category')
-        tier = request.form.get('tier')
-        if tier: tier = int(tier)
-        # Get calculated data
-        domain = extract_domain(home_page)
-        if home_page.endswith(domain):
-            home_page = home_page + '/'
-        # Check if home page has been submitted already and if so what the status of the highest tier is
-        # Note that the highest tier might not be the active tier, i.e. it might have an EXPIRED tier 3 and ACTIVE tier 1 listing
-        conn = get_db()
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(searchmysite.sql.sql_select_highest_tier, (domain,))
-        highest_tier = cursor.fetchone()
-        # Get the current active tier
-        # Note that the current active tier might not be the highest tier
-        current_active_tier = get_active_tier(domain)
-        # See if the newly selected tier already exists or not. This is to determine if insert or update statements are required
-        new_tier_exists = False
-        if highest_tier and highest_tier['tier'] == tier:
-            new_tier_exists = True
+        (home_page, site_category, tier, domain, highest_tier, current_active_tier, new_tier_exists) = get_submission_details()
         # Route to the next stage of the Add Site workflow
         if not home_page or not site_category or not tier: # There is client-side validation so this shouldn't be possible
             message = 'Please enter the required fields.'
             flash(message)
             return render_template('admin/add.html', tiers=tiers)
         elif not highest_tier: # Domain hasn't previously been submitted
-            cursor.execute(searchmysite.sql.sql_insert_domain, (domain, home_page, site_category))
-            conn.commit()
-            if tier == 1:
-                cursor.execute(searchmysite.sql.sql_insert_basic_listing, (domain, tier))
+            if tier == 2 or tier == 3:
+                conn = get_db()
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                cursor.execute(searchmysite.sql.sql_insert_domain, (domain, home_page, site_category))
                 conn.commit()
-                return render_template('admin/add-success.html', tier=tier)
-            elif tier == 2 or tier == 3:
                 start_freefull_approval_session(domain, home_page, tier, new_tier_exists)
                 return redirect(url_for('add.step1'))
+            else:
+                message = 'The tier {} submitted for domain {} is not recognised.'.format(tier, domain)
+                flash(message)
+                return redirect(url_for('add.add'))
         elif current_active_tier > 0: # Domain already has an active listing
             if tier > current_active_tier: # The user has selected to upgrade the tier 
                 start_freefull_approval_session(domain, home_page, tier, new_tier_exists)
@@ -109,6 +91,30 @@ def add():
             flash(message)
             current_app.logger.warn('Unknown status for {}.'.format(domain))
             return redirect(url_for('add.add'))
+
+@bp.route('/add/basic/', methods=('GET', 'POST'))
+@login_required
+def basic():
+    tiers = get_tier_data()
+    if request.method == 'GET':
+        return render_template('admin/add-basic.html', tiers=tiers)
+    else: # i.e. if POST 
+        (home_page, site_category, tier, domain, highest_tier, current_active_tier, new_tier_exists) = get_submission_details()
+        # Not going to perform the same checks as for the Free/Full listing workflow for now, because this 
+        # functionality might not be used much and might even be removed completely.
+        if home_page and site_category and tier and not highest_tier and tier == 1: 
+            # i.e. if all the required fields are present and the domain hasn't previously been submitted and the tier is Basic
+            conn = get_db()
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor.execute(searchmysite.sql.sql_insert_domain, (domain, home_page, site_category))
+            conn.commit()
+            cursor.execute(searchmysite.sql.sql_insert_basic_listing, (domain, tier))
+            conn.commit()
+            return render_template('admin/add-success.html', tier=tier)
+        else:
+            message = 'The request could not be submitted, e.g. because the domain is already registered.'
+            flash(message)
+            return render_template('admin/add-basic.html', tiers=tiers)
 
 @bp.route('/add/step1/', methods=('GET', 'POST'))
 def step1():
@@ -346,6 +352,32 @@ def get_active_tier(domain):
         active_tier = int(active_tier_results['tier'])
     current_app.logger.debug('Current active tier: {}.'.format(active_tier))
     return active_tier
+
+# Get all the submission details required to determine the next step in the Add Site workflow 
+def get_submission_details():
+    # Get user entered data
+    home_page = request.form.get('home_page')
+    site_category = request.form.get('site_category')
+    tier = request.form.get('tier')
+    if tier: tier = int(tier)
+    # Get calculated data
+    domain = extract_domain(home_page)
+    if home_page.endswith(domain):
+        home_page = home_page + '/'
+    # Check if home page has been submitted already and if so what the status of the highest tier is
+    # Note that the highest tier might not be the active tier, i.e. it might have an EXPIRED tier 3 and ACTIVE tier 1 listing
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_select_highest_tier, (domain,))
+    highest_tier = cursor.fetchone()
+    # Get the current active tier
+    # Note that the current active tier might not be the highest tier
+    current_active_tier = get_active_tier(domain)
+    # See if the newly selected tier already exists or not. This is to determine if insert or update statements are required
+    new_tier_exists = False
+    if highest_tier and highest_tier['tier'] == tier:
+        new_tier_exists = True
+    return (home_page, site_category, tier, domain, highest_tier, current_active_tier, new_tier_exists)
 
 # Get previously entered data, using home page in session
 def get_session_data():
