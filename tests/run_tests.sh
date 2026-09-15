@@ -7,14 +7,14 @@ set -a; source ~/projects/searchmysite.net/src/.env; set +a
 echo "Unit test"
 pytest web/unit/test_adminutil.py
 
-echo "PART 1 of 6: Submitting a Basic listing"
-pytest -v web/integration/test_1_addbasic.py
+echo "PART 1 of 6: Submitting a Full listing, including username password (as opposed to IndieAuth) verification process"
+pytest -v web/integration/test_1_addfull.py
 
-echo "PART 2 of 6: Submitting a Full listing, including username password (as opposed to IndieAuth) verification process"
-pytest -v web/integration/test_2_addfull.py
+echo "PART 2 of 6: Submitting a Basic listing via the new logged-in /admin/add/basic/ flow"
+pytest -v web/integration/test_2_addbasic.py
 
 echo "PART 3 of 6: Indexing test sites (please wait, this may take some time)"
-docker exec -it src-indexing-1 python /usr/src/app/search_my_site_scheduler.py >/dev/null
+docker exec -i src-indexing-1 python /usr/src/app/search_my_site_scheduler.py >/dev/null
 
 echo "PART 4 of 6: Searching test site"
 pytest -v web/integration/test_4_search.py

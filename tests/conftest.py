@@ -77,25 +77,48 @@ def create_test_admin_user():
     cursor.execute(delete_test_admin_user_sql, (admin_username, admin_username, admin_username))
     conn.commit()
 
+# Note: not using "with current_app.test_client() as client" (i.e. preserve_context=True),
+# because preserved request contexts from different clients interfere with each other, as
+# Flask's request/app contexts are stored in thread-global contextvars. E.g. a client whose
+# preserved contexts are no longer at the top of the stack fails with
+# "Popped wrong request context" when it makes a new request.
+# Cookies (and therefore login sessions) are retained by the client either way.
+
 @pytest.fixture(scope='module')
 def anon_client():
     current_app = create_app()
     current_app.testing = True
-    with current_app.test_client() as anon_client:
-        with current_app.app_context():
-            yield anon_client
+    client = current_app.test_client()
+    with current_app.app_context():
+        yield client
 
 @pytest.fixture(scope='module')
 def admin_client(create_test_admin_user):
     current_app = create_app()
     current_app.testing = True
-    with current_app.test_client() as admin_client:
-        with current_app.app_context():
-            response = admin_client.post('/admin/login/', data=dict(
-                domain=admin_username,
-                password=admin_password
-            ), follow_redirects=True)
-            yield admin_client
+    client = current_app.test_client()
+    with current_app.app_context():
+        response = client.post('/admin/login/', data=dict(
+            domain=admin_username,
+            password=admin_password
+        ), follow_redirects=True)
+        yield client
+
+# Client logged in as the owner of the Full listing submitted in part 1.
+# Login only succeeds once that listing is ACTIVE, so this must not be used before test_1_addfull.py has run.
+@pytest.fixture(scope='module')
+def fulluser_client():
+    current_app = create_app()
+    current_app.testing = True
+    client = current_app.test_client()
+    with current_app.app_context():
+        response = client.post('/admin/login/', data=dict(
+            domain=add_full_domain,
+            password=add_full_password
+        ), follow_redirects=True)
+        assert response.status_code == 200
+        assert b'<title>Search My Site - Manage My Site</title>' in response.data
+        yield client
 
 @pytest.fixture(scope='session')
 def update_validation_key():

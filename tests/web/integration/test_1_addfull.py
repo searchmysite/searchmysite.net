@@ -5,6 +5,14 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 import time
 
+def test_add_view(anon_client):
+    response = anon_client.get('/admin/add/')
+    assert response.status_code == 200
+    assert b'<title>Search My Site - Add Site</title>' in response.data
+    assert b'Enter the home page of the site you would like to add' in response.data
+    assert b'Confirm what type of site it is' in response.data
+    assert b'Select listing tier for your site.' in response.data
+
 def test_full_usernamepassword_step0_post(anon_client, add_full_details):
     response = anon_client.post('/admin/add/', data=dict(
         home_page=pytest.add_full_home_page,
