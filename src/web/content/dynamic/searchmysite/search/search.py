@@ -35,7 +35,7 @@ def search(search_type='search'):
     display_facets = get_display_facets(params['filter_queries'], search_results)
     display_results = get_display_results(search_results, groupbydomain, params, links['query_string'])
 
-    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=total_results, pagination=display_pagination, links=links, display_type='list', subtitle='Search Results')
+    return render_template('search/results.html', params=params, facets=display_facets, sort_options=searchmysite.solr.sort_options_search, results=display_results, no_of_results=total_results, pagination=display_pagination, links=links, display_type='list', subtitle='Search Results', noindex=True)
 
 
 @bp.route('/browse/', methods=['GET', 'POST'])
