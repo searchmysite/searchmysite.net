@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, request, url_for
 import os
 #from flask_restx import Api
 from logging.config import dictConfig
@@ -86,6 +86,18 @@ def create_app(test_config=None):
     # /search
     from searchmysite.search import search
     app.register_blueprint(search.bp, url_prefix=search_url_prefix)
+
+    # All /admin pages are for site owners, not search engines, so mark them noindex
+    # (robots.txt no longer disallows /admin, so the meta tag is how they're excluded)
+    # Done at app level (rather than blueprint level) because create_app() can be
+    # called more than once in a process (e.g. by the tests), and blueprint setup
+    # methods can't be called after the blueprint has been registered once
+    admin_blueprint_names = {'add', 'admin', 'auth', 'checkout', 'contact', 'manage'}
+    @app.context_processor
+    def inject_noindex():
+        if request.endpoint and request.endpoint.split('.')[0] in admin_blueprint_names:
+            return {'noindex': True}
+        return {}
 
     # A custom filter for formatting date strings
     @app.template_filter()

@@ -1,7 +1,4 @@
 User-agent: *
-Disallow: /admin
-
-User-agent: *
 Disallow: /api
 
 User-agent: AhrefsBot
