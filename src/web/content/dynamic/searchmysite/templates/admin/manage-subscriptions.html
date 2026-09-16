@@ -2,7 +2,7 @@
 
 {% block title %}Search My Site - Manage My Site{% endblock %}
 
-{% block head %}<script src="https://js.stripe.com/v3/"></script>
+{% block head %}{{ super() }}<script src="https://js.stripe.com/v3/"></script>
 <script>
 	var checkout_config = "{{ url_for('checkout.get_publishable_key') }}";
 	var checkout_url = "{{ url_for('checkout.create_subsrenewal_checkout_session') }}";

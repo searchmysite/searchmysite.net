@@ -15,6 +15,8 @@
 	<script async defer data-domain="searchmysite.net" src="https://stats.searchmysite.net/js/plausible.js"></script>
 	<link href="/opensearch.xml" rel="search" title="searchmysite.net" type="application/opensearchdescription+xml">
 	<link rel="stylesheet" type="text/css" href="/static/css/letterpress.css" />
+	{% if canonical_url %}
+	<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 	{% block head %}{% if noindex %}
 	<meta name="robots" content="noindex">{% endif %}{% endblock %}
 </head>

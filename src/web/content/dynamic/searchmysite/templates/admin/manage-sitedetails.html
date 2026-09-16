@@ -2,7 +2,7 @@
 
 {% block title %}Search My Site - Manage My Site{% endblock %}
 
-{% block head %}<script>
+{% block head %}{{ super() }}<script>
 	function enableEdit(id) {
   		document.getElementById(id).removeAttribute('readonly');
   		document.getElementById(id+'-edit').hidden = true;

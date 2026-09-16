@@ -87,6 +87,18 @@ def create_app(test_config=None):
     from searchmysite.search import search
     app.register_blueprint(search.bp, url_prefix=search_url_prefix)
 
+    # Inject the canonical URL of the current page, so search engines can consolidate
+    # duplicates (e.g. /search/browse/?q=x and /search/browse/)
+    # get_host() fixes up the host, which is http://127.0.0.1:8080/ when run behind
+    # the production reverse proxy (the proxy sets X-Forwarded-Host)
+    from searchmysite.adminutils import get_host
+    @app.context_processor
+    def inject_canonical():
+        if request.endpoint:
+            url = url_for(request.endpoint, **request.view_args, _external=True)
+            return {'canonical_url': get_host(url, request.headers)}
+        return {'canonical_url': None}
+
     # All /admin pages are for site owners, not search engines, so mark them noindex
     # (robots.txt no longer disallows /admin, so the meta tag is how they're excluded)
     # Done at app level (rather than blueprint level) because create_app() can be
