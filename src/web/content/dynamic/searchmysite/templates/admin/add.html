@@ -17,32 +17,27 @@
 	<div class="col-md-10 offset-md-1">
 
 		<p class="sms-p3">
-			Unfortunately, due to the high volume of submissions of AI generated sites, anonymous submissions are no
-			longer allowed - see the <a href="https://blog.searchmysite.net/posts/the-ai-onslaught/">blog post</a> for
-			more information.
+			Add your site to searchmysite.net and get a site-specific search box
+			without running your own search engine - only £12 per year, and you can try it for free for a month.
+			Your site will also appear in public search (you can opt out).
+			See <a href="/pages/search-as-a-service/">Search as a service</a> for further details.
 		</p>
-		<p class="sms-p3 mt-3">
-			If you already have a login (i.e. a Full listing) you can:
-		</p>
-		<ul class="sms-ul">
-			<li>Suggest a <a href="{{ url_for('add.basic') }}">Basic listing</a>.</li>
-		</ul>
 		<p class="sms-p3">
-			If you do not have a login, and you are not an AI agent, your options are either to:
-		</p>
-		<ul class="sms-ul">
-			<li>Submit as a Full listing below. This will require proof of site ownership and payment.</li>
-			<li>Submit as a Free Trial below. This will require proof of site ownership.</li>
-			<li>Request a site owner with an existing Full listing (e.g. <a href="https://michaelianlewis.com/"
-					target="_blank">https://michaelianlewis.com/</a> or someone from
+			<small>Note: To keep the search free of spam, all submissions now require proof of domain ownership,
+				so anonymous submissions are no longer allowed -
+				see the <a href="https://blog.searchmysite.net/posts/the-ai-onslaught/">blog post</a> for more
+				information. If you still want a Basic listing, you can request a site owner with an existing Full
+				listing (e.g. <a href="https://michael-lewis.com/" target="_blank">https://michael-lewis.com/</a> or
+				someone from
 				the list at <a href="https://searchmysite.net/search/browse/?owner_verified=True"
-					target="_blank">https://searchmysite.net/search/browse/?owner_verified=True</a>) suggest your site
-				for a Basic listing on your behalf.</li>
-		</ul>
+					target="_blank">https://searchmysite.net/search/browse/?owner_verified=True</a>) use
+				<a href="{{ url_for('add.basic') }}">Add Basic Site</a> on your behalf.
+			</small>
+		</p>
 
 		<form action="{{ url_for('add.add') }}" method="post" name="searchmysite-add-site">
 			<div class="form-group">
-				<label for="home_page" class="col-form-label sms-p2">Home page</label>
+				<label for="home_page" class="col-form-label sms-p2 mt-3">Home page</label>
 				<input type="url" name="home_page" class="form-control" id="home_page" placeholder="Home page"
 					aria-describedby="homepage-help" required autofocus>
 				<small id="homepage-help" class="form-text text-muted">
@@ -100,7 +95,6 @@
 				<thead>
 					<tr>
 						<th scope="col"></th>
-						<th scope="col">{{ tiers[0]['tier_name'] }}</th>
 						<th scope="col">{{ tiers[1]['tier_name'] }}</th>
 						<th scope="col">{{ tiers[2]['tier_name'] }}</th>
 					</tr>
@@ -108,61 +102,50 @@
 				<tbody>
 					<tr>
 						<td>Full indexing frequency</td>
-						<td><span style="white-space: nowrap;">{{ tiers[0]['full_reindex_frequency'] }}</span></td>
 						<td>{{ tiers[1]['full_reindex_frequency'] }}</td>
 						<td>{{ tiers[2]['full_reindex_frequency'] }}</td>
 					</tr>
 					<tr>
 						<td>Incremental indexing frequency</td>
-						<td><span style="white-space: nowrap;">{{ tiers[0]['incremental_reindex_frequency'] }}</span>
-						</td>
 						<td>{{ tiers[1]['incremental_reindex_frequency'] }}</td>
 						<td>{{ tiers[2]['incremental_reindex_frequency'] }}</td>
 					</tr>
 					<tr>
 						<td>Indexing page limit</td>
-						<td><span style="white-space: nowrap;">{{ tiers[0]['indexing_page_limit'] }}</span></td>
 						<td>{{ tiers[1]['indexing_page_limit'] }}</td>
 						<td>{{ tiers[2]['indexing_page_limit'] }}</td>
 					</tr>
 					<tr>
 						<td>On-demand reindexing</td>
-						<td>{{ tiers[0]['on_demand_reindexing'] }}</td>
 						<td>{{ tiers[1]['on_demand_reindexing'] }}</td>
 						<td>{{ tiers[2]['on_demand_reindexing'] }}</td>
 					</tr>
 					<tr>
 						<td>API enabled</td>
-						<td>{{ tiers[0]['api_enabled'] }}</td>
 						<td>{{ tiers[1]['api_enabled'] }}</td>
 						<td>{{ tiers[2]['api_enabled'] }}</td>
 					</tr>
 					<tr>
 						<td>Access Manage Site to configure indexing</td>
-						<td>{{ tiers[0]['access_to_manage'] }}</td>
 						<td>{{ tiers[1]['access_to_manage'] }}</td>
 						<td>{{ tiers[2]['access_to_manage'] }}</td>
 					</tr>
 					<tr>
 						<td>Ability to suggest new Basic listings</td>
 						<td>No</td>
-						<td>No</td>
 						<td>Yes</td>
 					</tr>
 					<tr>
 						<td>Cost</td>
-						<td>{{ tiers[0]['cost'] }}</td>
 						<td>{{ tiers[1]['cost'] }}</td>
 						<td>{{ tiers[2]['cost'] }}</td>
 					</tr>
 					<tr>
 						<td>Listing duration</td>
-						<td>n/a</td>
 						<td>{{ tiers[1]['duration'] }}</td>
 						<td>{{ tiers[2]['duration'] }}</td>
 					</tr>
 					<tr>
-						<td></td>
 						<td></td>
 						<td><small>Requires proof of domain ownership.</small></td>
 						<td><small>Requires proof of domain ownership and one-off credit card payment.</small></td>

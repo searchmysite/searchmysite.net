@@ -1,0 +1,115 @@
+{% extends "layoutwithsearchbox.html" %}
+
+{% block title %}Search My Site - Search as a service{% endblock %}
+
+{% block description %}Add site-specific search to your website without installing and running your own search
+engine. Free for a month to try, then £12 a year. Open source and self-hostable.{% endblock %}
+
+{% block content %}
+<div class="row col-md-10 offset-md-1 sms-standard">
+	<div class="col-lg-12">
+
+		<h1 class="sms-h1">Search as a service</h1>
+
+		<p class="sms-p2">
+			The searchmysite.net search as a service is a relatively easy, quick and cost effective way to add
+			site-specific search to your website without installing and running your own search engine.
+		</p>
+		<p class="sms-p2">
+			It crawls and indexes your site, and provides a simple mechanism to add a
+			site-specific search box to your site, along with a simple API if you have more advanced needs.
+		</p>
+		<p class="sms-p2">
+			It is tried and tested, having powered the searchmysite.net search engine since July 2020.
+		</p>
+		<p class="sms-p2">
+			<a href="/admin/add/">Add Site</a> to get started -
+			it is only £12 per year, and you can try it for free for a month if you prefer.
+		</p>
+
+		<h2 class="sms-h2">How it works</h2>
+
+		<h3 class="sms-h3">1. Submit your site</h3>
+		<p class="sms-p2">
+			Click <a href="/admin/add/">Add Site</a> and prove that you own the domain,
+			e.g. by uploading a specific file to your domain's root or adding a DNS TXT record.
+			Your site is then crawled and indexed (up to 500 pages for a Full listing)
+			and reindexed regularly, so new content becomes searchable without you having to do anything.
+		</p>
+
+		<h3 class="sms-h3">2. Add a search box to your site</h3>
+		<p class="sms-p2">
+			The simplest option is a form which takes a query and a hidden domain parameter,
+			so the results are restricted to your own site.
+			Alternatively, use the API (enabled for Free Trial and Full listings)
+			to build a custom search experience, either server-side or client-side on your own domain.
+			See the <a href="/pages/documentation/#adding-a-search-box">Documentation</a> for details and examples.
+		</p>
+
+		<h2 class="sms-h2">What you get</h2>
+		<p class="sms-p2">
+			For the Full listing:
+		</p>
+		<ul class="sms-list-2">
+			<li>
+				<strong>Site-specific search</strong> - results restricted to your own domain.
+			</li>
+			<li>
+				<strong>Full and incremental reindexing</strong> - new and changed content becomes searchable
+				automatically, with full a reindex every week with incremental updates in between.
+			</li>
+			<li>
+				<strong>On-demand reindexing</strong> - you can also manually trigger a reindex when you make changes.
+			</li>
+			<li>
+				<strong>Customisable indexing</strong> - choose which parts of your site to exclude from the index.
+			</li>
+			<li>
+				<strong>A simple JSON API</strong> - usable from your own domain, client-side or server-side.
+			</li>
+			<li>
+				<strong>No infrastructure to install or run</strong> - we handle the crawling, indexing and search.
+			</li>
+		</ul>
+
+		<h2 class="sms-h2">Pricing</h2>
+		<p class="sms-p2">
+			<strong>Free Trial</strong> - £0 for 1 month: up to 100 pages indexed, API enabled.
+		</p>
+		<p class="sms-p2">
+			<strong>Full</strong> - £12 per year: up to 500 pages indexed,
+			a full reindex every 7 days with incremental updates in between, on-demand reindexing, API enabled.
+		</p>
+		<p class="sms-p2">
+			See <a href="/admin/add/">Add Site</a> for a full comparison of the listing tiers.
+		</p>
+
+		<h2 class="sms-h2">Your site in the public search</h2>
+		<p class="sms-p2">
+			By default, your site is also included in the searchmysite.net public search,
+			a boutique search engine for personal and independent websites.
+			Your indexed pages become searchable, and your site appears in our browse pages (which search engines can
+			see), so people (and search engines) can discover your site.
+		</p>
+		<p class="sms-p2">
+			If you only want the search as a service, you can select "No" for "Include in public search"
+			when adding your site.
+		</p>
+
+		<h2 class="sms-h2">Open source</h2>
+		<p class="sms-p2">
+			searchmysite.net is fully open source, so you can inspect the code, contribute to it,
+			or even <a href="https://github.com/searchmysite/searchmysite.net">self-host your own instance</a>.
+		</p>
+
+		<p class="sms-p2">
+			Ready to try it? Go to <a href="/admin/add/">Add Site</a>.
+		</p>
+
+		<p class="sms-p2">
+			Last updated: 17 September 2026.
+		</p>
+
+	</div>
+</div>
+{% endblock %}

@@ -238,7 +238,7 @@ ul.sms-list-1.sms-special-bullet li:before {
     margin-left: -2rem;
 }
 
-h1.sms-h1 {
+h1.sms-h1, h2.sms-h1 {
     color: var(--highlight);
 }
 
@@ -472,7 +472,7 @@ a.sms-large-font:hover {
     padding-bottom: 5rem;
 }
 
-.sms-about-text h1 {
+.sms-about-text h1, .sms-about-text h2 {
     margin-bottom: 2.5rem;
 }
 
