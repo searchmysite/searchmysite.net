@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- These are hardcoded because the site structure rarely changes.
+     Only the indexable pages are listed:
+     - /search/ results are noindex
+	 - /search/random/ is a redirect
+     - /admin/ pages are noindex
+	 - /api is disallowed in robots.txt
+	 The lastmod is omitted for /search/browse/ and /search/new/
+	 because they are dynamically generated and the content changes 
+	 several times a day. The lastmod for the other pages should
+	 be manually updated when changes are made to those pages. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<url>
+		<loc>https://searchmysite.net/</loc>
+		<lastmod>2026-09-16</lastmod>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/pages/about/</loc>
+		<lastmod>2025-11-07</lastmod>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/pages/documentation/</loc>
+		<lastmod>2026-09-16</lastmod>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/pages/privacy/</loc>
+		<lastmod>2023-05-20</lastmod>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/pages/terms/</loc>
+		<lastmod>2025-11-07</lastmod>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/new/</loc>
+	</url>
+</urlset>
