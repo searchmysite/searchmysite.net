@@ -267,17 +267,37 @@ site, and the search API specification.{% endblock %}
 
 		<h3 class="sms-h3" id="adding-a-search-box">How do I add a search box to my site?</h3>
 		<p class="sms-p2">
-			If you have a Full listing (or a Free Trial) you will have the API enabled.
-			The API can be used in a server-side search page.
-			Alternatively, you can use the API client-side, e.g. as per the very basic example at
-			<a
-				href="https://blog.searchmysite.net/posts/adding-a-simple-search-page-to-my-personal-website-with-searchmysite.net/">Adding
-				a simple search page to my personal website with searchmysite.net</a>.
+			The simplest way is to add a single line of code to a page of your site, normally a dedicated search page
+			such as /search/, e.g. (for michael-lewis.com):
+		</p>
+		<pre><code>
+&lt;script src="https://searchmysite.net/static/js/sms-search.js" data-domain="michael-lewis.com"&gt;&lt;/script&gt;
+						</code></pre>
+		<p class="sms-p2">
+			Set data-domain to your domain. The script works whatever your listing
+			tier is (Basic, Free Trial, or Full), but the behaviour differs:
+		</p>
+		<ul class="sms-list-2">
+			<li>With a Full listing (or Free Trial) it shows a search box and the results on your own site using the
+				API.
+			</li>
+			<li>With a Basic listing it shows a simple form which shows results on the
+				searchmysite.net results page.</li>
+		</ul>
+		<p class="sms-p2">
+			Searches can be deep-linked using the q parameter, e.g. /search/?q=foo.
 		</p>
 		<p class="sms-p2">
-			If you only have a Basic listing, or don't want to use the API, a simple alternative is to
+			Note that, for static site generators which escape HTML in markdown
+			(e.g. Hugo), you will need to allow raw HTML (e.g. add
+			<code>[markup.goldmark.renderer] unsafe = true</code> to your config).
+		</p>
+		<p class="sms-p2">
+			Alternatively, you can use the <a href="#api">API</a> directly to build your own
+			custom search experience, either server-side or client-side on your own domain.
+			If you prefer to do it manually without the API, a simple option is to
 			have a form which takes a query and a domain hidden parameter containing the value of
-			the domain to which to want to restrict results, e.g. (for michael-lewis.com):
+			the domain to which to restrict results, e.g. (for michael-lewis.com):
 		</p>
 		<pre><code>
 &lt;form action="https://searchmysite.net/search/"&gt;
@@ -389,7 +409,7 @@ site, and the search API specification.{% endblock %}
 		</p>
 
 		<p class="sms-p2">
-			Last updated: 16 September 2026.
+			Last updated: 18 September 2026.
 		</p>
 
 	</div>
