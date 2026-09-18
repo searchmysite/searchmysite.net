@@ -418,6 +418,30 @@ def check_if_api_enabled_for_domain(domain):
     return api_enabled_for_domain
 
 
+# Get the listing status of a domain, i.e. whether it is found, its highest active tier
+# (0 if it has no active listing) and whether the API is enabled for it
+# Note that api_enabled comes from tblDomains, the same source used to gate /api/v1/search/,
+# so the status of a domain here always matches what the search API itself will allow
+def get_domain_listing_status(domain):
+    status = {'found': False, 'tier': 0, 'tier_name': None, 'api_enabled': False}
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(searchmysite.sql.sql_check_api_enabled, (domain,))
+    api_enabled_result = cursor.fetchone()
+    if not api_enabled_result:
+        return status
+    status['found'] = True
+    if api_enabled_result['api_enabled'] == True:
+        status['api_enabled'] = True
+    cursor.execute(searchmysite.sql.sql_select_tier, (domain,))
+    tier_result = cursor.fetchone()
+    if tier_result:
+        status['tier'] = int(tier_result['tier'])
+        status['tier_name'] = tier_result['tier_name']
+    current_app.logger.debug('Listing status for {}: {}'.format(domain, status))
+    return status
+
+
 # Utils used by other utils
 # -------------------------
 

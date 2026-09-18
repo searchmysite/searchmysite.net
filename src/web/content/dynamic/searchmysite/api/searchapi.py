@@ -10,7 +10,7 @@ import xml.dom.minidom
 from searchmysite.db import get_db
 import config
 import searchmysite.solr
-from searchmysite.searchutils import check_if_api_enabled_for_domain, get_search_params, get_groupbydomain, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results #, do_vector_search, get_query_vector_string
+from searchmysite.searchutils import check_if_api_enabled_for_domain, get_domain_listing_status, get_search_params, get_groupbydomain, get_filter_queries, get_start, do_search, get_no_of_results, get_links, get_display_results #, do_vector_search, get_query_vector_string
 import requests
 
 
@@ -100,18 +100,56 @@ def search(domain, search_type='search'):
         response['params'] = p
         response['totalresults'] = totalresults
         response['results'] = results
-        # Add the Access-Control-Allow-Origin header
-        host = request.host_url
-        origin = request.headers.get('Origin')
-        if host.startswith('http://localhost') or host.startswith('https://localhost'):
-            alloworigin = host # To save having to disable CORS for local testing
-        elif origin and origin.endswith(domain):
-            alloworigin = origin
-        else:
-            alloworigin = 'https://' + domain
+        # Get the Access-Control-Allow-Origin header
+        alloworigin = get_allow_origin_header(request, domain)
         # Return
         resp = make_response(jsonify(response))
         resp.headers['Access-Control-Allow-Origin'] = alloworigin
+        return resp
+
+
+# Domain status JSON API
+# ----------------------
+#
+# Full URL:
+#   /api/v1/status/<domain>
+#   e.g. /api/v1/status/michael-lewis.com
+#
+# Parameters:
+#   <domain>: the domain to look up (mandatory)
+#
+# Responses:
+#   Domain not found:
+#     404 {"message": "Domain <domain> not found"}
+#   Domain found:
+#     200 {"domain": "<domain>", "tier": <0 if no active listing, else 1, 2 or 3>,
+#          "tier_name": "<tier name or null>", "api_enabled": <true|false>}
+#
+# Used by the embeddable search box (static/js/sms-search.js) to determine
+# whether to show a form which submits to /search/ (API disabled) or a
+# client-side search using the site specific API (API enabled).
+@bp.route('/status/<domain>', methods=['GET'])
+def status(domain):
+    domain = domain.lower().strip()
+    listing_status = get_domain_listing_status(domain)
+    if not listing_status['found']:
+        return error_response(404, 'json', message="Domain {} not found".format(domain))
+    else:
+        response = {}
+        response['domain'] = domain
+        response['tier'] = listing_status['tier']
+        response['tier_name'] = listing_status['tier_name']
+        response['api_enabled'] = listing_status['api_enabled']
+        # Get the Access-Control-Allow-Origin header
+        alloworigin = get_allow_origin_header(request, domain)
+        # Return
+        resp = make_response(jsonify(response))
+        resp.headers['Access-Control-Allow-Origin'] = alloworigin
+        # The embeddable search box fetches this on every page load of host pages,
+        # so cache it briefly; Vary: Origin so CDN caches don't serve one origin's
+        # Access-Control-Allow-Origin to another
+        resp.headers['Cache-Control'] = 'public, max-age=3600'
+        resp.headers['Vary'] = 'Origin'
         return resp
 
 
@@ -295,6 +333,18 @@ def do_llm_prediction(prompt, data):
 
 
 # Utilities
+
+# Determine the value to be shown in the Access-Control-Allow-Origin header for the response
+def get_allow_origin_header(request, domain):
+        host = request.host_url
+        origin = request.headers.get('Origin')
+        if host.startswith('http://localhost') or host.startswith('https://localhost'):
+            alloworigin = host # To save having to disable CORS for local testing
+        elif origin and origin.endswith(domain):
+            alloworigin = origin
+        else:
+            alloworigin = 'https://' + domain
+        return alloworigin
 
 def convert_results_to_xml_string(results, params, no_of_results_for_display, links, search_type):
     root = ET.Element('feed', attrib={'xmlns':'http://www.w3.org/2005/Atom', 'xmlns:opensearch':'http://a9.com/-/spec/opensearch/1.1/'})
