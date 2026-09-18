@@ -2,7 +2,7 @@ from flask import (
     Blueprint, jsonify, request, current_app, make_response
 )
 from urllib.request import urlopen
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from datetime import datetime, timezone
 import json
 import xml.etree.ElementTree as ET
@@ -340,8 +340,15 @@ def get_allow_origin_header(request, domain):
         origin = request.headers.get('Origin')
         if host.startswith('http://localhost') or host.startswith('https://localhost'):
             alloworigin = host # To save having to disable CORS for local testing
-        elif origin and origin.endswith(domain):
-            alloworigin = origin
+        elif origin:
+            # Compare the origin's hostname (which excludes the port, so e.g.
+            # http://michael-lewis.com:1313 matches for local development) against
+            # the domain, also allowing subdomains
+            origin_hostname = urlsplit(origin).hostname or ''
+            if origin_hostname == domain or origin_hostname.endswith('.' + domain):
+                alloworigin = origin
+            else:
+                alloworigin = 'https://' + domain
         else:
             alloworigin = 'https://' + domain
         return alloworigin
