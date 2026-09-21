@@ -1,6 +1,6 @@
 {% extends "layoutwithsearchbox.html" %}
 
-{% block title %}Search My Site - Search as a service{% endblock %}
+{% block title %}Website Search Tool (Site Search as a Service) | Search My Site{% endblock %}
 
 {% block description %}Add site-specific search to your website without installing and running your own search
 engine. Free for a month to try, then £12 a year. Open source and self-hostable.{% endblock %}
@@ -9,11 +9,11 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 <div class="row col-md-10 offset-md-1 sms-standard">
 	<div class="col-lg-12">
 
-		<h1 class="sms-h1">Search as a service</h1>
+		<h1 class="sms-h1">Website Search Tool (Site Search as a Service)</h1>
 
 		<p class="sms-p2">
-			The searchmysite.net search as a service is a relatively easy, quick and cost effective way to add
-			site-specific search to your website without installing and running your own search engine.
+			The searchmysite.net website search tool is a relatively easy, quick and cost effective way to add
+			a custom site search bar to your website without installing and running your own search engine.
 		</p>
 		<p class="sms-p2">
 			It crawls and indexes your site, and you can add a
@@ -32,7 +32,11 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 
 		<h3 class="sms-h3">1. Submit your site</h3>
 		<p class="sms-p2">
-			Click <a href="/admin/add/">Add Site</a> and prove that you own the domain,
+			Click <a href="/admin/add/">Add Site</a> to start. You may find that your site is one of the thousands of
+			sites already indexed as a "Basic listing",
+			in which case you can simply proceed straight to adding a search box to your site, or continue to upgrade
+			your listing.
+			If you choose a "Full listing" or "Free Trial", you will be asked to verify that you own the domain,
 			e.g. by uploading a specific file to your domain's root or adding a DNS TXT record.
 			Your site is then crawled and indexed (up to 500 pages for a Full listing)
 			and reindexed regularly, so new content becomes searchable without you having to do anything.
@@ -43,7 +47,7 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 			Add a single line of code to a page of your site, normally a dedicated search page
 			such as /search/, e.g. (for michael-lewis.com):
 		</p>
-		<pre><code>&lt;script src="https://searchmysite.net/static/js/sms-search.js" data-domain="your-domain.com"&gt;&lt;/script&gt;</code></pre>
+		<pre><code>&lt;script src="https://searchmysite.net/static/js/sms-search.js" data-domain="michael-lewis.com"&gt;&lt;/script&gt;</code></pre>
 		<p class="sms-p2">
 			With a Full listing (or Free Trial) it shows a search box and the results on your own site using the
 			API, and with a Basic listing it shows a simple form which shows results on the
@@ -59,6 +63,12 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 		<ul class="sms-list-2">
 			<li>
 				<strong>Site-specific search</strong> - results restricted to your own domain.
+			</li>
+			<li>
+				<strong>100% Ad-Free</strong> - we never display adverts over your content or search results.
+			</li>
+			<li>
+				<strong>Privacy-first tracking</strong> - secure search that respects your visitors' data privacy.
 			</li>
 			<li>
 				<strong>Full and incremental reindexing</strong> - new and changed content becomes searchable
@@ -80,6 +90,9 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 
 		<h2 class="sms-h2">Pricing</h2>
 		<p class="sms-p2">
+			<strong>Basic</strong> - £0: free site-specific search form that displays results on searchmysite.net.
+		</p>
+		<p class="sms-p2">
 			<strong>Free Trial</strong> - £0 for 1 month: up to 100 pages indexed, API enabled.
 		</p>
 		<p class="sms-p2">
@@ -95,7 +108,8 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 			By default, your site is also included in the searchmysite.net public search,
 			a boutique search engine for personal and independent websites.
 			Your indexed pages become searchable, and your site appears in our browse pages (which search engines can
-			see), so people (and search engines) can discover your site.
+			see), so people (and search engines) can discover your site when searching for independent content (like
+			holiday planning tips or specialized technical guides).
 		</p>
 		<p class="sms-p2">
 			If you only want the search as a service, you can select "No" for "Include in public search"
@@ -113,7 +127,7 @@ engine. Free for a month to try, then £12 a year. Open source and self-hostable
 		</p>
 
 		<p class="sms-p2">
-			Last updated: 18 September 2026.
+			Last updated: 21 September 2026.
 		</p>
 
 	</div>
