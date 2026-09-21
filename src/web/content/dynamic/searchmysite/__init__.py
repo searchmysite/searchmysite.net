@@ -3,6 +3,8 @@ import os
 #from flask_restx import Api
 from logging.config import dictConfig
 
+from searchmysite.adminutils import get_host
+
 def create_app(test_config=None):
     # Configure logging, as per https://flask.palletsprojects.com/en/1.1.x/logging/ (not required for Flask, but required for Apache httpd + mod_wsgi)
     dictConfig({
@@ -88,15 +90,33 @@ def create_app(test_config=None):
     app.register_blueprint(search.bp, url_prefix=search_url_prefix)
 
     # Inject the canonical URL of the current page, so search engines can consolidate
-    # duplicates (e.g. /search/browse/?q=x and /search/browse/)
+    # duplicates (e.g. /?ref=michael-lewis.com and /?ref=michaelianlewis.com) to the canonical URL (e.g. /)
     # get_host() fixes up the host, which is http://127.0.0.1:8080/ when run behind
     # the production reverse proxy (the proxy sets X-Forwarded-Host)
+    # In the case of /search/browse/ there are a small number of params that are allowed 
+    # to be passed through to the canonical URL, e.g. https://searchmysite.net/search/browse/?&page=2
+    # This is to support the pages listed in sitemap.xml which should be indexable by search engines.
     from searchmysite.adminutils import get_host
     @app.context_processor
     def inject_canonical():
         if request.endpoint:
             url = url_for(request.endpoint, **request.view_args, _external=True)
-            return {'canonical_url': get_host(url, request.headers)}
+            canonical_url = get_host(url, request.headers)
+            params = request.args.to_dict(flat=True)
+            if request.endpoint == 'search.browse':
+                sort = ''
+                if 'sort' in params:
+                    sort = 'sort={}'.format(str(params['sort']).replace(' ', '+')) # e.g. change "date_domain_added asc" to "date_domain_added+asc"
+                owner_verified = ''
+                if 'owner_verified' in params:
+                    owner_verified = 'owner_verified={}'.format(params['owner_verified'])
+                page = ''
+                if 'page' in params and params['page'] != '1': # only include page param if it's not the first page
+                    page = 'page={}'.format(params['page'])
+                params_for_canonical = '&'.join(filter(None, [sort, owner_verified, page]))
+                if params_for_canonical:
+                    canonical_url += '?' + params_for_canonical
+            return { 'canonical_url': canonical_url }
         return {'canonical_url': None}
 
     # All /admin pages are for site owners, not search engines, so mark them noindex

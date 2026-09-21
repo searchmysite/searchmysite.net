@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- These are hardcoded because the site structure rarely changes.
-     Only the indexable pages are listed:
-     - /search/ results are noindex
-	 - /search/random/ is a redirect
-     - /admin/ pages are noindex
-	 - /api is disallowed in robots.txt
-	 The lastmod is omitted for /search/browse/ and /search/new/
-	 because they are dynamically generated and the content changes 
-	 several times a day. The lastmod for the other pages should
-	 be manually updated when changes are made to those pages. -->
+<!-- 
+    Notes:
+	- These are hardcoded because the site structure rarely changes.
+    - Only the indexable pages are listed. The following aren't listed:
+      - /search/ results are noindex
+	  - /search/random/ is a redirect
+      - /admin/ pages are noindex
+	  - /api is disallowed in robots.txt
+	- The lastmod is omitted for /search/browse/ and /search/new/
+	  because they are dynamically generated and the content changes 
+	  several times a day. The lastmod for the other pages should
+	  be manually updated when changes are made to those pages.
+	- The browse pages are listed individually because they contain 
+	  unique content (site home pages) which we want search engines to 
+	  index, but which search engines won't be able to find because the 
+	  normal browse navigation is via POST. The canonical URL for these
+	  has to be updated to include the allowed params otherwise search 
+	  engines will skip as duplicates. In theory we should go up to
+	  (currently) page 198 (3955 sites / 20 site per page) but I 
+	  don't want to use up the crawl budget on browse.
+	 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
 		<loc>https://searchmysite.net/</loc>
@@ -35,9 +46,30 @@
 		<lastmod>2025-11-07</lastmod>
 	</url>
 	<url>
+		<loc>https://searchmysite.net/search/new/</loc>
+	</url>
+	<url>
 		<loc>https://searchmysite.net/search/browse/</loc>
 	</url>
 	<url>
-		<loc>https://searchmysite.net/search/new/</loc>
+		<loc>https://searchmysite.net/search/browse/?owner_verified=True</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?sort=date_domain_added+asc</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?sort=indexed_inlink_domains_count+desc</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?page=2</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?page=3</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?page=4</loc>
+	</url>
+	<url>
+		<loc>https://searchmysite.net/search/browse/?page=5</loc>
 	</url>
 </urlset>
