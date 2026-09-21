@@ -17,9 +17,9 @@ def documentation():
 def privacy():
     return render_template('pages/privacy.html')
 
-@bp.route('/search-as-a-service/')
+@bp.route('/website-search-tool/')
 def search_as_a_service():
-    return render_template('pages/search_as_a_service.html')
+    return render_template('pages/website_search_tool.html')
 
 @bp.route('/terms/')
 def terms():
