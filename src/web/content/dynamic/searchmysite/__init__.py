@@ -119,12 +119,13 @@ def create_app(test_config=None):
             return { 'canonical_url': canonical_url }
         return {'canonical_url': None}
 
-    # All /admin pages are for site owners, not search engines, so mark them noindex
+    # Most /admin pages are for site owners, not search engines, so mark them noindex
+    # The one exception is contact which is a public page linked to in the footer.
     # (robots.txt no longer disallows /admin, so the meta tag is how they're excluded)
     # Done at app level (rather than blueprint level) because create_app() can be
     # called more than once in a process (e.g. by the tests), and blueprint setup
     # methods can't be called after the blueprint has been registered once
-    admin_blueprint_names = {'add', 'admin', 'auth', 'checkout', 'contact', 'manage'}
+    admin_blueprint_names = {'add', 'admin', 'auth', 'checkout', 'manage'}
     @app.context_processor
     def inject_noindex():
         if request.endpoint and request.endpoint.split('.')[0] in admin_blueprint_names:
