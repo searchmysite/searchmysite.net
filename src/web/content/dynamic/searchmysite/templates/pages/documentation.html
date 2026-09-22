@@ -19,19 +19,15 @@ site, and the search API specification.{% endblock %}
 				<li><a href="#how-do-i-add">How do I add a site to the public search?</a></li>
 				<!-- <li><a href="#how-do-i-check">How do I check on the status of a site I submitted?</a></li> -->
 			</ul>
-			<li><a href="#search-as-a-service"><strong>Adding a site to the search as a service</strong></a></li>
+			<li><a href="#search-as-a-service"><strong>Adding a site to the Website Search Tool</strong></a></li>
 			<ul class="sms-list-2">
 				<li><a href="#what-benefits">What benefits do I get from a Full listing?</a></li>
-				<li><a href="#does-my-site">Does my site have to appear in the public search if I want to use the search
-						as a service?</a></li>
+				<li><a href="#does-my-site">Does my site have to appear in the public search if I want to use the
+						Website Search Tool?</a></li>
 				<li><a href="#can-i-swap">Can I change a Basic listing to a Full listing?</a></li>
+				<li><a href="#full-listing-expiry">What happens when my Full listing expires?</a></li>
 				<li><a href="#how-do-i-verify">How do I verify ownership of my site?</a></li>
 				<li><a href="#do-i-have-to-complete">Do I have to complete a Full listing in one session?</a></li>
-			</ul>
-			<li><a href="#searching"><strong>Using the search</strong></a></li>
-			<ul class="sms-list-2">
-				<li><a href="#query-syntax">What is the query syntax?</a></li>
-				<li><a href="#fields">What fields are available?</a></li>
 			</ul>
 			<li><a href="#managing"><strong>Managing my site</strong></a></li>
 			<ul class="sms-list-2">
@@ -41,10 +37,15 @@ site, and the search API specification.{% endblock %}
 				<li><a href="#how-frequently">How frequently are sites reindexed?</a></li>
 				<li><a href="#relevancy">How does the relevancy tuning work?</a></li>
 			</ul>
+			<li><a href="#searching"><strong>Using the search</strong></a></li>
+			<ul class="sms-list-2">
+				<li><a href="#query-syntax">What is the query syntax?</a></li>
+				<li><a href="#fields">What fields are available?</a></li>
+			</ul>
 			<li><a href="#support"><strong>Support</strong></a></li>
 			<ul class="sms-list-2">
 				<li><a href="#how-do-i-raise-a-support-query">How do I raise a support query?</a></li>
-				<li><a href="#support-hours">What are the support hours for the search as a service?</a></li>
+				<li><a href="#support-hours">How long will it take to get support?</a></li>
 			</ul>
 		</ul>
 
@@ -77,30 +78,37 @@ site, and the search API specification.{% endblock %}
 		</p>
 -->
 
-		<h2 id="search-as-a-service" class="sms-h2">Adding a site to the search as a service</h2>
+		<h2 id="search-as-a-service" class="sms-h2">Adding a site to the Website Search Tool</h2>
 
 		<h3 class="sms-h3" id="what-benefits">What benefits do I get from a Full listing?</h3>
 		<p class="sms-p2">
-			The Full listing provides access to the search as a service features,
-			such as more frequent indexing, indexing a higher number of pages, providing access
-			to Manage Site to configure indexing and trigger on-demand reindexing, and enabling the API.
-			See <a href="/admin/add/">Add Site</a> for further details.
+			The Full listing provides a number of benefits, for example more frequent indexing, indexing a higher number
+			of pages, access to Manage Site to configure indexing and trigger on-demand reindexing, enabling the API,
+			etc. See <a href="/pages/website-search-tool/">Website Search Tool</a> for further details.
 		</p>
 
 		<h3 class="sms-h3" id="does-my-site">Does my site have to appear in the public search if I want to use the
-			search as a service?</h3>
+			Website Search Tool?</h3>
 		<p class="sms-p2">
 			No. When listing your site one of the questions is &quot;Include in public search&quot;, to which you can
-			select No.
-			This allows you to use the search as a service even if your site isn't a personal or independent website.
-			Note that, as per the <a href="/pages/terms/">Terms of Use</a>, a moderator may exclude a Full listing from
-			the
-			public search.
+			select No. This allows you to use the Website Search Tool even if your site isn't a personal or independent
+			website. Note that, as per the <a href="/pages/terms/">Terms of Use</a>, a moderator may exclude a Full
+			listing from the public search.
 		</p>
 
 		<h3 class="sms-h3" id="can-i-swap">Can I change a Basic listing to a Full listing?</h3>
 		<p class="sms-p2">
 			Yes. Just resubmit the site, and select Full for the Listing tier.
+		</p>
+
+		<h3 class="sms-h3" id="full-listing-expiry">What happens when my Full listing expires?</h3>
+		<p class="sms-p2">
+			When a Full listing expires, it will revert to a Free Trial listing for one month. To convert a Free Trial
+			to a Full listing, simply log in to Manage Site, select the Subscriptions tab, and click Purchase.
+			After the Free Trial expires it will revert to a Basic listing. To convert a Basic to a Full listing,
+			you will need to renew via Add Site, although you will not need to verify ownership of your site again.
+			If you have added a search box to your site with the one line of code provided by the Website Search Tool,
+			it will continue to work whatever the listing type, although the behaviour will change as described below.
 		</p>
 
 		<h3 class="sms-h3" id="how-do-i-verify">How do I verify ownership of my site?</h3>
@@ -114,6 +122,136 @@ site, and the search API specification.{% endblock %}
 		<p class="sms-p2">
 			No. For a Full listing, if you are unable to complete the process in one session, you can resubmit
 			at a later time to pick up where you left off.
+		</p>
+
+
+		<h2 id="managing" class="sms-h2">Managing my site</h2>
+
+		<h3 class="sms-h3" id="adding-a-search-box">How do I add a search box to my site?</h3>
+		<p class="sms-p2">
+			The simplest way is to add a single line of code to a page of your site, normally a dedicated search page
+			such as /search/, e.g. (for michael-lewis.com):
+		</p>
+		<pre><code>
+&lt;script src="https://searchmysite.net/static/js/sms-search.js" data-domain="michael-lewis.com"&gt;&lt;/script&gt;
+						</code></pre>
+		<p class="sms-p2">
+			Set data-domain to your domain. The script works whatever your listing
+			tier is (Basic, Free Trial, or Full), but the behaviour differs:
+		</p>
+		<ul class="sms-list-2">
+			<li>With a Full listing (or Free Trial) it shows a search box and the results on your own site using the
+				API.
+			</li>
+			<li>With a Basic listing it shows a search box on your own site but the results on the
+				searchmysite.net results page.</li>
+		</ul>
+		<p class="sms-p2">
+			Pages using a search box added in this way can be deep-linked using the q parameter, e.g. <a
+				href="https://michael-lewis.com/search/?q=antarctica"
+				target="_blank">https://michael-lewis.com/search/?q=antarctica</a>.
+		</p>
+		<p class="sms-p2">
+			Note that, for static site generators which escape HTML in markdown
+			(e.g. Hugo), you will need to allow raw HTML (e.g. add
+			<code>[markup.goldmark.renderer] unsafe = true</code> to your config).
+		</p>
+		<p class="sms-p2">
+			Alternatively, you can use the <a href="#api">API</a> directly to build your own
+			custom search experience, either server-side or client-side on your own domain.
+			If you prefer to do it manually without the API, a simple option is to
+			have a form which takes a query and a domain hidden parameter containing the value of
+			the domain to which to restrict results, e.g. (for michael-lewis.com):
+		</p>
+		<pre><code>
+&lt;form action="https://searchmysite.net/search/"&gt;
+  &lt;input type="search" name="q" &gt;&lt;/input&gt;
+  &lt;input type="hidden" name="domain" value="michael-lewis.com"&gt;&lt;/input&gt;
+  &lt;input type="submit" value="Search"&gt;&lt;/input&gt;
+&lt;/form&gt;
+						</code></pre>
+
+		<h3 class="sms-h3" id="api">What is the specification for the API?</h3>
+		<p class="sms-p2"><!--
+							OpenAPI Spec: <a href="https://searchmysite.net/api/v1/">https://searchmysite.net/api/v1/</a>
+						--></p>
+		<p class="sms-p2">
+			In summary, queries take the form /api/v1/search/&lt;domain&gt;?q=*, where parameters are:
+		<ul class="sms-list-2">
+			<li>&lt;domain&gt;: the domain being searched (mandatory)</li>
+			<li>q: query string (mandatory)</li>
+			<li>page: the page number from which multi-page results should start (optional, default 1)</li>
+			<li>resultsperpage: the number of results per page (optional, default 10)</li>
+		</ul>
+		</p>
+		<p class="sms-p2">
+			Results are returned in the following format, with all fields optional apart from id and url:
+		</p>
+		<pre><code>
+{
+  "params": {
+    "q": "*",
+    "page": 1,
+    "resultsperpage": 10,
+  }
+  "totalresults": 40,
+  "results": [
+    {
+      "id": "https://server/path",
+      "url": "https://server/path",
+      "title": "Page title",
+      "author": "Author",
+      "description": "Page description",
+      "tags": ["tag1", "tag2"],
+      "page_type": "Page type, e.g. article",
+      "page_last_modified": "2020-07-17T00:00:00+00:00",
+      "published_date": "2020-07-17T00:00:00+00:00",
+      "language": "en",
+      "indexed_inlinks": ["inlink1", "inlink2"],
+      "indexed_outlinks": ["outlink1", "outlink2"],
+      "fragment": ["text before the search ", "query", " and text after"]
+    }
+  ]
+}
+						</code></pre>
+
+		<h3 class="sms-h3" id="how-does-indexing-work">How does the indexing process work?</h3>
+		<p class="sms-p2">
+			The indexing process first checks a robots.txt, and will obey any rules there. If the robots.txt allows,
+			it will then load the home page and web feed (if a web feed was configured or discovered on a previous
+			index),
+			looking for links which it will follow breadth first, until there are no further pages
+			to index or until the indexing page limit for the domain or the timeout is reached.
+		</p>
+		<p class="sms-p2">
+			If you want to exclude certain pages from indexing, you would normally do this via robots.txt. If you have a
+			Full listing
+			you can also configure your listing to exclude content based on:
+		<ul class="sms-list-2">
+			<li>path: i.e. URLs containing a certain string.</li>
+			<li>type: i.e. values from the page_type field described above.</li>
+		</ul>
+		</p>
+		<p class="sms-p2">
+			This might be useful to, for example, filter out micro blog entries which have a particular path or type.
+		</p>
+
+		<h3 class="sms-h3" id="how-frequently">How frequently are sites reindexed?</h3>
+		<p class="sms-p2">
+			See <a href="/admin/add/">Add Site</a> for the latest information on indexing frequency.
+			If you have a Full listing you can logon to Manage Site to see when your next reindex is due, and
+			can of course trigger a reindex on demand.
+		</p>
+
+		<h3 class="sms-h3" id="relevancy">How does the relevancy tuning work?</h3>
+		<p class="sms-p2">
+			The following fields are used to determine how results are ranked:
+			title, description, author, tags, url, content, indexed_inlink_domains_count, contains_adverts and
+			owner_verified.
+			There is further discussion of the relevancy tuning on some <a
+				href="https://blog.searchmysite.net/">Blog</a> posts,
+			and of course the <a href="https://github.com/searchmysite/searchmysite.net">Source code</a> is available
+			for complete transparency.
 		</p>
 
 
@@ -263,134 +401,6 @@ site, and the search API specification.{% endblock %}
 		</table>
 
 
-		<h2 id="managing" class="sms-h2">Managing my site</h2>
-
-		<h3 class="sms-h3" id="adding-a-search-box">How do I add a search box to my site?</h3>
-		<p class="sms-p2">
-			The simplest way is to add a single line of code to a page of your site, normally a dedicated search page
-			such as /search/, e.g. (for michael-lewis.com):
-		</p>
-		<pre><code>
-&lt;script src="https://searchmysite.net/static/js/sms-search.js" data-domain="michael-lewis.com"&gt;&lt;/script&gt;
-						</code></pre>
-		<p class="sms-p2">
-			Set data-domain to your domain. The script works whatever your listing
-			tier is (Basic, Free Trial, or Full), but the behaviour differs:
-		</p>
-		<ul class="sms-list-2">
-			<li>With a Full listing (or Free Trial) it shows a search box and the results on your own site using the
-				API.
-			</li>
-			<li>With a Basic listing it shows a simple form which shows results on the
-				searchmysite.net results page.</li>
-		</ul>
-		<p class="sms-p2">
-			Searches can be deep-linked using the q parameter, e.g. /search/?q=foo.
-		</p>
-		<p class="sms-p2">
-			Note that, for static site generators which escape HTML in markdown
-			(e.g. Hugo), you will need to allow raw HTML (e.g. add
-			<code>[markup.goldmark.renderer] unsafe = true</code> to your config).
-		</p>
-		<p class="sms-p2">
-			Alternatively, you can use the <a href="#api">API</a> directly to build your own
-			custom search experience, either server-side or client-side on your own domain.
-			If you prefer to do it manually without the API, a simple option is to
-			have a form which takes a query and a domain hidden parameter containing the value of
-			the domain to which to restrict results, e.g. (for michael-lewis.com):
-		</p>
-		<pre><code>
-&lt;form action="https://searchmysite.net/search/"&gt;
-  &lt;input type="search" name="q" &gt;&lt;/input&gt;
-  &lt;input type="hidden" name="domain" value="michael-lewis.com"&gt;&lt;/input&gt;
-  &lt;input type="submit" value="Search"&gt;&lt;/input&gt;
-&lt;/form&gt;
-						</code></pre>
-
-		<h3 class="sms-h3" id="api">What is the specification for the API?</h3>
-		<p class="sms-p2"><!--
-							OpenAPI Spec: <a href="https://searchmysite.net/api/v1/">https://searchmysite.net/api/v1/</a>
-						--></p>
-		<p class="sms-p2">
-			In summary, queries take the form /api/v1/search/&lt;domain&gt;?q=*, where parameters are:
-		<ul class="sms-list-2">
-			<li>&lt;domain&gt;: the domain being searched (mandatory)</li>
-			<li>q: query string (mandatory)</li>
-			<li>page: the page number from which multi-page results should start (optional, default 1)</li>
-			<li>resultsperpage: the number of results per page (optional, default 10)</li>
-		</ul>
-		</p>
-		<p class="sms-p2">
-			Results are returned in the following format, with all fields optional apart from id and url:
-		</p>
-		<pre><code>
-{
-  "params": {
-    "q": "*",
-    "page": 1,
-    "resultsperpage": 10,
-  }
-  "totalresults": 40,
-  "results": [
-    {
-      "id": "https://server/path",
-      "url": "https://server/path",
-      "title": "Page title",
-      "author": "Author",
-      "description": "Page description",
-      "tags": ["tag1", "tag2"],
-      "page_type": "Page type, e.g. article",
-      "page_last_modified": "2020-07-17T00:00:00+00:00",
-      "published_date": "2020-07-17T00:00:00+00:00",
-      "language": "en",
-      "indexed_inlinks": ["inlink1", "inlink2"],
-      "indexed_outlinks": ["outlink1", "outlink2"],
-      "fragment": ["text before the search ", "query", " and text after"]
-    }
-  ]
-}
-						</code></pre>
-
-		<h3 class="sms-h3" id="how-does-indexing-work">How does the indexing process work?</h3>
-		<p class="sms-p2">
-			The indexing process first checks a robots.txt, and will obey any rules there. If the robots.txt allows,
-			it will then load the home page and web feed (if a web feed was configured or discovered on a previous
-			index),
-			looking for links which it will follow breadth first, until there are no further pages
-			to index or until the indexing page limit for the domain or the timeout is reached.
-		</p>
-		<p class="sms-p2">
-			If you want to exclude certain pages from indexing, you would normally do this via robots.txt. If you have a
-			Full listing
-			you can also configure your listing to exclude content based on:
-		<ul class="sms-list-2">
-			<li>path: i.e. URLs containing a certain string.</li>
-			<li>type: i.e. values from the page_type field described above.</li>
-		</ul>
-		</p>
-		<p class="sms-p2">
-			This might be useful to, for example, filter out micro blog entries which have a particular path or type.
-		</p>
-
-		<h3 class="sms-h3" id="how-frequently">How frequently are sites reindexed?</h3>
-		<p class="sms-p2">
-			See <a href="/admin/add/">Add Site</a> for the latest information on indexing frequency.
-			If you have a Full listing you can logon to Manage Site to see when your next reindex is due, and
-			can of course trigger a reindex on demand.
-		</p>
-
-		<h3 class="sms-h3" id="relevancy">How does the relevancy tuning work?</h3>
-		<p class="sms-p2">
-			The following fields are used to determine how results are ranked:
-			title, description, author, tags, url, content, indexed_inlink_domains_count, contains_adverts and
-			owner_verified.
-			There is further discussion of the relevancy tuning on some <a
-				href="https://blog.searchmysite.net/">Blog</a> posts,
-			and of course the <a href="https://github.com/searchmysite/searchmysite.net">Source code</a> is available
-			for complete transparency.
-		</p>
-
-
 		<h3 class="sms-h3" id="support">Support</h3>
 
 		<h3 class="sms-h3" id="how-do-i-raise-a-support-query">How do I raise a support query?</h3>
@@ -401,7 +411,7 @@ site, and the search API specification.{% endblock %}
 				href="https://github.com/searchmysite/searchmysite.net/issues">https://github.com/searchmysite/searchmysite.net/issues</a>.
 		</p>
 
-		<h3 class="sms-h3" id="support-hours">How long will it take to get support for the search as a service?</h3>
+		<h3 class="sms-h3" id="support-hours">How long will it take to get support?</h3>
 		<p class="sms-p2">
 			As per <a href="/pages/about/">About searchmysite.net</a>, there is not a large team behind the service, so
 			it may take a day or two to get a response. Note however that the service has been running reliably since
@@ -409,7 +419,7 @@ site, and the search API specification.{% endblock %}
 		</p>
 
 		<p class="sms-p2">
-			Last updated: 18 September 2026.
+			Last updated: 22 September 2026.
 		</p>
 
 	</div>
