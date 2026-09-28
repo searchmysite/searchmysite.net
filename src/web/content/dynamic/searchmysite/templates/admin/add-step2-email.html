@@ -3,58 +3,60 @@
 {% block title %}Search My Site - Add Site Step 2{% endblock %}
 
 {% block content %}
-			<div class="row">
-				<div class="col-lg-12">
-					<ul class="nav nav-tabs">
-						<li class="nav-item">
-							<a class="nav-link active">Add Site</a>
-						</li>
-					</ul>
-				</div>
+<div class="row">
+	<div class="col-lg-12">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active">Add Site</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+<div class="row mt-4">
+	<div class="col-md-6 offset-md-3">
+
+		{% if config['ENABLE_PAYMENT'] == True and tier == 3 %}
+		<ul id="progressbar5step">
+			<li class="active" id="step1of5">Login &amp; validation method</li>
+			<li class="active" id="step2of5">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
+			<li id="step3of5">Validate</li>
+			<li id="step4of5">Payment</li>
+			<li id="step5of5">Complete</li>
+		</ul>
+		{% else %}
+		<ul id="progressbar4step">
+			<li class="active" id="step1of4">Login &amp; validation method</li>
+			<li class="active" id="step2of4">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
+			<li id="step3of4">Validate</li>
+			<li id="step4of4">Complete</li>
+		</ul>
+		{% endif %}
+
+		<form method="post">
+			<div class="form-group">
+				<label for="email" class="col-form-label mt-3">Admin email</label>
+				<input type="email" name="email" class="form-control" id="email" placeholder="Email"
+					aria-describedby="email-help" required autofocus>
+				<small id="email-help" class="form-text text-muted">
+					The site admin email address will only used for important service updates,
+					e.g. notification of expiry of your listing.
+				</small>
 			</div>
-
-			<div class="row mt-4">
-				<div class="col-md-6 offset-md-3">
-
-					{% if config['ENABLE_PAYMENT'] == True and tier == 3 %}
-					<ul id="progressbar5step">
-						<li class="active" id="step1of5">Login &amp; validation method</li>
-						<li class="active" id="step2of5">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
-						<li id="step3of5">Validate</li>
-						<li id="step4of5">Payment</li>
-						<li id="step5of5">Complete</li>
-					</ul>
-					{% else %}
-					<ul id="progressbar4step">
-						<li class="active" id="step1of4">Login &amp; validation method</li>
-						<li class="active" id="step2of4">Email{% if login_type == 'PASSWORD' %} &amp; password{% endif %}</li>
-						<li id="step3of4">Validate</li>
-						<li id="step4of4">Complete</li>
-					</ul>
-					{% endif %}
-
-					<form method="post">
-						<div class="form-group">
-							<label for="email" class="col-form-label">Admin email</label>
-							<input type="email" name="email" class="form-control" id="email" placeholder="Email" aria-describedby="email-help" required autofocus>
-							<small id="email-help" class="form-text text-muted">
-								The site admin email address will only used for important service updates, 
-								e.g. notification of expiry of your listing.
-							</small>
-						</div>
-						{% if login_type == 'PASSWORD' %}
-						<div class="form-group">
-							<label for="password" class="col-form-label">Password</label>
-							<input type="password" name="password" class="form-control" id="password" placeholder="Password" aria-describedby="password-help" required>
-							<small id="password-help" class="form-text text-muted">
-								The password is stored in encrypted form, but best not use one that you use for other services.
-							</small>
-						</div>
-						{% endif %}
-						<button type="submit" id="submit" class="btn btn-primary mt-3">Next</button>
-					</form>
-
-				</div>
+			{% if login_type == 'PASSWORD' %}
+			<div class="form-group">
+				<label for="password" class="col-form-label mt-3">Password</label>
+				<input type="password" name="password" class="form-control" id="password" placeholder="Password"
+					aria-describedby="password-help" required>
+				<small id="password-help" class="form-text text-muted">
+					The password is stored in encrypted form, but best not use one that you use for other services.
+				</small>
 			</div>
+			{% endif %}
+			<button type="submit" id="submit" class="btn btn-primary mt-3">Next</button>
+		</form>
+
+	</div>
+</div>
 
 {% endblock %}
