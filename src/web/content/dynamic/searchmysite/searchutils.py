@@ -209,7 +209,7 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
 # 2. On the Newest Pages, a groupbydomain query is used to ensure only one result per domain, so you
 #    want to show the total number of domains at the top rather than the total number of results. 
 def get_no_of_results(search_results, groupbydomain):
-    if groupbydomain:
+    if groupbydomain and 'grouped' in search_results and 'domain' in search_results['grouped']:
         total_results = search_results['grouped']['domain']['matches']
         total_domains = search_results['grouped']['domain']['ngroups'] 
     else:
