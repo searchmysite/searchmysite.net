@@ -313,6 +313,8 @@ def get_submission_details():
     # Get user entered data
     home_page = request.form.get('home_page')
     site_category = request.form.get('site_category')
+    if site_category not in ('personal-website', 'independent-website'):
+        site_category = 'independent-website'
     tier = request.form.get('tier')
     if tier: tier = int(tier)
     # Get calculated data
