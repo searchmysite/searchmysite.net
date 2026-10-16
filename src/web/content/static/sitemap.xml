@@ -2,10 +2,10 @@
 <!-- 
     Notes:
 	- These are hardcoded because the site structure rarely changes.
-    - Only the indexable pages are listed. The following aren't listed:
-      - /search/ results are noindex
+	- Only the indexable pages are listed. The following aren't listed:
+	  - /search/ results are noindex
 	  - /search/random/ is a redirect
-      - /admin/ pages are noindex
+	  - /admin/ pages are noindex because theu require authentication (although /admin/add/ doesn't)
 	  - /api is disallowed in robots.txt
 	- The lastmod is omitted for /search/browse/ and /search/new/
 	  because they are dynamically generated and the content changes 
@@ -17,7 +17,7 @@
 	  normal browse navigation is via POST. The canonical URL for these
 	  has to be updated to include the allowed params otherwise search 
 	  engines will skip as duplicates. In theory we should go up to
-	  (currently) page 198 (3955 sites / 20 site per page) but I 
+	  (currently) page 198 (nearly 4000 sites / 20 site per page) but I 
 	  don't want to use up the crawl budget on browse.
 	 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -39,7 +39,7 @@
 	</url>
 	<url>
 		<loc>https://searchmysite.net/pages/website-search-tool/</loc>
-		<lastmod>2026-09-28</lastmod>
+		<lastmod>2026-10-16</lastmod>
 	</url>
 	<url>
 		<loc>https://searchmysite.net/pages/terms/</loc>
