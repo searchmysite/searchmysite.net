@@ -22,11 +22,11 @@ bp = Blueprint('manage', __name__)
 # label must match the database field name
 # Manage Site / Site details
 manage_details_form = [
-{'label':'domain', 'label-text':'Domain', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Only pages on this domain will be indexed. This your login ID if you use a password.'},
-{'label':'home_page', 'label-text':'Home page', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The page where indexing will begin. This is your login ID if you use IndieAuth.'},
+{'label':'domain', 'label-text':'Domain', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Only pages on this domain will be indexed. This your login ID.'},
+{'label':'home_page', 'label-text':'Home page', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The page where indexing will begin.'},
 {'label':'category', 'label-text':'Category', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The site category. Users might filter search results to certain categories.'},
 {'label':'domain_first_submitted', 'label-text':'Domain added', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time and date this domain was first entered into the system.'},
-{'label':'login_type', 'label-text':'Login method', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The method you use to login. Options are PASSWORD (login ID is the domain and password is required) and INDIEAUTH (login ID is the home page and no password is required in this system).'},
+{'label':'login_type', 'label-text':'Login method', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The method you use to login. The only option at the moment is PASSWORD (login ID is the domain and password is required).'},
 {'label':'email', 'label-text':'Admin email', 'type':'email', 'class':'form-control', 'editable':True, 'help':'Site admin email address. Only used for service updates.'},
 {'label':'api_enabled', 'label-text':'API enabled', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'Whether you have the API enabled for your domain or not.'},
 ]

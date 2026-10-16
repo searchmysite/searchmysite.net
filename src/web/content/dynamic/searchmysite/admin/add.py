@@ -206,51 +206,6 @@ def step3():
                     current_app.logger.warn('check_for_validation_key failed for {}'.format(domain))
                     flash(verification_failed_message)
                     return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, validation_key=validation_key)
-        elif login_type == 'INDIEAUTH':
-            current_app.logger.info('Starting IndieAuth')
-            if request.method == 'GET':
-                if not request.args.get('redirect_uri') and not session.get('redirect_uri') and not request.args.get('client_id') and not session.get('client_id'):
-                    host = get_host(request.host_url, request.headers)
-                    redirect_uri = host[:-1] + url_for('add.step3') # assumes host ends with a trailing /
-                    session['redirect_uri'] = redirect_uri
-                    client_id = host
-                    session['client_id'] = client_id
-                    state = generate_validation_key(12)
-                    current_app.logger.info('Setting redirect_uri = {}, client_id = {}, state = {}'.format(redirect_uri, client_id, state))
-                    return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, redirect_uri=redirect_uri, client_id=client_id, state=state)
-                else:
-                    code = request.args.get('code')
-                    redirect_uri = session.get('redirect_uri')
-                    client_id = session.get('client_id')
-                    current_app.logger.info('Getting redirect_uri = {}, client_id = {}, code = {}'.format(redirect_uri, client_id, code))
-                    indieauth = "https://indielogin.com/auth"
-                    headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'Accept': 'application/json'}
-                    payload = {'code': code, 'redirect_uri': redirect_uri, 'client_id': client_id}
-                    response = requests.post(indieauth, data=payload, headers=headers)
-                    responsejson = response.json()
-                    if response.status_code != 200:
-                        error = responsejson['error']
-                        error_description = responsejson['error_description']
-                        message = 'Unable to authenticate with IndieAuth: {} {}'.format(error, error_description)
-                        flash(message)
-                        return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type)
-                    else: # Validated
-                        indexable = check_a_site_can_be_indexed(domain, home_page)
-                        if indexable: # i.e. if the site is indexable
-                            conn = get_db()
-                            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-                            cursor.execute(searchmysite.sql.sql_update_freefull_validated, (domain,))
-                            conn.commit()
-                            if current_app.config['ENABLE_PAYMENT'] == True and tier == 3:
-                                cursor.execute(searchmysite.sql.sql_update_freefull_step3, (domain, tier))
-                                conn.commit()
-                                return redirect(url_for('add.step4'))
-                            else:
-                                return redirect(url_for('add.success'))
-                        else:
-                            flash(indexing_check_failed_message)
-                            return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type)
-
 
 @bp.route('/add/step4/', methods=('GET', 'POST'))
 def step4():
