@@ -237,13 +237,18 @@ def expire_listings(tier):
                 elif tier == 2 or tier == 3:
                     cursor.execute(sql_expire_tier2or3_listing, (expired_listing['domain'], tier, expired_listing['domain'], new_tier, new_tier,))
                     cursor.execute(sql_reset_indexing_defaults, (new_tier, expired_listing['domain'],))
+                    # If it is a tier 2 dropping to tier 1, we also want to expire the listing so it is subject to moderator approval
+                    if tier == 2:
+                        cursor.execute(sql_expire_tier1_listing, (expired_listing['domain'], expired_listing['domain']))
+                        solr_delete_domain(expired_listing['domain'])
+                    # If it is a tier 3 dropping to tier 2, we also want to send an email to the site owner to let them know their listing has expired
                     if tier == 3 and expired_listing['email']:
                         subject = "searchmysite.net Full listing expiry"
                         text = 'Dear {},\n\n'.format(expired_listing['email'])
                         text += 'Thank you for subscribing {} to searchmysite.net. I hope you have found it useful.\n\n'.format(expired_listing['domain'])
                         text += 'Unfortunately, your subscription has now expired, and your Full listing has reverted to a Free Trial listing. '
                         #text += 'This means that you can still log on, and still use the API, for the time being. '
-                        text += 'If you would like to continue using the search as a service, you will need to resubscribe. '
+                        text += 'If you would like to continue using the Website Search Tool as a Full listing, you will need to resubscribe. '
                         text += 'While the Free Trial listing is active you can do this by simply going to https://searchmysite.net/admin/manage/subscriptions/ and selecting Purchase. '
                         text += 'Once the Free Trial expires, you will need to renew via Add Site (although you will not need to verify ownership of your site again).\n\n'
                         text += 'If you have any questions or comments, please don\'t hesitate to reply.\n\n'
