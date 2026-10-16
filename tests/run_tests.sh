@@ -7,21 +7,24 @@ set -a; source ~/projects/searchmysite.net/src/.env; set +a
 echo "Unit test"
 pytest web/unit/test_adminutil.py
 
-echo "PART 1 of 6: Submitting a Full listing, including username password (as opposed to IndieAuth) verification process"
+echo "PART 1 of 7: Submitting a Full listing, including username password (as opposed to IndieAuth) verification process"
 pytest -v web/integration/test_1_addfull.py
 
-echo "PART 2 of 6: Submitting a Basic listing via the new logged-in /admin/add/basic/ flow"
+echo "PART 2 of 7: Submitting a Basic listing via the new logged-in /admin/add/basic/ flow"
 pytest -v web/integration/test_2_addbasic.py
 
-echo "PART 3 of 6: Indexing test sites (please wait, this may take some time)"
+echo "PART 3 of 7: Indexing test sites (please wait, this may take some time)"
 docker exec -i src-indexing-1 python /usr/src/app/search_my_site_scheduler.py >/dev/null
 
-echo "PART 4 of 6: Searching test site"
+echo "PART 4 of 7: Searching test site"
 pytest -v web/integration/test_4_search.py
 
-echo "PART 5 of 6: Testing API"
+echo "PART 5 of 7: Testing API"
 pytest -v web/integration/test_5_api.py
 
-echo "PART 6 of 6: Removing test site"
-pytest -v web/integration/test_6_remove.py
+echo "PART 6 of 7: Managing the Full listing (toggling include in public search)"
+pytest -v web/integration/test_6_manage.py
+
+echo "PART 7 of 7: Removing test site"
+pytest -v web/integration/test_7_remove.py
 

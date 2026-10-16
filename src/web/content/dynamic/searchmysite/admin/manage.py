@@ -37,7 +37,7 @@ manage_details_form = [
 # There aren't database fields for web_feed and sitemap - this will be populated in get_manage_data based on web_feed_auto_discovered and web_feed_user_entered
 manage_indexing_form = [
 {'label':'indexing_enabled', 'label-text':'Indexing enabled', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'True if indexing is enabled, and False if indexing is disabled (e.g. because of repeated failed indexing attempts).'},
-{'label':'include_in_public_search', 'label-text':'Include in public search', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'True if content from this site is to be included in the public search (along with Browse, Newest and Random).'},
+{'label':'include_in_public_search', 'label-text':'Include in public search', 'type':'boolean', 'class':'form-control-plaintext', 'editable':True, 'help':'True if content from this site is to be included in the public search (along with Browse, Newest and Random). Changing this queues a reindex so the change takes effect in the public search.'},
 {'label':'indexing_status', 'label-text':'Indexing current status', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The latest status of indexing (either RUNNING, COMPLETE, PENDING).'},
 {'label':'indexing_status_changed', 'label-text':'Indexing status last updated', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time the indexing status was last changed.'},
 {'label':'full_reindex_frequency', 'label-text':'Full reindexing frequency', 'type':'text', 'class':'form-control-plaintext', 'editable':False, 'help':'The time period between full reindexes of the site.'},
@@ -93,11 +93,27 @@ def indexing():
                 if edited_field_name == 'web_feed':
                     edited_field_value = request.form.get('web_feed')
                     edited_field_name = 'web_feed_user_entered'
+                elif edited_field_name == 'include_in_public_search':
+                    # Convert the radio button value to a boolean (same idiom as the add flow)
+                    edited_field_value = request.form.get(edited_field_name)
+                    edited_field_value = False if edited_field_value == "False" else True
                 else:
                     edited_field_value = request.form.get(edited_field_name)
-                current_app.logger.debug('edited field name: {}, value: {}'.format(edited_field_name, edited_field_value))
-                cursor.execute(searchmysite.sql.sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
-                conn.commit()
+                if edited_field_name == 'include_in_public_search':
+                    # This value is stored in Solr at index time, so it only takes effect in the public
+                    # search after a reindex. Queue one, but only if the value actually changed.
+                    cursor.execute(searchmysite.sql.sql_select_domains, (domain,))
+                    current_value = cursor.fetchone()['include_in_public_search']
+                    if current_value != edited_field_value:
+                        current_app.logger.debug('edited field name: {}, value: {} (changed from {})'.format(edited_field_name, edited_field_value, current_value))
+                        cursor.execute(searchmysite.sql.sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
+                        cursor.execute(searchmysite.sql.sql_update_indexing_status, (domain, domain,))
+                        conn.commit()
+                        flash('The public search setting has been changed. Your site has been queued for reindexing so the change takes effect in the public search.')
+                else:
+                    current_app.logger.debug('edited field name: {}, value: {}'.format(edited_field_name, edited_field_value))
+                    cursor.execute(searchmysite.sql.sql_update_value, (AsIs(edited_field_name), edited_field_value, domain,))
+                    conn.commit()
         # If they've clicked Delete Path or Save Path in Exclude Path section
         if request.form.get('delete_exclude_path'):
             delete_exclude_path = request.form.get('delete_exclude_path')
@@ -195,9 +211,11 @@ def get_manage_data(domain, manage_form):
     cursor.execute(searchmysite.sql.sql_select_domains, (domain,))
     result = cursor.fetchone()
     # Get data matching all the fields on the form spec, with exceptions for next_reindex web_feed
+    # Boolean fields are always included (even when False) so the current value can be displayed
     for form_item in manage_form:
         label = form_item['label']
-        if label != 'next_reindex' and label != 'web_feed' and result[label]:
+        is_boolean = form_item['type'] == 'boolean'
+        if label != 'next_reindex' and label != 'web_feed' and (result[label] or is_boolean):
             if label == 'indexing_enabled' and result['indexing_disabled_reason']: # There's logic in the template to show reason if indexing disabled
                 manage_data['indexing_disabled_reason'] = result['indexing_disabled_reason']
             elif label == 'domain_first_submitted' and result['domain_first_submitted']:

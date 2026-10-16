@@ -2,179 +2,213 @@
 
 {% block title %}Search My Site - Manage My Site{% endblock %}
 
-{% block head %}{{ super() }}<script>
+{% block head %}{{ super() }}
+<script>
 	function enableEdit(id) {
-  		document.getElementById(id).removeAttribute('readonly');
-  		document.getElementById(id+'-edit').hidden = true;
-  		document.getElementById(id+'-save').hidden = false;
-  		return false;
+		document.getElementById(id).removeAttribute('readonly');
+		document.getElementById(id + '-edit').hidden = true;
+		document.getElementById(id + '-save').hidden = false;
+		return false;
 	}
 	function enableAdd(id) {
 		document.getElementById(id).hidden = false;
-  		return false;
+		return false;
 	}
 </script>{% endblock %}
 
 {% block content %}
-			<div class="row">
-				<div class="col-lg-12">
-					<ul class="nav nav-tabs">
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('manage.sitedetails') }}">Site details</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link active">Indexing</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('manage.subscriptions') }}">Subscriptions</a>
-						</li>
-					</ul>
+<div class="row">
+	<div class="col-lg-12">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link" href="{{ url_for('manage.sitedetails') }}">Site details</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link active">Indexing</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="{{ url_for('manage.subscriptions') }}">Subscriptions</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+{% for row in manage_indexing_form %}
+
+<form action="{{ url_for('manage.indexing') }}" method="post">
+	<div class="row mt-3">
+		<div class="col-sm-3 col-md-2 text-end">
+			<label for="{{ row['label'] }}" class="col-form-label">{{ row['label-text'] }}:</label>
+		</div>
+		<div class="col-sm-6 col-md-8">
+			{% if row['type'] == 'boolean' and row['editable'] == True %}
+			<div class="{{ row['class'] }}">
+				<div class="form-check form-check-inline">
+					<input class="form-check-input" type="radio" name="{{ row['label'] }}" id="{{ row['label'] }}_true"
+						value="True" {% if manage_indexing_data[row['label']]==True %}checked{% endif %}
+						aria-describedby="{{ row['label'] }}_help">
+					<label class="form-check-label" for="{{ row['label'] }}_true">Yes</label>
+				</div>
+				<div class="form-check form-check-inline">
+					<input class="form-check-input" type="radio" name="{{ row['label'] }}" id="{{ row['label'] }}_false"
+						value="False" {% if manage_indexing_data[row['label']]==False %}checked{% endif %}
+						aria-describedby="{{ row['label'] }}_help">
+					<label class="form-check-label" for="{{ row['label'] }}_false">No</label>
 				</div>
 			</div>
-
-			{% for row in manage_indexing_form %}
-
-			<form action="{{ url_for('manage.indexing') }}" method="post">
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="{{ row['label'] }}" class="col-form-label">{{ row['label-text'] }}:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="{{ row['type'] }}" readonly class="{{ row['class'] }}" id="{{ row['label'] }}" name="{{ row['label'] }}" value="{{ manage_indexing_data[row['label']] }}" aria-describedby="{{ row['label'] }}_help">
-						<small id="{{ row['label'] }}_help" class="form-text text-muted">
-							{{ row['help'] }}
-						</small>
-					</div>
-					{% if row['editable'] == True %}
-					<div class="col-sm-3 col-md-2">
-						<button type="edit" class="btn btn-primary" id="{{ row['label'] }}-edit" onclick="return enableEdit('{{ row['label'] }}');">Edit</button>
-						<button type="submit" class="btn btn-primary" id="{{ row['label'] }}-save" hidden>Save</button>
-						<input type="hidden" id="edited-field" name="edited-field" value="{{ row['label'] }}">
-					</div>
-					{% endif %}
-				</div>
-			</form>
-
-				{% if row['label'] == 'indexing_enabled' %}
-					{% if manage_indexing_data['indexing_enabled'] == False %}
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="indexing_disabled_reason" class="col-form-label">Indexing disabled reason:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="text" readonly class="form-control-plaintext" id="indexing_disabled_reason" value="{{ manage_indexing_data['indexing_disabled_reason'] }}" aria-describedby="indexing_disabled_reason_help">
-						<small id="indexing_disabled_reason_help" class="form-text text-muted">
-							The reason why indexing has been disabled.
-						</small>
-					</div>
-				</div>
-					{% endif %}
-				{% endif %}
-
-			{% endfor %}
-
-			{% for path in manage_indexing_data['exclude_paths'] %}
-			<form action="{{ url_for('manage.indexing') }}" method="post">
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="exclude_path" class="col-form-label">Exclude path:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="text" name="delete_exclude_path" readonly class="form-control-plaintext" id="exclude_path" value="{{ path }}" aria-describedby="exclude_path_help">
-					</div>
-					<div class="col-sm-3 col-md-2">
-						<button type="submit" class="btn btn-primary">Delete Path</button>
-					</div>
-				</div>
-			</form>
-			{% endfor %}
-			<form action="{{ url_for('manage.indexing') }}" method="post" id="save_exclude_path" hidden>
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="exclude_path" class="col-form-label">Exclude path:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="text" name="save_exclude_path" class="form-control" id="exclude_path" value="" aria-describedby="exclude_path_help">
-					</div>
-					<div class="col-sm-3 col-md-2">
-						<button type="submit" class="btn btn-primary">Save Path</button>
-					</div>
-				</div>
-			</form>
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
-				{% if manage_indexing_data['exclude_paths'] %}
-					<p></p>
-				{% else %}
-					<label class="col-form-label">Exclude path:</label>
-				{% endif %}
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<small id="exclude_path_help" class="form-text text-muted">
-						Exclude these paths when indexing, e.g. don't index "/tags/". 
-						Note that regex characters will need escaping, e.g. to exclude URLs starting e.g. "/search/?query=" you would need to escape the ? i.e. "/search/\?query=".
-					</small>
-					<br/>
-					<button type="edit" class="btn btn-primary" onclick="return enableAdd('save_exclude_path');">Add Path</button>
-				</div>
-			</div>
-
-			{% for type in manage_indexing_data['exclude_types'] %}
-			<form action="{{ url_for('manage.indexing') }}" method="post">
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="exclude_type" class="col-form-label">Exclude type:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="text" name="delete_exclude_type" readonly class="form-control-plaintext" id="exclude_type" value="{{ type }}" aria-describedby="exclude_type_help">
-					</div>
-					<div class="col-sm-3 col-md-2">
-						<button type="submit" class="btn btn-primary">Delete Type</button>
-					</div>
-				</div>
-			</form>
-			{% endfor %}
-			<form action="{{ url_for('manage.indexing') }}" method="post" id="save_exclude_type" hidden>
-				<div class="row mt-3">
-					<div class="col-sm-3 col-md-2 text-end">
-						<label for="exclude_type" class="col-form-label">Exclude type:</label>
-					</div>
-					<div class="col-sm-6 col-md-8">
-						<input type="text" name="save_exclude_type" class="form-control" id="exclude_type" value="" aria-describedby="exclude_type_help">
-					</div>
-					<div class="col-sm-3 col-md-2">
-						<button type="submit" class="btn btn-primary">Save Type</button>
-					</div>
-				</div>
-			</form>
-			<div class="row mt-3">
-				<div class="col-sm-3 col-md-2 text-end">
-				{% if manage_indexing_data['exclude_types'] %}
-					<p></p>
-				{% else %}
-					<label class="col-form-label">Exclude type:</label>
-				{% endif %}
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<small id="exclude_type_help" class="form-text text-muted">
-						Exclude these page types when indexing. See documentation for how page types are defined, 
-						and use your API to see what are defined for your site.
-					</small>
-					<br/>
-					<button type="edit" class="btn btn-primary" onclick="return enableAdd('save_exclude_type');">Add Type</button>
-				</div>
-			</div>
-
-			{% if manage_indexing_data['on_demand_reindexing'] == True %}
-			<div class="row mt-5">
-				<div class="col-sm-3 col-md-2 text-end">
-					<p></p>
-				</div>
-				<div class="col-sm-6 col-md-8">
-					<a class="btn btn-primary sms-btn-link sms-min-width-btn" href="{{ url_for('manage.reindex') }}" role="button">Reindex</a>
-				</div>
-			</div>
+			{% else %}
+			<input type="{{ row['type'] }}" readonly class="{{ row['class'] }}" id="{{ row['label'] }}"
+				name="{{ row['label'] }}" value="{{ manage_indexing_data[row['label']] }}"
+				aria-describedby="{{ row['label'] }}_help">
 			{% endif %}
+			<div>
+				<small id="{{ row['label'] }}_help" class="form-text text-muted">
+					{{ row['help'] }}
+				</small>
+			</div>
+		</div>
+		{% if row['editable'] == True %}
+		<div class="col-sm-3 col-md-2">
+			{% if row['type'] != 'boolean' %}
+			<button type="edit" class="btn btn-primary" id="{{ row['label'] }}-edit"
+				onclick="return enableEdit('{{ row['label'] }}');">Edit</button>
+			{% endif %}
+			<button type="submit" class="btn btn-primary" id="{{ row['label'] }}-save" {% if row['type'] !='boolean'
+				%}hidden{% endif %}>Save</button>
+			<input type="hidden" id="edited-field" name="edited-field" value="{{ row['label'] }}">
+		</div>
+		{% endif %}
+	</div>
+</form>
+
+{% if row['label'] == 'indexing_enabled' %}
+{% if manage_indexing_data['indexing_enabled'] == False %}
+<div class="row mt-3">
+	<div class="col-sm-3 col-md-2 text-end">
+		<label for="indexing_disabled_reason" class="col-form-label">Indexing disabled reason:</label>
+	</div>
+	<div class="col-sm-6 col-md-8">
+		<input type="text" readonly class="form-control-plaintext" id="indexing_disabled_reason"
+			value="{{ manage_indexing_data['indexing_disabled_reason'] }}"
+			aria-describedby="indexing_disabled_reason_help">
+		<small id="indexing_disabled_reason_help" class="form-text text-muted">
+			The reason why indexing has been disabled.
+		</small>
+	</div>
+</div>
+{% endif %}
+{% endif %}
+
+{% endfor %}
+
+{% for path in manage_indexing_data['exclude_paths'] %}
+<form action="{{ url_for('manage.indexing') }}" method="post">
+	<div class="row mt-3">
+		<div class="col-sm-3 col-md-2 text-end">
+			<label for="exclude_path" class="col-form-label">Exclude path:</label>
+		</div>
+		<div class="col-sm-6 col-md-8">
+			<input type="text" name="delete_exclude_path" readonly class="form-control-plaintext" id="exclude_path"
+				value="{{ path }}" aria-describedby="exclude_path_help">
+		</div>
+		<div class="col-sm-3 col-md-2">
+			<button type="submit" class="btn btn-primary">Delete Path</button>
+		</div>
+	</div>
+</form>
+{% endfor %}
+<form action="{{ url_for('manage.indexing') }}" method="post" id="save_exclude_path" hidden>
+	<div class="row mt-3">
+		<div class="col-sm-3 col-md-2 text-end">
+			<label for="exclude_path" class="col-form-label">Exclude path:</label>
+		</div>
+		<div class="col-sm-6 col-md-8">
+			<input type="text" name="save_exclude_path" class="form-control" id="exclude_path" value=""
+				aria-describedby="exclude_path_help">
+		</div>
+		<div class="col-sm-3 col-md-2">
+			<button type="submit" class="btn btn-primary">Save Path</button>
+		</div>
+	</div>
+</form>
+<div class="row mt-3">
+	<div class="col-sm-3 col-md-2 text-end">
+		{% if manage_indexing_data['exclude_paths'] %}
+		<p></p>
+		{% else %}
+		<label class="col-form-label">Exclude path:</label>
+		{% endif %}
+	</div>
+	<div class="col-sm-6 col-md-8">
+		<small id="exclude_path_help" class="form-text text-muted">
+			Exclude these paths when indexing, e.g. don't index "/tags/".
+			Note that regex characters will need escaping, e.g. to exclude URLs starting e.g. "/search/?query=" you
+			would need to escape the ? i.e. "/search/\?query=".
+		</small>
+		<br />
+		<button type="edit" class="btn btn-primary" onclick="return enableAdd('save_exclude_path');">Add Path</button>
+	</div>
+</div>
+
+{% for type in manage_indexing_data['exclude_types'] %}
+<form action="{{ url_for('manage.indexing') }}" method="post">
+	<div class="row mt-3">
+		<div class="col-sm-3 col-md-2 text-end">
+			<label for="exclude_type" class="col-form-label">Exclude type:</label>
+		</div>
+		<div class="col-sm-6 col-md-8">
+			<input type="text" name="delete_exclude_type" readonly class="form-control-plaintext" id="exclude_type"
+				value="{{ type }}" aria-describedby="exclude_type_help">
+		</div>
+		<div class="col-sm-3 col-md-2">
+			<button type="submit" class="btn btn-primary">Delete Type</button>
+		</div>
+	</div>
+</form>
+{% endfor %}
+<form action="{{ url_for('manage.indexing') }}" method="post" id="save_exclude_type" hidden>
+	<div class="row mt-3">
+		<div class="col-sm-3 col-md-2 text-end">
+			<label for="exclude_type" class="col-form-label">Exclude type:</label>
+		</div>
+		<div class="col-sm-6 col-md-8">
+			<input type="text" name="save_exclude_type" class="form-control" id="exclude_type" value=""
+				aria-describedby="exclude_type_help">
+		</div>
+		<div class="col-sm-3 col-md-2">
+			<button type="submit" class="btn btn-primary">Save Type</button>
+		</div>
+	</div>
+</form>
+<div class="row mt-3">
+	<div class="col-sm-3 col-md-2 text-end">
+		{% if manage_indexing_data['exclude_types'] %}
+		<p></p>
+		{% else %}
+		<label class="col-form-label">Exclude type:</label>
+		{% endif %}
+	</div>
+	<div class="col-sm-6 col-md-8">
+		<small id="exclude_type_help" class="form-text text-muted">
+			Exclude these page types when indexing. See documentation for how page types are defined,
+			and use your API to see what are defined for your site.
+		</small>
+		<br />
+		<button type="edit" class="btn btn-primary" onclick="return enableAdd('save_exclude_type');">Add Type</button>
+	</div>
+</div>
+
+{% if manage_indexing_data['on_demand_reindexing'] == True %}
+<div class="row mt-5">
+	<div class="col-sm-3 col-md-2 text-end">
+		<p></p>
+	</div>
+	<div class="col-sm-6 col-md-8">
+		<a class="btn btn-primary sms-btn-link sms-min-width-btn" href="{{ url_for('manage.reindex') }}"
+			role="button">Reindex</a>
+	</div>
+</div>
+{% endif %}
 
 
 {% endblock %}
