@@ -27,6 +27,19 @@ sql_update_freefull_listing = "UPDATE tblListingStatus "\
     "SET status = 'PENDING', status_changed = NOW(), pending_state = 'LOGIN_AND_VALIDATION_METHOD', pending_state_changed = NOW() "\
     "WHERE domain = (%s) AND tier = (%s);"
 
+# Discard any in-progress tier 2 or 3 listings and start a new one for the given tier
+# (used when a user resubmits with a different tier than their in-progress listing)
+# The INSERT is the same as sql_insert_freefull_listing, but with ON CONFLICT to handle the case where the tier being submitted is the same as the in-progress listing
+sql_reset_freefull_listing = "DELETE FROM tblListingStatus WHERE domain = (%s) AND tier IN (2, 3) AND status = 'PENDING'; "\
+    "INSERT INTO tblListingStatus (domain, tier, status, status_changed, pending_state, pending_state_changed) "\
+    "VALUES ((%s), (%s), 'PENDING', NOW(), 'LOGIN_AND_VALIDATION_METHOD', NOW()) "\
+    "  ON CONFLICT (domain, tier) "\
+    "  DO UPDATE SET "\
+    "    status = 'PENDING', "\
+    "    status_changed = NOW(), "\
+    "    pending_state = 'LOGIN_AND_VALIDATION_METHOD', "\
+    "    pending_state_changed = NOW();"
+
 sql_update_freefull_step1 = "UPDATE tblDomains "\
     "SET include_in_public_search = (%s), login_type = (%s) WHERE domain = (%s);"\
     "UPDATE tblListingStatus "\

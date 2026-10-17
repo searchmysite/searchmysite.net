@@ -71,15 +71,31 @@ def add():
                 flash(message)
                 return redirect(url_for('add.add'))
             elif highest_tier['tier'] == 2 or highest_tier['tier'] == 3:
-                session['home_page'] = home_page
-                if highest_tier['pending_state'] == 'LOGIN_AND_VALIDATION_METHOD':
+                if tier == highest_tier['tier']: # i.e. they're resubmitting the same tier as the in-progress listing , i.e. picking up where they left off
+                    session['home_page'] = home_page
+                    if highest_tier['pending_state'] == 'LOGIN_AND_VALIDATION_METHOD':
+                        return redirect(url_for('add.step1'))
+                    elif highest_tier['pending_state'] == 'EMAIL' or highest_tier['pending_state'] == 'EMAIL_AND_PASSWORD':
+                        return redirect(url_for('add.step2'))
+                    elif highest_tier['pending_state'] == 'INDIEAUTH_LOGIN' or highest_tier['pending_state'] == 'VALIDATION_CHECK':
+                        return redirect(url_for('add.step3'))
+                    elif highest_tier['pending_state'] == 'PAYMENT':
+                        return redirect(url_for('add.step4'))
+                elif tier == 1:
+                    message = 'Domain {} already has a tier {} listing in progress. Please resubmit with tier {} to continue, or use the Contact link if you would like to query this.'.format(domain, highest_tier['tier'], highest_tier['tier'])
+                    flash(message)
+                    return redirect(url_for('add.add'))
+                else: # i.e. they're resubmitting as a tier 2 but the inprogress was tier 3, or vice versa
+                    # Discard the in-progress listing and start a new listing for the submitted tier
+                    conn = get_db()
+                    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                    cursor.execute(searchmysite.sql.sql_reset_freefull_listing, (domain, domain, tier))
+                    conn.commit()
+                    session.clear()
+                    session['home_page'] = home_page
+                    message = 'Domain {} had a tier {} listing in progress. As you have now submitted tier {}, we have started a new tier {} listing.'.format(domain, highest_tier['tier'], tier, tier)
+                    flash(message)
                     return redirect(url_for('add.step1'))
-                elif highest_tier['pending_state'] == 'EMAIL' or highest_tier['pending_state'] == 'EMAIL_AND_PASSWORD':
-                    return redirect(url_for('add.step2'))
-                elif highest_tier['pending_state'] == 'INDIEAUTH_LOGIN' or highest_tier['pending_state'] == 'VALIDATION_CHECK':
-                    return redirect(url_for('add.step3'))
-                elif highest_tier['pending_state'] == 'PAYMENT':
-                    return redirect(url_for('add.step4'))
             else:
                 message = 'Unknown state'
                 flash(message)
