@@ -6,9 +6,8 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from urllib.parse import urlparse
-import requests
 from searchmysite.db import get_db
-from searchmysite.adminutils import generate_validation_key, extract_domain, send_email, get_host
+from searchmysite.adminutils import generate_validation_key, send_email, get_host
 import searchmysite.sql
 
 
@@ -17,10 +16,8 @@ bp = Blueprint('auth', __name__)
 
 # This is normally reached by a redirect from login_required
 # although you can also navigate direct to the login page.
-#
-# There are two login boxes, dealt with the two main parts to this code:
-# 1. The username and password login box, dealt with via the POST section
-# 2. The IndieAuth login box, dealt with via the GET section
+# The GET section renders the login page, the POST section handles
+# the username and password login form.
 @bp.route('/login/', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
@@ -46,15 +43,7 @@ def login():
         flash(error)
         return render_template('admin/login.html')
     else:
-        current_page = 'admin/login.html'
-        next_page = get_next_page() or url_for('manage.manage')
-        addsite_workflow = False
-        insertdomainsql = None
-        return_action, return_target = do_indieauth_login(current_page, next_page, addsite_workflow, insertdomainsql)
-        if (return_action == "render_template"):
-            return render_template(return_target, redirect_uri=session['redirect_uri'], client_id=session['client_id'], state=session['state'])
-        else:
-            return redirect(return_target)
+        return render_template('admin/login.html')
 
 @bp.route('/logout/')
 def logout():
@@ -65,13 +54,8 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if session.get('logged_in_domain') is None: # i.e. if not logged in
-            param_state = request.args.get('state')
-            code = request.args.get('code')
-            if param_state is not None and code is not None:
-                return redirect(url_for('auth.login', state=param_state, code=code))
-            else:
-                session['next_page'] = request.url
-                return redirect(url_for('auth.login'))
+            session['next_page'] = request.url
+            return redirect(url_for('auth.login'))
         return view(**kwargs)
     return wrapped_view
 
@@ -203,7 +187,7 @@ def set_login_session(domain, method):
     conn.commit()
     # Set session variables
     session['logged_in_domain'] = domain
-    session['log_in_method'] = method # valid values: usernamepassword, indieauth or changepasswordlink
+    session['log_in_method'] = method # valid values: usernamepassword or changepasswordlink
     session['is_admin'] = is_admin
     current_app.logger.debug('logged_in_domain: {}, log_in_method: {}, is_admin: {}'.format(domain, method, is_admin))
     return
