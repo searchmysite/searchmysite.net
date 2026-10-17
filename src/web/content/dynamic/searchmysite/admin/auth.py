@@ -31,6 +31,8 @@ def login():
         results = cursor.fetchone()
         if results is None:
             error = 'Incorrect domain. Are you registered?'
+        elif not results['password']: # account has no password set, e.g. legacy accounts originally set up with IndieAuth
+            error = 'This account has no password set. Please use the forgotten password link to set a new one.'
         elif not results['status'] == 'ACTIVE' and not (results['tier'] == 2 or results['tier'] == 3):
             error = 'You don\'t have an active Full or Free Trial subscription. Please subscribe.'
         elif not check_password_hash(results['password'], password):
@@ -89,7 +91,7 @@ def changepassword():
             if results is None:
                 error = 'Incorrect domain. Are you registered?'
             elif not results['password']:
-                error = 'This account uses IndieAuth.'
+                error = 'This account has no password set.'
             elif not check_password_hash(results['password'], existing_password):
                 error = 'Incorrect existing password.'
         if error:
