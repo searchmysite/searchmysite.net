@@ -88,19 +88,34 @@ def newest(search_type='newest'):
 def random():
     solrurl = config.SOLR_URL
 
-    # Step 1: find out how many domains are in the collection
-    solrquery = solrurl + searchmysite.solr.random_result_step1_get_no_of_domains
-    connection = urlopen(solrquery)
-    response = json.load(connection)
-    no_of_domains = response['grouped']['domain']['ngroups'] 
+    # Steps 1 and 2 pick a random domain. Step 1 counts the domains using the same filters as
+    # step 2, so the number picked should always point at a valid domain group. If the index is
+    # updated between the two queries (e.g. a domain is reindexed or removed) the picked group can
+    # disappear, leaving the groups list empty. Retry once in that case, and log the diagnostic
+    # data so the cause can be identified if it persists.
+    groups = []
+    for attempt in (1, 2):
 
-    # Step 2: pick a random domain and get the domain name and number of documents on that domain
-    random_domain_number = randrange(no_of_domains)
-    solrquery = solrurl + searchmysite.solr.random_result_step2_get_domain_and_no_of_docs_on_domain.format(str(random_domain_number))
-    connection = urlopen(solrquery)
-    response = json.load(connection)
-    domain_name = response['grouped']['domain']['groups'][0]['groupValue'] 
-    no_of_docs_on_domain = response['grouped']['domain']['groups'][0]['doclist']['numFound']
+        # Step 1: find out how many domains are in the collection
+        solrquery = solrurl + searchmysite.solr.random_result_step1_get_no_of_domains
+        connection = urlopen(solrquery)
+        response = json.load(connection)
+        no_of_domains = response['grouped']['domain']['ngroups']
+
+        # Step 2: pick a random domain and get the domain name and number of documents on that domain
+        random_domain_number = randrange(no_of_domains)
+        solrquery = solrurl + searchmysite.solr.random_result_step2_get_domain_and_no_of_docs_on_domain.format(str(random_domain_number))
+        connection = urlopen(solrquery)
+        response = json.load(connection)
+        groups = response['grouped']['domain']['groups']
+        if len(groups) > 0:
+            break
+        current_app.logger.warn('Random: step 2 returned no domain group on attempt {}. random_domain_number {}, no_of_domains {}. Step 2 response: {}'.format(attempt, random_domain_number, no_of_domains, json.dumps(response)))
+    if len(groups) == 0:
+        current_app.logger.error('Random: no domain group returned after {} attempts; redirecting to the search page.'.format(attempt))
+        return redirect(url_for('search.search'), code=302)
+    domain_name = groups[0]['groupValue']
+    no_of_docs_on_domain = groups[0]['doclist']['numFound']
 
     # Step 3: pick a random document from that domain
     random_document_number = randrange(no_of_docs_on_domain)

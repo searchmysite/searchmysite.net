@@ -119,7 +119,11 @@ query_facets_newest = query_facets_search
 query_filter_public = '&fq=public%3Atrue'
 query_filter_content_type = '&fq=!content_type%3A*xml&fq=!content_type%3Aapplication*&fq=!content_type%3Abinary*'
 query_groupbydomain = '&group=true&group.field=domain&group.limit={}&group.ngroups=true'
-random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_public + query_groupbydomain.format('1')
+# Step 1 must use the same filters as step 2, otherwise it counts domains that step 2's
+# content_type exclusions filter out. That over-counts no_of_domains, so randrange() can
+# pick an index at/after the last group step 2 returns, leaving groups empty and causing
+# an IndexError on groups[0] (issue #155).
+random_result_step1_get_no_of_domains = 'select?q=*%3A*&rows=0' + query_filter_public + query_filter_content_type + query_groupbydomain.format('1')
 random_result_step2_get_domain_and_no_of_docs_on_domain = 'select?q=*%3A*&rows=1&start={}&fl=domain' + query_filter_content_type + query_filter_public + query_groupbydomain.format('1')
 random_result_step3_get_doc_from_domain = 'select?q=*%3A*&rows=1&start={}&fq=domain%3A{}' + query_filter_content_type
 
