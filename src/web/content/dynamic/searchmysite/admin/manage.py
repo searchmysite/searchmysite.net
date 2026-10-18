@@ -185,14 +185,16 @@ def renew_subscription_success():
     cursor.execute(searchmysite.sql.sql_select_tier, (domain,))
     result = cursor.fetchone()
     if result:
-        if result['tier'] == 2:
-            old_tier = 2
-        elif result['tier'] == 1:
-            old_tier = 1
-        if old_tier == 2 or old_tier == 1:
+        if result['tier'] == 3:
+            # i.e. a renewal of an existing Full listing; insert_subscription below extends the listing
+            current_app.logger.info('Current tier for {} is already tier 3, so this is a renewal'.format(domain))
+        elif result['tier'] == 2 or result['tier'] == 1:
+            old_tier = result['tier']
             current_app.logger.info('Current tier for {} is tier {}, and user has pressed Purchase, so need to upgrade to tier 3'.format(domain, old_tier))
             cursor.execute(searchmysite.sql.sql_upgrade_to_tier3, (domain, old_tier, domain, domain, ))
             conn.commit()
+        else:
+            current_app.logger.warn('Unexpected active tier {} for {}.'.format(result['tier'], domain))
     new_tier = 3 # Hardcoding to tier 3 for now given it is the only paid for option at the moment (if they're currently tier 2 we don't want them paying to renew tier 2)
     current_app.logger.info('Purchasing subscription for domain {}, tier {}'.format(domain, new_tier))
     insert_subscription(domain, new_tier)
