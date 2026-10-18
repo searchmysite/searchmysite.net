@@ -33,27 +33,6 @@
 		</ul>
 		{% endif %}
 
-		{% if login_type == 'INDIEAUTH' %}
-		<form action="https://indielogin.com/auth" method="get">
-			<div class="form-group">
-				<label for="url" class="col-form-label">Home page</label>
-				<input type="url" name="me" class="form-control" id="url" placeholder="Home page"
-					aria-describedby="homepage-help" required autofocus />
-				<small id="homepage-help" class="form-text text-muted">
-					Enter the home page of your site, as you normally enter it for IndieAuth logins.
-					This value is your login ID,
-					the start page for the indexing of your site, and
-					is used for your site's entry on the Browse page.
-				</small>
-				<p><small class="text-muted">The Validate button will also make a request to your site to confirm if it
-						is indexable - this may take a few moments.</small></p>
-			</div>
-			<button type="submit" class="btn btn-primary">Validate</button>
-			<input type="hidden" name="client_id" value="{{ client_id }}" />
-			<input type="hidden" name="redirect_uri" value="{{ redirect_uri }}" />
-			<input type="hidden" name="state" value="{{ state }}" />
-		</form>
-		{% else %}
 		<form method="post">
 			<div class="form-group">
 				<label for="validationkey" class="col-form-label mt-3">Validation key</label>
@@ -78,7 +57,6 @@
 					indexable - this may take a few moments.</small></p>
 			<button type="submit" class="btn btn-primary">Validate</button>
 		</form>
-		{% endif %}
 
 	</div>
 </div>

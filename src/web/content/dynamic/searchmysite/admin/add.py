@@ -146,7 +146,7 @@ def step1():
             else: include_public = True 
             login_type = request.form.get('login_type')
             if login_type == 'PASSWORD': pending_state = 'EMAIL_AND_PASSWORD'
-            else: pending_state = 'EMAIL' # i.e. login_type == 'INDIEAUTH'
+            else: pending_state = 'UNKNOWN'
             conn = get_db()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cursor.execute(searchmysite.sql.sql_update_freefull_step1, (include_public, login_type, domain, pending_state, domain, tier))
@@ -171,8 +171,8 @@ def step2():
                 validation_key = generate_validation_key(42)
                 password = generate_password_hash(request.form.get('password'))
             else:
-                pending_state = 'INDIEAUTH_LOGIN' # i.e. login_type == 'INDIEAUTH'
-                validation_method = 'INDIEAUTH'
+                pending_state = 'UNKNOWN'
+                validation_method = None
                 validation_key = None
                 password = None
             if not email: # Note that there is client-side validation so this shouldn't be possible

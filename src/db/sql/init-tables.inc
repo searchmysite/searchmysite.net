@@ -10,7 +10,7 @@ CREATE TABLE tblDomains (
   home_page TEXT,
   category TEXT,
   domain_first_submitted TIMESTAMPTZ, -- first submitted is a fixed time, and slightly different from first indexed
-  login_type TEXT, -- INDIEAUTH or PASSWORD
+  login_type TEXT, -- PASSWORD is currently the only supported login_type
   email TEXT,
   include_in_public_search BOOLEAN,
   password TEXT, -- only where login_type = PASSWORD
@@ -60,7 +60,7 @@ CREATE TABLE tblListingStatus (
   tier SMALLINT NOT NULL,
   status TEXT, -- PENDING, ACTIVE, DISABLED, EXPIRED
   status_changed TIMESTAMPTZ,
-  pending_state TEXT, -- MODERATOR_REVIEW, LOGIN_AND_VALIDATION_METHOD, EMAIL, EMAIL_AND_PASSWORD, INDIEAUTH_LOGIN, VALIDATION_CHECK, PAYMENT, (NULL if not PENDING)
+  pending_state TEXT, -- MODERATOR_REVIEW, LOGIN_AND_VALIDATION_METHOD, EMAIL_AND_PASSWORD, VALIDATION_CHECK, PAYMENT, (NULL if not PENDING)
   pending_state_changed TIMESTAMPTZ,
   listing_start TIMESTAMPTZ, -- set when ACTIVE
   listing_end TIMESTAMPTZ, -- set when ACTIVE
@@ -93,7 +93,7 @@ CREATE TABLE tblSubscriptions (
 CREATE TABLE tblValidations (
   domain TEXT NOT NULL,
   validation_date TIMESTAMPTZ,
-  validation_method TEXT, -- INDIEAUTH or DCV
+  validation_method TEXT, -- DCV is currently the only supported validation_method
   validation_success BOOLEAN,
   validation_key TEXT, -- only for DCV
   CONSTRAINT validations_domain_fk FOREIGN KEY (domain)
