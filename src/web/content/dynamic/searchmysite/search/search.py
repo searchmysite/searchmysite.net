@@ -101,6 +101,9 @@ def random():
         connection = urlopen(solrquery)
         response = json.load(connection)
         no_of_domains = response['grouped']['domain']['ngroups']
+        if no_of_domains == 0: # the index is empty, e.g. because it is a fresh install
+            current_app.logger.warn('Random: no public domains in the index on attempt {} (ngroups=0). Step 1 response: {}'.format(attempt, json.dumps(response)))
+            break
 
         # Step 2: pick a random domain and get the domain name and number of documents on that domain
         random_domain_number = randrange(no_of_domains)
