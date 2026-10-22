@@ -215,7 +215,6 @@ def step3():
                         else:
                             return redirect(url_for('add.success'))
                     else:
-                        current_app.logger.warn('check_a_site_can_be_indexed failed for {}'.format(domain))
                         flash(indexing_check_failed_message)
                         return render_template('admin/add-step3-validate.html', domain=domain, tier=tier, login_type=login_type, validation_key=validation_key)
                 else:
@@ -387,6 +386,14 @@ def check_a_site_can_be_indexed(domain, home_page):
     current_app.logger.debug('Running check_a_site_can_be_indexed for domain {} with home page {}'.format(domain, home_page))
     indexable = False # Assume a site can't be indexed
     process_output = subprocess.run(['scrapy', 'shell', '-s', 'ROBOTSTXT_OBEY=True', '-s', "USER_AGENT='Mozilla/5.0 (compatible; SearchMySiteBot/1.0; +https://searchmysite.net)'", '--nolog', home_page, '-c', 'response'], capture_output=True)
-    if process_output.stdout.decode().startswith('<200'): indexable = True
-    current_app.logger.debug('check_a_site_can_be_indexed return value {} and full response: {}'.format(indexable, process_output.stdout.decode()))
+    stdout_decoded = process_output.stdout.decode()
+    stderr_decoded = process_output.stderr.decode()
+    if stdout_decoded.startswith('<200'):
+        indexable = True
+    else:
+        stderr_lines = stderr_decoded.splitlines()
+        last_stderr_line = stderr_lines[-1] if stderr_lines else ''
+        current_app.logger.warn('check_a_site_can_be_indexed failed for {} with home page {}. Last line of stderr: {}'.format(domain, home_page, last_stderr_line))
+        current_app.logger.debug('Full stderr: {}'.format(stderr_decoded))
+    current_app.logger.debug('check_a_site_can_be_indexed return value {} and full response: {}'.format(indexable, stdout_decoded))
     return indexable
