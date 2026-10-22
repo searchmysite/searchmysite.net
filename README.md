@@ -1,6 +1,6 @@
 # searchmysite.net
 
-This repository contains the complete codebase for [https://searchmysite.net/](https://searchmysite.net/), the independent open source search engine and search as a service for personal and independent websites (see [About searchmysite.net](https://searchmysite.net/pages/about/) for further details of searchmysite.net).
+This repository contains the complete codebase for [https://searchmysite.net/](https://searchmysite.net/), the [blog search engine](https://searchmysite.net/#about) & [Website Search Tool](https://searchmysite.net/#search-as-a-service).
 
 You can use this repository to:
 - See exactly how searchmysite.net works, e.g. inspect the code for indexing, relevancy tuning, search queries etc.
@@ -10,10 +10,9 @@ You can use this repository to:
 
 ## Directory structure and docker-compose files
 
-The application is split into 5 components, each deployed in its own Docker container:
+The application is split into 4 components, each deployed in its own Docker container:
 - db - Postgres database (for managing site and indexing configuration)
 - indexing - Scrapy web crawler and bulk import scripts (for indexing sites)
-- models - TorchServe container with the Large Language Model (LLM)
 - search - Apache Solr search server (for the actual search index)
 - web - Apache httpd with mod_wsgi web server, with static assets (including home page), and dynamic pages (including API)
 
@@ -22,7 +21,7 @@ The project directory structure is as follows:
     .
     ├── data                    # Data for Docker data volumes (not in git - to be set up locally)
     │   ├── solrdata            # Mounted to /var/solr/solrdata in Solr Docker
-    │   ├── sqldata             # Mounted to /var/lib/postgresql/data in Postgres Docker
+    │   ├── sqldata-pg17        # Mounted to /var/lib/postgresql/data in Postgres Docker
     ├── src                     # Source files
     │   ├── db                  # Database scripts
     │   │   ├── bulkimport      # Scripts to load sites into the database for the indexer to index
@@ -30,7 +29,6 @@ The project directory structure is as follows:
     │   │   ├── bulkimport      # Scripts to load content directly into the search engine
     │   │   ├── common          # Indexing code shared between bulk import and spider
     │   │   ├── indexer         # Spidering code
-    │   ├── models              # Language models
     │   ├── search              # Search engine configuration
     │   ├── web                 # Files for deployment to web / app server
     │   │   ├── config          # Web server configuration
@@ -62,7 +60,7 @@ Create the data directories for the database and search index:
 ```
 cd ~/projects/searchmysite.net/
 mkdir -p data/solrdata
-mkdir -p data/sqldata
+mkdir -p data/sqldata-pg17
 sudo chown 8983:8983 data/solrdata
 ```
 
@@ -78,7 +76,6 @@ And finally, build the docker images:
 cd ~/projects/searchmysite.net/src
 docker compose build
 ```
-Note that the first build could take 20-30 mins, and the models container downloads a 3Gb model file.
 
 
 ### Starting your development environment
@@ -151,7 +148,6 @@ To do this, firstly, you will need to set up local host entries for "db", "model
 ```
 127.0.0.1 search
 127.0.0.1 db
-127.0.0.1 models
 ```
 Secondly, install Flask and dependencies locally (noting that apache2-dev is required for mod-wsgi and libpq-dev for psycopg2), and install the searchmysite package in editable mode (these steps just need to be performed once):
 ```
