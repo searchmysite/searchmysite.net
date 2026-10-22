@@ -9,6 +9,9 @@ git+https://github.com/rs/domcheck#egg=domcheck
 # cryptography>=35.0 and rust required for scrapy install
 cryptography>=35.0
 rust
+# scrapy 2.13.3 requires twisted<=25.5.0 and pyOpenSSL<=24.2.1 - when upgrading scrapy update accordingly
+twisted<=25.5.0
+pyOpenSSL<=24.2.1
 scrapy==2.13.3
 #sentence-transformers
 
