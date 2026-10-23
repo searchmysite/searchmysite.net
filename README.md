@@ -142,23 +142,26 @@ The docker-compose.yml for dev configures the web server to read from the source
 ```
 docker exec -it web_dev apachectl restart
 ```
-For frequent changes it is better to use a Flask development environment outside of Docker.
+For frequent changes it is better to use a Flask development environment outside of Docker. I use a venv created with `python3 -m venv ~/python/sms` and activated with `source ~/python/sms/bin/activate` to keep the python environment isolated from other python environments.
 
-To do this, firstly, you will need to set up local host entries for "db", "models" and "search", i.e. in /etc/hosts (given the "web" container talks to the db, models and search containers via the "db", "models" and "search" hostnames):
+The first step is to set up local host entries for "db" and "search", i.e. in /etc/hosts (given the "web" container communicates with the database and search engine with the "db" and "search" names, etc.):
 ```
 127.0.0.1 search
 127.0.0.1 db
 ```
-Secondly, install Flask and dependencies locally (noting that apache2-dev is required for mod-wsgi and libpq-dev for psycopg2), and install the searchmysite package in editable mode (these steps just need to be performed once):
+The second step is to install Flask and dependencies locally in the sms venv (noting that apache2-dev is required for mod-wsgi, libpq-dev for psycopg2 and python3-dev for both), and install the searchmysite package in editable mode (these steps just need to be performed once):
 ```
-sudo apt install apache2-dev libpq-dev
+sudo apt install python3-dev apache2-dev libpq-dev
 cd ~/projects/searchmysite.net/src/web/
 pip3 install -r requirements.txt
 cd ~/projects/searchmysite.net/src/web/content/dynamic/
 pip3 install -e .
 ```
-Finally, at the start of every dev session, load environment variables and start Flask in development mode via:
+At the start of every dev session, start docker (for the database, indexing and search), activate the sms venv, load environment variables and start Flask in development mode via:
 ```
+cd ~/projects/searchmysite.net/src
+docker compose up -d
+source ~/python/sms/bin/activate
 set -a; source ~/projects/searchmysite.net/src/.env; set +a
 export FLASK_ENV=development
 export FLASK_APP=~/projects/searchmysite.net/src/web/content/dynamic/searchmysite
@@ -236,9 +239,11 @@ Note that if you add new fields to the Solr schema which are to be used in the r
 
 ## Testing
 
-The tests are run with pytest on a local Flask instance, so you will need to install pytest and set up a local Flask instance as per the "Making changes on local dev" / "Web changes" section above. If you have ENABLE_PAYMENT=True, you will also need to setup Selenium and WebDriver, because the Stripe integration involves buttons which execute JavaScript, e.g.:
+The tests are run with pytest on a local Flask instance, like the local dev env, so you will need to install pytest and set up a local Flask instance as per the "Making changes on local dev" / "Web changes" section above. If running the test scripts, you will also need the following installed in the sms venv (Selenium and WebDriver are only if ENABLE_PAYMENT=True):
 ```
+pip3 install pytest
 pip3 install selenium
+pip3 install webdriver_manager
 pip3 install chromedriver-py
 ```
 
@@ -252,10 +257,17 @@ The pytest scripts:
 - search the newly indexed sites
 - remove the test sites
 
-To run:
+To prepare the test environment:
 ```
-cd ~/projects/searchmysite.net/tests
+source ~/python/sms/bin/activate
+set -a; source ~/projects/searchmysite.net/src/.env; set +a
+export FLASK_ENV=development
+export FLASK_APP=~/projects/searchmysite.net/src/web/content/dynamic/searchmysite
+cd ~/projects/searchmysite.net/tests/
 ./clean_test_env.sh
+```
+Then to run the tests:
+```
 ./run_tests.sh
 ```
 
