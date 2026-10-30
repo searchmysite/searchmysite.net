@@ -27,12 +27,14 @@ class IndexerSpiderMiddleware:
         # Should return None or raise an exception.
         return None
 
-    def process_spider_output(self, response, result, spider):
+    async def process_spider_output(self, response, result):
         # Called with the results returned from the Spider, after
         # it has processed the response.
 
-        # Must return an iterable of Request, dict or Item objects.
-        for i in result:
+        # Must return an async iterable of Request, dict or Item objects.
+        # Since Scrapy 2.16.0, process_spider_output() must be an async generator function
+        # (synchronous process_spider_output() methods are no longer supported).
+        async for i in result:
             yield i
 
     def process_spider_exception(self, response, exception, spider):
@@ -43,13 +45,14 @@ class IndexerSpiderMiddleware:
         # or Item objects.
         pass
 
-    def process_start_requests(self, start_requests, spider):
+    async def process_start(self, start):
         # Called with the start requests of the spider, and works
         # similarly to the process_spider_output() method, except
         # that it doesn’t have a response associated.
 
         # Must return only requests (not items).
-        for r in start_requests:
+        # Renamed from process_start_requests(), which is no longer supported since Scrapy 2.16.0.
+        async for r in start:
             yield r
 
     def spider_opened(self, spider):

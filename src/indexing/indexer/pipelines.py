@@ -30,21 +30,25 @@ from common.utils import update_indexing_status, get_last_complete_indexing_log_
 
 class SolrPipeline:
 
-    def __init__(self, stats, solr_url):
+    def __init__(self, stats, solr_url, crawler):
         self.solr_url = solr_url
         self.items = []
         configure_logging()
         self.logger = logging.getLogger()
         self.stats = stats
+        # From Scrapy 2.19.0, the spider argument of pipeline methods is deprecated,
+        # so save the crawler and access the spider via crawler.spider instead.
+        self.crawler = crawler
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
             solr_url = crawler.settings.get('SOLR_URL'),
-            stats = crawler.stats
+            stats = crawler.stats,
+            crawler = crawler
         )
 
-    def open_spider(self, spider):
+    def open_spider(self):
         self.solr = pysolr.Solr(self.solr_url) # always_commit=False by default
         return
 
@@ -55,7 +59,8 @@ class SolrPipeline:
     # - If it is a full reindex, but documents are found, get all the site specific data which is set on the home page,
     #   and clean out the existing index for that site.
     # - If it is an incremental reindex, don't delete the existing docs, just add the new ones.
-    def close_spider(self, spider):
+    def close_spider(self):
+        spider = self.crawler.spider
         no_of_docs = len(self.items)
         if spider.site_config['full_index'] == True and no_of_docs == 0:
             self.logger.warning('No documents found at start urls {} (domain {}). This is likely an error with the site or with this system.'.format(spider.start_urls, spider.domain))
@@ -125,7 +130,7 @@ class SolrPipeline:
         # Message starts with SUCCESS or WARNING.
         update_indexing_status(spider.domain, spider.site_config['full_index'], 'COMPLETE', message)
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         new_url = item['url']
         # Strip out the trailing slashes of the new for a fairer comparison
         # so e.g. https://michael-lewis.com/ and https://michael-lewis.com get treated as duplicates

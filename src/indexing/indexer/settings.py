@@ -106,6 +106,12 @@ SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
 
+# From Scrapy 2.19.0, the RemoteControl extension (an HTTP server for inspecting/controlling a
+# running crawl, used by the Scrapy MCP server) is enabled by default. It writes a JSON job file
+# which includes the spider object, so it fails with 'Object of type <Spider> is not JSON serializable'.
+# We don't need remote control for batch indexing, so disable it.
+REMOTE_CONTROL_ENABLED = False
+
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {

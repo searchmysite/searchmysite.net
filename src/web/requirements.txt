@@ -2,13 +2,7 @@ mod-wsgi==5.0.2
 flask==3.1.1
 psycopg2==2.9.10
 tldextract==5.3.0
-# scrapy 2.13.3 requires twisted<=25.5.0
-# but if we don't specifically install twisted pip will install 26.4.0
-# the build will complete successfully, but at runtime scrapy will error with
-# ImportError: cannot import name '_setAcceptableProtocols' from 'twisted.internet._sslverify' (/usr/local/lib/python3.11/dist-packages/twisted/internet/_sslverify.py)
-# When scrapy is upgraded we might be able to remove the twisted pin
-twisted==25.5.0
-scrapy==2.13.3
+scrapy==2.19.0
 stripe==12.3.0
 # Have to install domcheck from github.com because 
 # pip package doesn't yet have fix from 23 Aug 2017 in commit b0d1a1427e22805cea2cedc49039facbb5e516e4
