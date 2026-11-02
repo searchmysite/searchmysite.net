@@ -2,7 +2,7 @@ scrapy==2.19.0
 psycopg2==2.9.13
 tldextract==5.4.0
 beautifulsoup4==4.15.0
-pysolr==3.10.0
+pysolr==3.11.0
 python-dateutil==2.9.0.post0
 httplib2==0.22.0
 feedparser==6.0.11
