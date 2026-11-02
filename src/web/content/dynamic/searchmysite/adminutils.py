@@ -35,8 +35,8 @@ def extract_domain(url):
     # Get the domain from the URL
     if not url: url = ""
     # returns subdomain, domain, suffix, is_private=True|False), also registered_domain (domain+'.'+suffix) and fqdn (subdomain+'.'+domain+'.'+suffix)
-    tld = tldextract.extract(url) 
-    domain = tld.registered_domain
+    tld = tldextract.extract(url)
+    domain = tld.top_domain_under_public_suffix
     if tld.domain == 'localhost' and tld.suffix == '': # special case for localhost which has tld.registered_domain = ''
         domain = tld.domain
     domain = domain.lower() # lowercase the domain to help prevent duplicates

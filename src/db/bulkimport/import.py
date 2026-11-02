@@ -2,7 +2,6 @@
 import urllib.request
 from urllib.error import URLError, HTTPError
 from http.client import InvalidURL
-import tldextract
 import json
 import sys
 import psycopg2
