@@ -1,4 +1,4 @@
-mod-wsgi==5.0.2
+mod-wsgi==6.1.1
 flask==3.1.1
 psycopg2==2.9.10
 tldextract==5.4.0
