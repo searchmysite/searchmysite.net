@@ -143,7 +143,9 @@ class SolrPipeline:
             if 'title' in i: existing_title = i['title']
             # if new_url is the same as existing_url (this shouldn't happen because of built-in deduplication) or
             # if new_url without www. is the same as an existing_url or vice versa (which could happen because the built-in deduplication doesn't catch this)
-            if new_url == existing_url or re.sub("www\.", "", new_url, 1) == existing_url or re.sub("www\.", "", existing_url, 1) == new_url:
+            clean_new = re.sub(r"^www\.", "", new_url)
+            clean_existing = re.sub(r"^www\.", "", existing_url)
+            if clean_new == clean_existing:
                 # double check with title, to increase chance of it being a genuine duplicate
                 # could put more checks, e.g. keywords, but not sure about last_modified_date in case that is dynamic
                 if new_title == existing_title:

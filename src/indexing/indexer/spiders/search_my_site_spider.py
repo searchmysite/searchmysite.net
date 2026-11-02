@@ -66,8 +66,9 @@ class SearchMySiteSpider(CrawlSpider):
                 exclusion_value = exclusion['exclusion_value']
                 if '*.' in exclusion_value: # A *. in the deny parameter on LinkExtractor seems to block all indexing so need to find and replace with a safe alternative
                     old_exclusion_value = exclusion_value
-                    exclusion_value = re.sub('^\*\.(\w+)$', r'.\1$', exclusion_value) # replace e.g. '*.xml' with '.xml$', '*.json' with '.json$' etc.
-                    self.logger.info('Changing {} in deny path to {}'.format(old_exclusion_value, exclusion_value))
+                    if exclusion_value.startswith("*."):
+                        exclusion_value = exclusion_value[1:] + "$"
+                        self.logger.info('Changing {} in deny path to {}'.format(old_exclusion_value, exclusion_value))
                 deny.append(exclusion_value)
         self.logger.info('Deny path {}'.format(deny))
         # Set up rules for full index or incremental index
