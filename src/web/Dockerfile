@@ -1,7 +1,7 @@
-FROM httpd:2.4.63
+FROM httpd:2.4.69
 # If the httpd version is updated, check python version in new httpd container with docker exec -it web_dev python3 --version, then 
 # (i) update indexing Dockerfile to match, and (ii) update symlink to mod_wsgi.so below accordingly
-# httpd:2.4.50 is Python 3.7.3, httpd:2.4.51 to httpd:2.4.54 are Python 3.9.2, and httpd:2.4.57 to httpd:2.4.63 are Python 3.11.2
+# httpd:2.4.50 is Python 3.7.3, httpd:2.4.51 to httpd:2.4.54 are Python 3.9.2, httpd:2.4.57 to httpd:2.4.63 are Python 3.11.2, and httpd:2.4.69 is Python 3.13.5
 
 # Working dir is /usr/local/apache2 so we'll end up with requirements.txt there, but that is outside the web root 
 COPY requirements.txt ./
@@ -21,7 +21,7 @@ RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 # Create a symlink from the arch (and python version) specific .so to /usr/local/apache2/modules/mod_wsgi.so
 # This allows httpd.conf to just have the non arch (and python version) specific `LoadModule wsgi_module modules/mod_wsgi.so`
 # If any other arch are to be supported symlinks should go here, and if python is updated this should be updated too
-RUN if [ -f /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-aarch64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-aarch64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; elif [ -f /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.11/dist-packages/mod_wsgi/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; fi
+RUN if [ -f /usr/local/lib/python3.13/dist-packages/mod_wsgi/server/mod_wsgi-py313.cpython-313-aarch64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.13/dist-packages/mod_wsgi/server/mod_wsgi-py313.cpython-313-aarch64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; elif [ -f /usr/local/lib/python3.13/dist-packages/mod_wsgi/server/mod_wsgi-py313.cpython-313-x86_64-linux-gnu.so ]; then ln -s /usr/local/lib/python3.13/dist-packages/mod_wsgi/server/mod_wsgi-py313.cpython-313-x86_64-linux-gnu.so /usr/local/apache2/modules/mod_wsgi.so ; fi
 
 # Need this to prevent "[wsgi:error] ... ModuleNotFoundError: No module named ..."
 ENV PYTHONPATH /usr/local/apache2/htdocs/dynamic/
