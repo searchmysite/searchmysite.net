@@ -170,6 +170,8 @@ def do_search(query_params, query_facets, params, start, default_filter_queries,
     #current_app.logger.debug('solr_search_json: {}'.format(solr_search_json))
     response = requests.post(url=solrquery, data=solr_search_json.encode("utf8"), headers=searchmysite.solr.solr_request_headers)
     search_results = response.json()
+    if 'error' in search_results and 'msg' in search_results['error']:
+        current_app.logger.error('do_search: {}'.format(search_results['error']['msg']))
     return search_results
 
 # Perform the vector search
@@ -212,9 +214,12 @@ def get_no_of_results(search_results, groupbydomain):
     if groupbydomain and 'grouped' in search_results and 'domain' in search_results['grouped']:
         total_results = search_results['grouped']['domain']['matches']
         total_domains = search_results['grouped']['domain']['ngroups'] 
-    else:
+    elif 'response' in search_results and 'numFound' in search_results['response']:
         total_results = search_results['response']['numFound']
         total_domains = total_results # There isn't a separate value in this case so just use total_results
+    else:
+        total_results = 0
+        total_domains = 0
     return (total_results, total_domains)
 
 # Return the range of pages that will be shown on the results
@@ -321,46 +326,47 @@ def get_display_pagination(current_page, pages):
 # ]
 def get_display_facets(filter_queries, results):
     facets = []
-    for facet_field in results['facets']:
-        if facet_field != "count":
-            facet = {}
-            if facet_field == "site_category":
-                facet['label_name'] = "Category"
-            elif facet_field == "tags":
-                facet['label_name'] = "Tags"
-            elif facet_field == "owner_verified":
-                facet['label_name'] = "Full listing"
-            elif facet_field == "contains_adverts":
-                facet['label_name'] = "Contains adverts"
-            elif facet_field == "indexed_inlink_domains_count":
-                facet['label_name'] = "Inlink domains"
-            elif facet_field == "in_web_feed":
-                facet['label_name'] = "In web feed"
-            elif facet_field == "language_primary":
-                facet['label_name'] = "Language"
-            elif facet_field == "domain":
-                facet['label_name'] = "Domain"
-            else:
-                facet['label_name'] = facet_field
-            inputs = []
-            facet_values = results['facets'][facet_field]['buckets']
-            for facet_value in facet_values:
-                #current_app.logger.debug('facet_field: {}, facet_value: {}'.format(facet_field, facet_value['val']))
-                value = facet_value['val']
-                count = facet_value['count']
-                input = {}
-                input['type'] = "checkbox"
-                input['name'] = facet_field
-                input['value'] = value
-                if filter_queries.get(facet_field) and str(value) in filter_queries.get(facet_field):
-                    input['state'] = "checked"
+    if 'facets' in results:
+        for facet_field in results['facets']:
+            if facet_field != "count":
+                facet = {}
+                if facet_field == "site_category":
+                    facet['label_name'] = "Category"
+                elif facet_field == "tags":
+                    facet['label_name'] = "Tags"
+                elif facet_field == "owner_verified":
+                    facet['label_name'] = "Full listing"
+                elif facet_field == "contains_adverts":
+                    facet['label_name'] = "Contains adverts"
+                elif facet_field == "indexed_inlink_domains_count":
+                    facet['label_name'] = "Inlink domains"
+                elif facet_field == "in_web_feed":
+                    facet['label_name'] = "In web feed"
+                elif facet_field == "language_primary":
+                    facet['label_name'] = "Language"
+                elif facet_field == "domain":
+                    facet['label_name'] = "Domain"
                 else:
-                    input['state'] = ""
-                input['id'] = facet_field + "-" + str(value)
-                input['label'] = str(value) + " (" + str(count) + ")"
-                inputs.append(input)
-            facet['inputs'] = inputs
-            facets.append(facet)
+                    facet['label_name'] = facet_field
+                inputs = []
+                facet_values = results['facets'][facet_field]['buckets']
+                for facet_value in facet_values:
+                    #current_app.logger.debug('facet_field: {}, facet_value: {}'.format(facet_field, facet_value['val']))
+                    value = facet_value['val']
+                    count = facet_value['count']
+                    input = {}
+                    input['type'] = "checkbox"
+                    input['name'] = facet_field
+                    input['value'] = value
+                    if filter_queries.get(facet_field) and str(value) in filter_queries.get(facet_field):
+                        input['state'] = "checked"
+                    else:
+                        input['state'] = ""
+                    input['id'] = facet_field + "-" + str(value)
+                    input['label'] = str(value) + " (" + str(count) + ")"
+                    inputs.append(input)
+                facet['inputs'] = inputs
+                facets.append(facet)
     return facets
 
 # Construct the results
@@ -371,7 +377,7 @@ def get_display_facets(filter_queries, results):
 # doesn't restrict to one domain) use the else section.
 def get_display_results(search_results, groupbydomain, params, link):
     results = []
-    if groupbydomain:
+    if groupbydomain and 'grouped' in search_results and 'domain' in search_results['grouped'] and 'groups' in search_results['grouped']['domain']:
         for domain_results in search_results['grouped']['domain']['groups']:
             first_result_from_domain = domain_results['doclist']['docs'][0]
             result = extract_data_from_result(first_result_from_domain, search_results, False)
@@ -388,7 +394,7 @@ def get_display_results(search_results, groupbydomain, params, link):
                 result['subresults_link'] = 'q=' + params['q'] + '&domain=' + subresults_domain + link_minus_query
                 result['subresults_link_text'] = "All " + str(subresults_total) + " results from " + subresults_domain
             results.append(result)
-    else:
+    elif 'response' in search_results and 'docs' in search_results['response']:
         for search_result in search_results['response']['docs']:
             result = extract_data_from_result(search_result, search_results, False)
             results.append(result)
