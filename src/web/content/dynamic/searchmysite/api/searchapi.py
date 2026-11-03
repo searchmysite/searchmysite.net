@@ -279,57 +279,57 @@ def vector_search():
 #     Text
 #
 
-@bp.route('/predictions/llm', methods=['GET', 'POST'])
-def predictions():
-    # Get data from request
-    if request.method == 'GET':
-        query = request.args.get('q', '')
-        context = request.args.get('context', '')
-        prompt_type = request.args.get('prompt', 'qa')
-    else: # i.e. if POST
-        query = request.json['q']
-        context = request.json['context']
-        prompt_type = request.json['prompt']
-    # Build LLM prompt
-    # prompt_format is "chatml" for ChatML format, or "llama2-chat" for the Llama 2 Chat format
-    #prompt_format = "llama2-chat"
-    prompt_format = "chatml"
-    llm_prompt = get_llm_prompt(query, context, prompt_type, prompt_format)
-    llm_data = get_llm_data(llm_prompt)
-    #current_app.logger.debug('llm_prompt: {}'.format(llm_prompt))
-    # Do request
-    response = do_llm_prediction(llm_prompt, llm_data)
-    return make_response(jsonify(response))
+# @bp.route('/predictions/llm', methods=['GET', 'POST'])
+# def predictions():
+#     # Get data from request
+#     if request.method == 'GET':
+#         query = request.args.get('q', '')
+#         context = request.args.get('context', '')
+#         prompt_type = request.args.get('prompt', 'qa')
+#     else: # i.e. if POST
+#         query = request.json['q']
+#         context = request.json['context']
+#         prompt_type = request.json['prompt']
+#     # Build LLM prompt
+#     # prompt_format is "chatml" for ChatML format, or "llama2-chat" for the Llama 2 Chat format
+#     #prompt_format = "llama2-chat"
+#     prompt_format = "chatml"
+#     llm_prompt = get_llm_prompt(query, context, prompt_type, prompt_format)
+#     llm_data = get_llm_data(llm_prompt)
+#     #current_app.logger.debug('llm_prompt: {}'.format(llm_prompt))
+#     # Do request
+#     response = do_llm_prediction(llm_prompt, llm_data)
+#     return make_response(jsonify(response))
 
-def get_llm_prompt(question, context, prompt_type, prompt_format):
-    if prompt_type == 'qa':
-        system = "Answer the question based on the context below."
-        if prompt_format == 'llama2-chat':
-            prompt = "<s>[INST] <<SYS>>{system}<</SYS>> \n [context]: {context} \n [question]: {question} [\INST]".format(system=system, context=context, question=question)
-        else:
-            prompt = "<|im_start|>system\n{system}<|im_end|><|im_start|>user\nContext:{context} Question: {question}<|im_end|>\n<|im_start|>assistant".format(system=system, context=context, question=question)
-    else:
-        prompt = "[INST] <<SYS>> You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.<</SYS>>{}[/INST]".format(query)
-    return prompt
+# def get_llm_prompt(question, context, prompt_type, prompt_format):
+#     if prompt_type == 'qa':
+#         system = "Answer the question based on the context below."
+#         if prompt_format == 'llama2-chat':
+#             prompt = "<s>[INST] <<SYS>>{system}<</SYS>> \n [context]: {context} \n [question]: {question} [\INST]".format(system=system, context=context, question=question)
+#         else:
+#             prompt = "<|im_start|>system\n{system}<|im_end|><|im_start|>user\nContext:{context} Question: {question}<|im_end|>\n<|im_start|>assistant".format(system=system, context=context, question=question)
+#     else:
+#         prompt = "[INST] <<SYS>> You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.<</SYS>>{}[/INST]".format(query)
+#     return prompt
 
-def get_llm_data(prompt):
-    data = json.dumps(
-        {
-            "prompt": prompt,
-            "max_tokens": 100,
-            "top_p": 0.95,
-            "temperature": 0.8,
-        }
-    )
-    return data
+# def get_llm_data(prompt):
+#     data = json.dumps(
+#         {
+#             "prompt": prompt,
+#             "max_tokens": 100,
+#             "top_p": 0.95,
+#             "temperature": 0.8,
+#         }
+#     )
+#     return data
 
-def do_llm_prediction(prompt, data):
-    #url = config.TORCHSERVE + "predictions/llama2"
-    url = config.TORCHSERVE + "predictions/rocket-3b"
-    headers = {"Content-type": "application/json", "Accept": "text/plain"}
-    response = requests.post(url=url, data=data, headers=headers)
-    cleaned_response = response.text.removeprefix(prompt)
-    return cleaned_response     
+# def do_llm_prediction(prompt, data):
+#     #url = config.TORCHSERVE + "predictions/llama2"
+#     url = config.TORCHSERVE + "predictions/rocket-3b"
+#     headers = {"Content-type": "application/json", "Accept": "text/plain"}
+#     response = requests.post(url=url, data=data, headers=headers)
+#     cleaned_response = response.text.removeprefix(prompt)
+#     return cleaned_response     
 
 
 # Utilities
