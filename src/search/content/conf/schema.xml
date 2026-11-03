@@ -39,7 +39,7 @@
 -->
 
 <!-- start searchmysite change -->
-<schema name="searchmysite-config" version="1.6">
+<schema name="searchmysite-config" version="1.7">
 <!-- end searchmysite change -->
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and
@@ -57,6 +57,7 @@
        1.5: omitNorms defaults to true for primitive field types
             (int, float, boolean, string...)
        1.6: useDocValuesAsStored defaults to true.
+       1.7: docValues defaults to true, uninvertible defaults to false.
     -->
 
     <!-- Valid attributes for fields:
@@ -164,7 +165,7 @@
 
     <!-- If you don't use child/nested documents, then you should remove the next two fields:  -->
     <!-- for nested documents (minimal; points to root document) -->
-    <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+    <field name="_root_" type="string" indexed="true" stored="false" />
     <!-- for nested documents (relationship tracking) -->
     <field name="_nest_path_" type="_nest_path_" /><fieldType name="_nest_path_" class="solr.NestPathField" />
 
@@ -249,8 +250,8 @@
     -->
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
-    <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true" />
-    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true" />
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" />
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
@@ -258,22 +259,23 @@
 
     <!--
       Numeric field types that index values using KD-trees.
-      Point fields don't support FieldCache, so they must have docValues="true" if needed for sorting, faceting, functions, etc.
+      Point fields don't support FieldCache, so they must have docValues enabled if needed for sorting, faceting, functions, etc.
+      This is the default, so it does not need to be set explicitly.
     -->
-    <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
-    <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
-    <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-    <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+    <fieldType name="pint" class="solr.IntPointField"/>
+    <fieldType name="pfloat" class="solr.FloatPointField"/>
+    <fieldType name="plong" class="solr.LongPointField"/>
+    <fieldType name="pdouble" class="solr.DoublePointField"/>
 
-    <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
-    <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pints" class="solr.IntPointField" multiValued="true"/>
+    <fieldType name="pfloats" class="solr.FloatPointField" multiValued="true"/>
+    <fieldType name="plongs" class="solr.LongPointField" multiValued="true"/>
+    <fieldType name="pdoubles" class="solr.DoublePointField" multiValued="true"/>
     <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
 
     <!-- since fields of this type are by default not stored or indexed,
        any data added to them will be ignored outright.  -->
-    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
+    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" docValues="false" class="solr.StrField" />
 
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
          is a more restricted form of the canonical representation of dateTime
@@ -295,8 +297,8 @@
 
       -->
     <!-- KD-tree versions of date fields -->
-    <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
-    <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pdate" class="solr.DatePointField"/>
+    <fieldType name="pdates" class="solr.DatePointField" multiValued="true"/>
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
@@ -345,22 +347,22 @@
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
         <tokenizer name="standard"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
         <!-- start searchmysite change -->
         <!-- Adding the English Possessive Filter for cases like the title being "soandso's site" and people wanting to search for "soandso" rather than "soandso's" -->
         <filter class="solr.EnglishPossessiveFilterFactory"/>
         <!-- end searchmysite change -->
         <!-- in this example, we will only use synonyms at query time
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-        <filter class="solr.FlattenGraphFilterFactory"/>
+        <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="flattenGraph"/>
         -->
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="lowercase"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer name="standard"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter name="lowercase"/>
       </analyzer>
     </fieldType>
 
@@ -378,14 +380,14 @@
     <fieldType name="text_gen_sort" class="solr.SortableTextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
         <tokenizer name="standard"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="lowercase"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer name="standard"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter name="lowercase"/>
       </analyzer>
     </fieldType>
 
@@ -397,37 +399,37 @@
       <analyzer type="index">
         <tokenizer name="standard"/>
         <!-- in this example, we will only use synonyms at query time
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-        <filter class="solr.FlattenGraphFilterFactory"/>
+        <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="flattenGraph"/>
         -->
         <!-- Case insensitive stop word removal.
         -->
-        <filter class="solr.StopFilterFactory"
+        <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
             />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.EnglishPossessiveFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter name="lowercase"/>
+        <filter name="englishPossessive"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
         <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
-        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        <filter name="englishMinimalStem"/>
         -->
-        <filter class="solr.PorterStemFilterFactory"/>
+        <filter name="porterStem"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer name="standard"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
         />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.EnglishPossessiveFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter name="lowercase"/>
+        <filter name="englishPossessive"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
         <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
-        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        <filter name="englishMinimalStem"/>
         -->
-        <filter class="solr.PorterStemFilterFactory"/>
+        <filter name="porterStem"/>
       </analyzer>
     </fieldType>
 
@@ -445,31 +447,31 @@
       <analyzer type="index">
         <tokenizer name="whitespace"/>
         <!-- in this example, we will only use synonyms at query time
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
         -->
         <!-- Case insensitive stop word removal.
         -->
-        <filter class="solr.StopFilterFactory"
+        <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
         />
-        <filter class="solr.WordDelimiterGraphFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.PorterStemFilterFactory"/>
-        <filter class="solr.FlattenGraphFilterFactory" />
+        <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+        <filter name="lowercase"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
+        <filter name="porterStem"/>
+        <filter name="flattenGraph" />
       </analyzer>
       <analyzer type="query">
         <tokenizer name="whitespace"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
         />
-        <filter class="solr.WordDelimiterGraphFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.PorterStemFilterFactory"/>
+        <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
+        <filter name="lowercase"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
+        <filter name="porterStem"/>
       </analyzer>
     </fieldType>
 
@@ -479,28 +481,28 @@
     <fieldType name="text_en_splitting_tight" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
       <analyzer type="index">
         <tokenizer name="whitespace"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_en.txt"/>
-        <filter class="solr.WordDelimiterGraphFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_en.txt"/>
+        <filter name="wordDelimiterGraph" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+        <filter name="lowercase"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
+        <filter name="englishMinimalStem"/>
         <!-- this filter can remove any duplicate tokens that appear at the same position - sometimes
              possible with WordDelimiterGraphFilter in conjuncton with stemming. -->
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-        <filter class="solr.FlattenGraphFilterFactory" />
+        <filter name="removeDuplicates"/>
+        <filter name="flattenGraph" />
       </analyzer>
       <analyzer type="query">
         <tokenizer name="whitespace"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_en.txt"/>
-        <filter class="solr.WordDelimiterGraphFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_en.txt"/>
+        <filter name="wordDelimiterGraph" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+        <filter name="lowercase"/>
+        <filter name="keywordMarker" protected="protwords.txt"/>
+        <filter name="englishMinimalStem"/>
         <!-- this filter can remove any duplicate tokens that appear at the same position - sometimes
              possible with WordDelimiterGraphFilter in conjuncton with stemming. -->
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        <filter name="removeDuplicates"/>
       </analyzer>
     </fieldType>
 
@@ -511,16 +513,16 @@
     <fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer name="standard"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true"
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="lowercase"/>
+        <filter name="reversedWildcard" withOriginal="true"
                 maxPosAsterisk="3" maxPosQuestion="2" maxFractionAsterisk="0.33"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer name="standard"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="lowercase"/>
       </analyzer>
     </fieldType>
 
@@ -528,7 +530,7 @@
     <fieldType name="phonetic_en" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.DoubleMetaphoneFilterFactory" inject="false"/>
+        <filter name="doubleMetaphone" inject="false"/>
       </analyzer>
     </fieldType>
 
@@ -537,7 +539,7 @@
     <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="keyword"/>
-        <filter class="solr.LowerCaseFilterFactory" />
+        <filter name="lowercase" />
       </analyzer>
     </fieldType>
 
@@ -584,7 +586,7 @@
     <fieldType name="point" class="solr.PointType" dimension="2" subFieldSuffix="_d"/>
 
     <!-- A specialized field for geospatial search filters and distance sorting. -->
-    <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
+    <fieldType name="location" class="solr.LatLonPointSpatialField"/>
 
     <!-- A geospatial field type that supports multiValued and polygon shapes.
       For more information about this and other spatial fields see:
@@ -597,19 +599,19 @@
     <fieldType name="delimited_payloads_float" stored="false" indexed="true" class="solr.TextField">
       <analyzer>
         <tokenizer name="whitespace"/>
-        <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
+        <filter name="delimitedPayload" encoder="float"/>
       </analyzer>
     </fieldType>
     <fieldType name="delimited_payloads_int" stored="false" indexed="true" class="solr.TextField">
       <analyzer>
         <tokenizer name="whitespace"/>
-        <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="integer"/>
+        <filter name="delimitedPayload" encoder="integer"/>
       </analyzer>
     </fieldType>
     <fieldType name="delimited_payloads_string" stored="false" indexed="true" class="solr.TextField">
       <analyzer>
         <tokenizer name="whitespace"/>
-        <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="identity"/>
+        <filter name="delimitedPayload" encoder="identity"/>
       </analyzer>
     </fieldType>
 
@@ -621,8 +623,8 @@
       <analyzer>
         <tokenizer name="standard"/>
         <!-- for any non-arabic -->
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ar.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ar.txt" />
         <!-- normalizes ﻯ to ﻱ, etc -->
         <filter name="arabicNormalization"/>
         <filter name="arabicStem"/>
@@ -634,8 +636,8 @@
     <fieldType name="text_bg" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_bg.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_bg.txt" />
         <filter name="bulgarianStem"/>
       </analyzer>
     </fieldType>
@@ -647,8 +649,8 @@
         <tokenizer name="standard"/>
         <!-- removes l', etc -->
         <filter name="elision" ignoreCase="true" articles="lang/contractions_ca.txt"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ca.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ca.txt" />
         <filter name="snowballPorter" language="Catalan"/>
       </analyzer>
     </fieldType>
@@ -661,7 +663,7 @@
         <!-- normalize width before bigram, as e.g. half-width dakuten combine  -->
         <filter name="CJKWidth"/>
         <!-- for any non-CJK -->
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="lowercase"/>
         <filter name="CJKBigram"/>
       </analyzer>
     </fieldType>
@@ -671,8 +673,8 @@
     <fieldType name="text_cz" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_cz.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_cz.txt" />
         <filter name="czechStem"/>
       </analyzer>
     </fieldType>
@@ -682,8 +684,8 @@
     <fieldType name="text_da" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_da.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_da.txt" format="snowball" />
         <filter name="snowballPorter" language="Danish"/>
       </analyzer>
     </fieldType>
@@ -693,8 +695,8 @@
     <fieldType name="text_de" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_de.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_de.txt" format="snowball" />
         <filter name="germanNormalization"/>
         <filter name="germanLightStem"/>
         <!-- less aggressive: <filter name="germanMinimalStem"/> -->
@@ -709,7 +711,7 @@
         <tokenizer name="standard"/>
         <!-- greek specific lowercase for sigma -->
         <filter name="greekLowercase"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="false" words="lang/stopwords_el.txt" />
+        <filter name="stop" ignoreCase="false" words="lang/stopwords_el.txt" />
         <filter name="greekStem"/>
       </analyzer>
     </fieldType>
@@ -719,8 +721,8 @@
     <fieldType name="text_es" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_es.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_es.txt" format="snowball" />
         <filter name="spanishLightStem"/>
         <!-- more aggressive: <filter name="snowballPorter" language="Spanish"/> -->
       </analyzer>
@@ -731,8 +733,8 @@
     <fieldType name="text_et" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_et.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_et.txt" />
         <filter name="snowballPorter" language="Estonian"/>
       </analyzer>
     </fieldType>
@@ -742,8 +744,8 @@
     <fieldType name="text_eu" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_eu.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_eu.txt" />
         <filter name="snowballPorter" language="Basque"/>
       </analyzer>
     </fieldType>
@@ -755,10 +757,10 @@
         <!-- for ZWNJ -->
         <charFilter name="persian"/>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="lowercase"/>
         <filter name="arabicNormalization"/>
         <filter name="persianNormalization"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_fa.txt" />
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_fa.txt" />
       </analyzer>
     </fieldType>
 
@@ -767,8 +769,8 @@
     <fieldType name="text_fi" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_fi.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_fi.txt" format="snowball" />
         <filter name="snowballPorter" language="Finnish"/>
         <!-- less aggressive: <filter name="finnishLightStem"/> -->
       </analyzer>
@@ -781,8 +783,8 @@
         <tokenizer name="standard"/>
         <!-- removes l', etc -->
         <filter name="elision" ignoreCase="true" articles="lang/contractions_fr.txt"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_fr.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_fr.txt" format="snowball" />
         <filter name="frenchLightStem"/>
         <!-- less aggressive: <filter name="frenchMinimalStem"/> -->
         <!-- more aggressive: <filter name="snowballPorter" language="French"/> -->
@@ -797,9 +799,9 @@
         <!-- removes d', etc -->
         <filter name="elision" ignoreCase="true" articles="lang/contractions_ga.txt"/>
         <!-- removes n-, etc. position increments is intentionally false! -->
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/hyphenations_ga.txt"/>
+        <filter name="stop" ignoreCase="true" words="lang/hyphenations_ga.txt"/>
         <filter name="irishLowercase"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ga.txt"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ga.txt"/>
         <filter name="snowballPorter" language="Irish"/>
       </analyzer>
     </fieldType>
@@ -809,8 +811,8 @@
     <fieldType name="text_gl" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_gl.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_gl.txt" />
         <filter name="galicianStem"/>
         <!-- less aggressive: <filter name="galicianMinimalStem"/> -->
       </analyzer>
@@ -821,12 +823,12 @@
     <fieldType name="text_hi" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="lowercase"/>
         <!-- normalizes unicode representation -->
         <filter name="indicNormalization"/>
         <!-- normalizes variation in spelling -->
         <filter name="hindiNormalization"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_hi.txt" />
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_hi.txt" />
         <filter name="hindiStem"/>
       </analyzer>
     </fieldType>
@@ -836,8 +838,8 @@
     <fieldType name="text_hu" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_hu.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_hu.txt" format="snowball" />
         <filter name="snowballPorter" language="Hungarian"/>
         <!-- less aggressive: <filter name="hungarianLightStem"/> -->
       </analyzer>
@@ -848,8 +850,8 @@
     <fieldType name="text_hy" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_hy.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_hy.txt" />
         <filter name="snowballPorter" language="Armenian"/>
       </analyzer>
     </fieldType>
@@ -859,8 +861,8 @@
     <fieldType name="text_id" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_id.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_id.txt" />
         <!-- for a less aggressive approach (only inflectional suffixes), set stemDerivational to false -->
         <filter name="indonesianStem" stemDerivational="true"/>
       </analyzer>
@@ -873,8 +875,8 @@
         <tokenizer name="standard"/>
         <!-- removes l', etc -->
         <filter name="elision" ignoreCase="true" articles="lang/contractions_it.txt"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_it.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_it.txt" format="snowball" />
         <filter name="italianLightStem"/>
         <!-- more aggressive: <filter name="snowballPorter" language="Italian"/> -->
       </analyzer>
@@ -923,11 +925,11 @@
         <!-- Normalizes full-width romaji to half-width and half-width kana to full-width (Unicode NFKC subset) -->
         <filter name="cjkWidth"/>
         <!-- Removes common tokens typically not useful for search, but have a negative effect on ranking -->
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ja.txt" />
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ja.txt" />
         <!-- Normalizes common katakana spelling variations by removing any last long sound character (U+30FC) -->
         <filter name="japaneseKatakanaStem" minimumLength="4"/>
         <!-- Lower-cases romaji characters -->
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter name="lowercase"/>
       </analyzer>
     </fieldType>
 
@@ -961,7 +963,7 @@
         <filter name="koreanPartOfSpeechStop" />
         <!-- Replaces term text with the Hangul transcription of Hanja characters, if applicable: -->
         <filter name="koreanReadingForm" />
-        <filter class="solr.LowerCaseFilterFactory" />
+        <filter name="lowercase" />
       </analyzer>
     </fieldType>
 
@@ -970,8 +972,8 @@
     <fieldType name="text_lv" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_lv.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_lv.txt" />
         <filter name="latvianStem"/>
       </analyzer>
     </fieldType>
@@ -981,8 +983,8 @@
     <fieldType name="text_nl" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_nl.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_nl.txt" format="snowball" />
         <filter name="stemmerOverride" dictionary="lang/stemdict_nl.txt" ignoreCase="false"/>
         <filter name="snowballPorter" language="Dutch"/>
       </analyzer>
@@ -993,8 +995,8 @@
     <fieldType name="text_no" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_no.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_no.txt" format="snowball" />
         <filter name="snowballPorter" language="Norwegian"/>
         <!-- less aggressive: <filter name="norwegianLightStem"/> -->
         <!-- singular/plural: <filter name="norwegianMinimalStem"/> -->
@@ -1006,8 +1008,8 @@
   <fieldType name="text_pt" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_pt.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_pt.txt" format="snowball" />
         <filter name="portugueseLightStem"/>
         <!-- less aggressive: <filter name="portugueseMinimalStem"/> -->
         <!-- more aggressive: <filter name="snowballPorter" language="Portuguese"/> -->
@@ -1020,8 +1022,8 @@
     <fieldType name="text_ro" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ro.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ro.txt" />
         <filter name="snowballPorter" language="Romanian"/>
       </analyzer>
     </fieldType>
@@ -1031,8 +1033,8 @@
     <fieldType name="text_ru" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ru.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_ru.txt" format="snowball" />
         <filter name="snowballPorter" language="Russian"/>
         <!-- less aggressive: <filter name="russianLightStem"/> -->
       </analyzer>
@@ -1043,8 +1045,8 @@
     <fieldType name="text_sv" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="standard"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_sv.txt" format="snowball" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_sv.txt" format="snowball" />
         <filter name="snowballPorter" language="Swedish"/>
         <!-- less aggressive: <filter name="swedishLightStem"/> -->
       </analyzer>
@@ -1055,8 +1057,8 @@
     <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer name="thai"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_th.txt" />
+        <filter name="lowercase"/>
+        <filter name="stop" ignoreCase="true" words="lang/stopwords_th.txt" />
       </analyzer>
     </fieldType>
 
@@ -1066,7 +1068,7 @@
       <analyzer>
         <tokenizer name="standard"/>
         <filter name="turkishLowercase"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="false" words="lang/stopwords_tr.txt" />
+        <filter name="stop" ignoreCase="false" words="lang/stopwords_tr.txt" />
         <filter name="snowballPorter" language="Turkish"/>
       </analyzer>
     </fieldType>

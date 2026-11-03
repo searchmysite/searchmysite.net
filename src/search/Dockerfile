@@ -1,4 +1,4 @@
-FROM solr:9.8.1
+FROM solr:10.1.0
 
 # Copy the custom config files in. Note that in order to create the collection with this config, 
 # we need to do a docker run with "solr-precreate content /opt/solr/server/solr/configsets/content"

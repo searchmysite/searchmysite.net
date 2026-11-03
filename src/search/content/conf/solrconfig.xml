@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>9.11</luceneMatchVersion>
+  <luceneMatchVersion>10.4</luceneMatchVersion>
 
   <!-- Data Directory
 
@@ -199,7 +199,7 @@
          Setting The value to true will instruct the underlying Lucene
          IndexWriter to write its debugging info the specified file
       -->
-    <!-- <infoStream file="INFOSTREAM.txt">false</infoStream> -->
+    <!-- <infoStream>false</infoStream> -->
   </indexConfig>
 
   <!-- The default high-performance update handler -->
@@ -211,16 +211,9 @@
          is recommended (see below).
          "dir" - the target directory for transaction logs, defaults to the
                 solr data directory.
-         "numVersionBuckets" - sets the number of buckets used to keep
-                track of max version values when checking for re-ordered
-                updates; increase this value to reduce the cost of
-                synchronizing access to version buckets during high-volume
-                indexing, this requires 8 bytes (long) * numVersionBuckets
-                of heap space per Solr core.
     -->
     <updateLog>
       <str name="dir">${solr.ulog.dir:}</str>
-      <int name="numVersionBuckets">${solr.ulog.numVersionBuckets:65536}</int>
     </updateLog>
 
     <!-- AutoCommit
@@ -483,23 +476,19 @@
     <!-- QuerySenderListener takes an array of NamedList and executes a
          local query request for each NamedList in sequence.
       -->
+    <!--
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-           <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-           <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-          -->
+        <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
+        <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
       </arr>
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-        <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
-        </lst>
-        -->
+        <lst><str name="q">static firstSearcher warming in solrconfig.xml</str></lst>
       </arr>
     </listener>
+    -->
 
     <!-- Use Cold Searcher
 
@@ -512,12 +501,6 @@
 
   </query>
 
-  <!-- Request Dispatcher
-
-       This section contains instructions for how the SolrDispatchFilter
-       should behave when processing requests for this SolrCore.
-
-    -->
   <requestDispatcher>
     <!-- Request Parsing
 
@@ -533,16 +516,8 @@
          POST. You can use POST to pass request parameters not
          fitting into the URL.
 
-         addHttpRequestToContext - if set to true, it will instruct
-         the requestParsers to include the original HttpServletRequest
-         object in the context map of the SolrQueryRequest under the
-         key "httpRequest". It will not be used by any of the existing
-         Solr components, but may be useful when developing custom
-         plugins.
-
     <requestParsers multipartUploadLimitInKB="-1"
-                    formdataUploadLimitInKB="-1"
-                    addHttpRequestToContext="false"/>
+                    formdataUploadLimitInKB="-1"/>
       -->
 
     <!-- HTTP Caching
@@ -625,9 +600,9 @@
       <!-- start searchmysite change -->
       <str name="qf">title^1.1 description^1.05 author^1.05 tags url content</str>
       <str name="pf">title^1.1 description^1.05 author^1.05 tags url content</str>
-      <str name="boost">product( sum(1, log(sum(1, product(indexed_inlink_domains_count, 1.8)))), if(contains_adverts,0.5,1), if(owner_verified,1.1,1) )</str>
+      <str name="boost">product( sum(1, log(sum(1, product(indexed_inlink_domains_count, 1.8)))), if(termfreq(contains_adverts,'true'),0.5,1), if(termfreq(owner_verified,'true'),1.1,1) )</str>
       <!-- end searchmysite change -->
-      
+
     </lst>
   </requestHandler>
 
@@ -883,7 +858,6 @@
   </updateProcessor>
   <updateProcessor class="solr.NumFieldLimitingUpdateRequestProcessorFactory" name="max-fields">
     <int name="maxFields">1000</int>
-    <bool name="warnOnly">true</bool>
   </updateProcessor>
   <updateProcessor class="solr.ParseBooleanFieldUpdateProcessorFactory" name="parse-boolean"/>
   <updateProcessor class="solr.ParseLongFieldUpdateProcessorFactory" name="parse-long"/>
@@ -928,7 +902,7 @@
       <str name="fieldType">pdoubles</str>
     </lst>
   </updateProcessor>
-  
+
 
   <!-- The update.autoCreateFields property can be turned to false to disable schemaless mode -->
   <updateRequestProcessorChain name="add-unknown-fields-to-the-schema" default="${update.autoCreateFields:false}"
@@ -979,10 +953,6 @@
                           default="true"
                           class="solr.XMLResponseWriter" />
      <queryResponseWriter name="json" class="solr.JSONResponseWriter"/>
-     <queryResponseWriter name="python" class="solr.PythonResponseWriter"/>
-     <queryResponseWriter name="ruby" class="solr.RubyResponseWriter"/>
-     <queryResponseWriter name="php" class="solr.PHPResponseWriter"/>
-     <queryResponseWriter name="phps" class="solr.PHPSerializedResponseWriter"/>
      <queryResponseWriter name="csv" class="solr.CSVResponseWriter"/>
      <queryResponseWriter name="schema.xml" class="solr.SchemaXmlResponseWriter"/>
     -->
