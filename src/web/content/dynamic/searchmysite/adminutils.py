@@ -176,7 +176,7 @@ def insert_subscription(domain, tier):
         session_id = request.args.get('session_id')
         stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
         session = stripe.checkout.Session.retrieve(session_id)
-        payment_intent = session.get('payment_intent')
+        payment_intent = session.to_dict().get('payment_intent')
         current_app.logger.debug('session_id {}, payment_intent: {}'.format(session_id, payment_intent))
     conn = get_db()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)

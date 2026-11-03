@@ -3,7 +3,7 @@ flask==3.1.3
 psycopg2==2.9.13
 tldextract==5.4.0
 scrapy==2.19.0
-stripe==12.3.0
+stripe==16.1.0
 # Have to install domcheck from github.com because 
 # pip package doesn't yet have fix from 23 Aug 2017 in commit b0d1a1427e22805cea2cedc49039facbb5e516e4
 git+https://github.com/rs/domcheck#egg=domcheck

@@ -94,9 +94,13 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         #assert 'searchmysite.net' in browser.title
         #assert 'Verified Owner Listing' in browser.response
         assert 'Stripe' in browser.page_source
-        # Fill in details
+        # Fill in email details
         email_input = browser.find_element(By.ID, 'email')
         email_input.send_keys(pytest.add_full_email)
+        # Select card payment option
+        card_option = browser.find_element(By.CSS_SELECTOR, '[data-testid="card-accordion-item"]')
+        ActionChains(browser).click(card_option).perform()
+        # Fill in card details
         card_number_input = browser.find_element(By.ID, 'cardNumber')
         card_number_input.send_keys('4242424242424242')
         card_expiry_input = browser.find_element(By.ID, 'cardExpiry')
@@ -105,8 +109,8 @@ def test_full_usernamepassword_get(anon_client, add_full_details, payment_detail
         card_cvc_input.send_keys('123')
         card_billing_name_input = browser.find_element(By.ID, 'billingName')
         card_billing_name_input.send_keys('Michael')
-        card_billing_postcode_input = browser.find_element(By.ID, 'billingPostalCode')
-        card_billing_postcode_input.send_keys('NW3 1QG')
+        # card_billing_postcode_input = browser.find_element(By.ID, 'billingPostalCode')
+        # card_billing_postcode_input.send_keys('NW3 1QG')
         # The current Stripe Checkout design does not submit when Enter is pressed,
         # so the payment must be submitted by explicitly clicking the Pay button.
         pay_button = browser.find_element(By.CSS_SELECTOR, '[data-testid="hosted-payment-submit-button"]')

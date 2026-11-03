@@ -73,7 +73,6 @@ def create_checkout_session(success_url_for):
         checkout_session = stripe.checkout.Session.create(
             success_url = domain_url + success_url_for + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url = domain_url + url_for('checkout.checkout_cancelled'),
-            payment_method_types=["card"],
             mode="payment",
             line_items=[
                 {
@@ -82,7 +81,8 @@ def create_checkout_session(success_url_for):
                 }
             ]
         )
-        current_app.logger.debug('success_url: {}'.format(checkout_session.get('success_url')))
+        current_app.logger.debug('success_url: {}'.format(checkout_session.to_dict().get('success_url')))
         return jsonify({"sessionId": checkout_session["id"]})
     except Exception as e:
+        current_app.logger.error('create_checkout_session: {}'.format(e))
         return jsonify(error=str(e)), 403
