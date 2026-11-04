@@ -3,7 +3,8 @@ import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.exceptions import DropItem
 from scrapy.http import HtmlResponse, XmlResponse
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer, XMLParsedAsHTMLWarning
+import warnings
 import datetime
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
@@ -234,7 +235,15 @@ def customparser(response, domain, is_home, domains_for_indexed_links, site_conf
 
         # content
         only_body = SoupStrainer('body')
-        body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
+        # Some pages are actually XML, which makes bs4 emit a multi-line XMLParsedAsHTMLWarning.
+        # Catch it and log a short single line instead, to keep the indexing logs easier to parse.
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            body_html = BeautifulSoup(response.text, 'lxml', parse_only=only_body)
+        for w in caught_warnings:
+            if issubclass(w.category, XMLParsedAsHTMLWarning):
+                logger.warning('XML parsed as HTML: {}'.format(response.url))
+            else:
+                warnings.warn_explicit(w.message, w.category, w.filename, w.lineno, w.line)
         for non_content in body_html(["nav", "header", "footer"]): # Remove nav, header, and footer tags and their contents
             non_content.decompose()
         main_html = body_html.find('main')
