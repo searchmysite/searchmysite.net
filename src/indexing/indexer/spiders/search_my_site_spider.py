@@ -138,7 +138,7 @@ class SearchMySiteSpider(CrawlSpider):
                 try:
                     yield Request(link, callback=self.parse_item)
                 except ValueError:
-                    logger.warn('ValueError for {}'.format(link)) # Sometimes links in feeds are relative and throw ValueError(f"Missing scheme in request url: {self._url}")
+                    logger.warning('ValueError for {}'.format(link)) # Sometimes links in feeds are relative and throw ValueError(f"Missing scheme in request url: {self._url}")
         elif isinstance(response, HtmlResponse):
             logger.info('Processing home page: {}'.format(response.url))
             if self.full_index == True: # Only index the home page on full index
@@ -146,7 +146,7 @@ class SearchMySiteSpider(CrawlSpider):
                 item = customparser(response, self.domain, is_home, self.domains_for_indexed_links, self.site_config, self.common_config)
                 yield item
         else:
-            logger.warn('Skipping processing start_url: {}'.format(response.url))
+            logger.warning('Skipping processing start_url: {}'.format(response.url))
 
     def parse_item(self, response):
         configure_logging(get_project_settings())
@@ -154,11 +154,17 @@ class SearchMySiteSpider(CrawlSpider):
         logger.debug('Parsing URL: {}'.format(response.url))
         scrape_count = self.crawler.stats.get_value('item_scraped_count')
         indexing_page_limit = self.site_config['indexing_page_limit']
-        # Using this method to stop the spider when indexing_page_limit reached
+        # Using this method to stop the spider when indexing_page_limit reached.
         # Can't use self.settings['CLOSESPIDER_ITEMCOUNT'] because that is at class level, 
-        # but we may have different values at instance level
-        if scrape_count == indexing_page_limit:
-            logger.info('Indexing page limit of {} reached.'.format(str(indexing_page_limit)))
+        # but we may have different values at instance level.
+        # Also using >= rather than == to try to address issue whereby (during concurrent 
+        # indexing of multiple sites) the indexing for one site sometimes continues well beyond the 
+        # indexing_page_limit.
+        if scrape_count >= indexing_page_limit:
+            if scrape_count > indexing_page_limit:
+                logger.warning('Indexed {} pages, exceeding page limit of {}.'.format(str(scrape_count), str(indexing_page_limit)))
+            else:
+                logger.info('Indexing page limit of {} reached.'.format(str(indexing_page_limit)))
             raise CloseSpider("Indexing page limit reached.")
         if not isinstance(response, TextResponse):
             logger.info('Item {} is not a TextResponse, so skipping.'.format(response)) # Skip item if e.g. an image
